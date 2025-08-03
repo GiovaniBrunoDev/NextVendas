@@ -1,74 +1,78 @@
-// src/pages/MobileHome.jsx
-import { useEffect, useState } from "react";
-import { PlusCircle, ShoppingCart, History, Package } from "lucide-react";
-import api from "../services/api";
+import { useNavigate } from "react-router-dom";
+import { ShoppingBag, ShoppingCart, PackageSearch, Home } from "lucide-react";
 
 export default function MobileHome() {
-  const [produtos, setProdutos] = useState([]);
-  const [busca, setBusca] = useState("");
+  const navigate = useNavigate();
 
-  useEffect(() => {
-    async function carregarProdutos() {
-      const res = await api.get("/produtos");
-      setProdutos(res.data);
-    }
-    carregarProdutos();
-  }, []);
-
-  const produtosFiltrados = produtos.filter((produto) =>
-    produto.nome.toLowerCase().includes(busca.toLowerCase())
-  );
+  const produtos = [
+    { id: 1, nome: "Tênis Nike Air", preco: 299.9 },
+    { id: 2, nome: "Tênis Adidas UltraBoost", preco: 349.9 },
+    { id: 3, nome: "Tênis Puma RS-X", preco: 259.9 },
+    { id: 4, nome: "Tênis Vans Old Skool", preco: 219.9 },
+    { id: 5, nome: "Tênis Converse All Star", preco: 199.9 },
+  ];
 
   return (
-    <div className="block md:hidden bg-gray-100 min-h-screen">
+    <div className="md:hidden min-h-screen flex flex-col">
+      <header className="bg-blue-600 text-white text-center py-4 text-xl font-bold">
+        NextPDV Mobile
+      </header>
+
       <div className="p-4">
         <input
           type="text"
-          placeholder="Buscar produto..."
-          className="w-full p-2 mb-4 border border-gray-300 rounded"
-          value={busca}
-          onChange={(e) => setBusca(e.target.value)}
+          placeholder="Buscar produtos..."
+          className="w-full px-4 py-2 mb-4 border rounded-lg shadow"
         />
 
         <div className="grid grid-cols-2 gap-4">
-          {produtosFiltrados.map((produto) => (
+          {produtos.map((produto) => (
             <div
               key={produto.id}
-              className="bg-white rounded shadow p-3 flex flex-col items-center text-center"
+              className="bg-white p-4 rounded-lg shadow text-center"
             >
-              <img
-                src={produto.imagem || "/placeholder.png"}
-                alt={produto.nome}
-                className="w-20 h-20 object-cover rounded mb-2"
-              />
-              <span className="font-semibold text-sm mb-1 truncate">
+              <div className="text-sm font-semibold mb-2 truncate">
                 {produto.nome}
-              </span>
-              <span className="text-green-600 font-bold text-sm">
-                R$ {produto.preco?.toFixed(2)}
-              </span>
+              </div>
+              <div className="text-blue-600 font-bold text-lg">
+                R$ {produto.preco.toFixed(2)}
+              </div>
+              <button className="mt-2 px-3 py-1 text-sm bg-blue-600 text-white rounded shadow">
+                Adicionar
+              </button>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Navbar inferior */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-md flex justify-around py-2 z-50">
-        <button className="flex flex-col items-center text-sm text-gray-700">
-          <PlusCircle className="w-5 h-5" />
-          Nova Venda
+      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-md flex justify-around py-2 z-50">
+        <button
+          onClick={() => navigate("/vendas/nova")}
+          className="flex flex-col items-center text-blue-600"
+        >
+          <ShoppingBag className="w-5 h-5" />
+          <span className="text-xs">Nova</span>
         </button>
-        <button className="flex flex-col items-center text-sm text-gray-700">
+        <button
+          onClick={() => navigate("/carrinho")}
+          className="flex flex-col items-center text-blue-600"
+        >
           <ShoppingCart className="w-5 h-5" />
-          Carrinho
+          <span className="text-xs">Carrinho</span>
         </button>
-        <button className="flex flex-col items-center text-sm text-gray-700">
-          <History className="w-5 h-5" />
-          Vendas
+        <button
+          onClick={() => navigate("/vendas")}
+          className="flex flex-col items-center text-blue-600"
+        >
+          <PackageSearch className="w-5 h-5" />
+          <span className="text-xs">Vendas</span>
         </button>
-        <button className="flex flex-col items-center text-sm text-gray-700">
-          <Package className="w-5 h-5" />
-          Estoque
+        <button
+          onClick={() => navigate("/estoque")}
+          className="flex flex-col items-center text-blue-600"
+        >
+          <Home className="w-5 h-5" />
+          <span className="text-xs">Estoque</span>
         </button>
       </nav>
     </div>
