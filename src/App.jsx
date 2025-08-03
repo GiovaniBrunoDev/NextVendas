@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
 
 import SidebarLayout from "./layout/SidebarLayout";
 import Dashboard from "./pages/Dashboard";
@@ -13,8 +13,17 @@ import MobileHome from "./pages/MobileHome";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-function App() {
+function AppWrapper() {
+  const navigate = useNavigate();
   const [tela, setTela] = useState("dashboard");
+
+  // Detecta se é mobile e redireciona
+  useEffect(() => {
+    const isMobile = window.innerWidth <= 768;
+    if (isMobile && window.location.pathname !== "/mobile") {
+      navigate("/mobile");
+    }
+  }, []);
 
   const renderizarTela = () => {
     switch (tela) {
@@ -32,7 +41,7 @@ function App() {
   };
 
   return (
-    <BrowserRouter>
+    <>
       <Routes>
         {/* Rota exclusiva para mobile */}
         <Route path="/mobile" element={<MobileHome />} />
@@ -50,6 +59,14 @@ function App() {
           }
         />
       </Routes>
+    </>
+  );
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <AppWrapper />
     </BrowserRouter>
   );
 }
