@@ -11,10 +11,32 @@ import "react-toastify/dist/ReactToastify.css";
 import Clientes from "./pages/Clientes";
 
 function App() {
+  const [tela, setTela] = useState("dashboard");
+
+  const renderizarTela = () => {
+    switch (tela) {
+      case "vendas":
+        return <Vendas />;
+      case "historico":
+        return <VendasListadas />;
+      case "estoque":
+        return <Estoque />;
+      case "clientes":
+        return <Clientes/>
+      default:
+        return <Dashboard />;
+    }
+  };
+
   return (
-    <div className="bg-blue-500 text-white p-4">
-      Teste simples — Tailwind funcionando!
-    </div>
+    <>
+      <SidebarLayout setTela={setTela}>
+        {renderizarTela()}
+      </SidebarLayout>
+
+      {/* Toasts globais */}
+      <ToastContainer position="top-right" autoClose={3000} />
+    </>
   );
 }
 
