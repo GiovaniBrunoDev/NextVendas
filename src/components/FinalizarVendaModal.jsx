@@ -98,184 +98,185 @@ export default function FinalizarVendaModal({ carrinho, aoFechar, aoFinalizar })
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-black bg-opacity-40 flex items-center justify-center px-4 backdrop-blur-sm">
-      <div className="bg-white p-6 rounded-2xl w-full max-w-lg shadow-xl border border-gray-200 animate-fadeIn">
-        <h2 className="text-2xl font-bold text-blue-700 mb-6 border-b pb-2">🧾 Finalizar Venda</h2>
+    <div className="fixed inset-0 z-50 bg-black bg-opacity-40 flex items-center justify-center px-2 backdrop-blur-sm">
+  <div className="bg-white p-4 sm:p-6 rounded-2xl w-full max-w-md sm:max-w-lg shadow-xl border border-gray-200 animate-fadeIn overflow-y-auto max-h-screen">
+    <h2 className="text-2xl font-bold text-blue-700 mb-4 sm:mb-6 border-b pb-2">🧾 Finalizar Venda</h2>
 
-        {/* Pagamento */}
-        <div className="mb-6">
-          <h3 className="font-semibold text-gray-700 mb-2">Forma de Pagamento</h3>
-          <div className="grid grid-cols-3 gap-2">
-            {[
-              { value: "pix", label: "Pix", icon: <SiPix /> },
-              { value: "dinheiro", label: "Dinheiro", icon: <FaMoneyBillAlt /> },
-              { value: "cartao", label: "Cartão", icon: <FaCreditCard /> },
-            ].map((opcao) => (
-              <button
-                key={opcao.value}
-                onClick={() => setFormaPagamento(opcao.value)}
-                className={`flex flex-col items-center justify-center py-3 px-2 rounded-lg border text-xs font-medium transition-all ${
-                  formaPagamento === opcao.value
-                    ? "bg-blue-100 border-blue-600 text-blue-800"
-                    : "bg-white border-gray-300 text-gray-600 hover:bg-gray-100"
-                }`}
-              >
-                <div className="text-lg">{opcao.icon}</div>
-                {opcao.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Cliente */}
-        <div className="mb-6">
-          <h3 className="font-semibold text-gray-700 mb-2">👤 Cliente</h3>
-          {clienteSelecionado ? (
-            <>
-              <Select
-                options={opcoes}
-                value={opcoes.find((opt) => opt.value === clienteSelecionado)}
-                onChange={(e) => setClienteSelecionado(e?.value || "")}
-                placeholder="Buscar ou selecionar cliente..."
-                isClearable
-              />
-              <p className="text-sm text-gray-500 mt-1">Cliente selecionado. Deseja cadastrar um novo?</p>
-              <button
-                onClick={() => {
-                  setClienteSelecionado("");
-                  setClienteNome("");
-                  setClienteTelefone("");
-                }}
-                className="text-blue-600 hover:underline text-sm mt-1"
-              >
-                ➕ Cadastrar novo cliente
-              </button>
-            </>
-          ) : (
-            <div className="grid grid-cols-1 gap-2">
-              <input
-                type="text"
-                placeholder="Nome do novo cliente"
-                value={clienteNome}
-                onChange={(e) => setClienteNome(e.target.value)}
-                className="w-full border border-gray-300 p-2 rounded-md placeholder:text-sm"
-              />
-              <input
-                type="text"
-                placeholder="Telefone (ex: (99)99999-9999)"
-                value={clienteTelefone}
-                onChange={(e) => setClienteTelefone(formatTelefone(e.target.value))}
-                className="w-full border border-gray-300 p-2 rounded-md placeholder:text-sm"
-              />
-              {clientes.length > 0 && (
-                <Select
-                  options={opcoes}
-                  onChange={(e) => {
-                    const id = e?.value || "";
-                    setClienteSelecionado(id);
-                    if (id) {
-                      const cliente = clientes.find((c) => c.id === id);
-                      if (cliente) {
-                        setEndereco(cliente.endereco || "");
-                        setEditandoEndereco(false);
-                      }
-                    } else {
-                      setEndereco("");
-                    }
-                  }}
-                  placeholder="Selecionar cliente existente..."
-                  isClearable
-                />
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* Entrega */}
-        <div className="mb-6">
-          <h3 className="font-semibold text-gray-700 mb-2">🚚 Tipo de Entrega</h3>
-          <div className="flex gap-3">
-            {[
-              { label: "🏪 Retirada", value: "retirada" },
-              { label: "🏍️ Entrega", value: "entrega" },
-            ].map((opcao) => (
-              <button
-                key={opcao.value}
-                onClick={() => setTipoEntrega(opcao.value)}
-                className={`flex-1 py-3 px-4 rounded-lg border font-medium text-sm text-center transition ${
-                  tipoEntrega === opcao.value
-                    ? "bg-blue-600 text-white border-blue-600 shadow-md"
-                    : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
-                }`}
-              >
-                {opcao.label}
-              </button>
-            ))}
-          </div>
-
-          {tipoEntrega === "entrega" && (
-            <div className="mt-4 space-y-4 animate-fadeIn">
-              <textarea
-                rows={2}
-                value={endereco}
-                onChange={(e) => setEndereco(e.target.value)}
-                placeholder="📍 Endereço de entrega"
-                className="w-full border border-gray-300 p-2 rounded-md text-sm"
-              />
-              <input
-                type="number"
-                placeholder="💰 Taxa de entrega (R$)"
-                value={taxaEntrega}
-                onChange={(e) => setTaxaEntrega(e.target.value)}
-                className="w-full border border-gray-300 p-2 rounded-md placeholder:text-sm"
-              />
-              <input
-                type="text"
-                placeholder="👤 Nome do entregador"
-                value={entregador}
-                onChange={(e) => setEntregador(e.target.value)}
-                className="w-full border border-gray-300 p-2 rounded-md placeholder:text-sm"
-              />
-            </div>
-          )}
-        </div>
-
-        {/* Desconto */}
-        <div className="mb-6">
-          <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-            <FaPercentage /> Desconto (R$)
-          </label>
-          <input
-            type="number"
-            placeholder="Ex: 5.00"
-            value={desconto}
-            onChange={(e) => setDesconto(e.target.value)}
-            className="w-full border border-gray-300 p-2 rounded-md placeholder:text-sm mt-1"
-          />
-        </div>
-
-        {/* Total */}
-        <div className="flex justify-between items-center text-lg font-bold border-t pt-3">
-          <span>Total:</span>
-          <span className="text-green-600">R$ {totalFinal.toFixed(2)}</span>
-        </div>
-
-        {/* Ações */}
-        <div className="flex justify-end gap-3 mt-5">
+    {/* Pagamento */}
+    <div className="mb-5">
+      <h3 className="font-semibold text-gray-700 mb-2">Forma de Pagamento</h3>
+      <div className="grid grid-cols-3 sm:grid-cols-3 gap-2">
+        {[
+          { value: "pix", label: "Pix", icon: <SiPix /> },
+          { value: "dinheiro", label: "Dinheiro", icon: <FaMoneyBillAlt /> },
+          { value: "cartao", label: "Cartão", icon: <FaCreditCard /> },
+        ].map((opcao) => (
           <button
-            onClick={aoFechar}
-            className="px-4 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-100 transition"
+            key={opcao.value}
+            onClick={() => setFormaPagamento(opcao.value)}
+            className={`flex flex-col items-center justify-center py-3 px-2 rounded-lg border text-xs font-medium transition-all ${
+              formaPagamento === opcao.value
+                ? "bg-blue-100 border-blue-600 text-blue-800"
+                : "bg-white border-gray-300 text-gray-600 hover:bg-gray-100"
+            }`}
           >
-            Cancelar
+            <div className="text-lg">{opcao.icon}</div>
+            {opcao.label}
           </button>
-          <button
-            onClick={handleFinalizar}
-            className="px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 shadow transition active:scale-95"
-          >
-            Confirmar Venda
-          </button>
-        </div>
+        ))}
       </div>
     </div>
+
+    {/* Cliente */}
+    <div className="mb-5">
+      <h3 className="font-semibold text-gray-700 mb-2">👤 Cliente</h3>
+      {clienteSelecionado ? (
+        <>
+          <Select
+            options={opcoes}
+            value={opcoes.find((opt) => opt.value === clienteSelecionado)}
+            onChange={(e) => setClienteSelecionado(e?.value || "")}
+            placeholder="Buscar ou selecionar cliente..."
+            isClearable
+          />
+          <p className="text-sm text-gray-500 mt-1">Cliente selecionado. Deseja cadastrar um novo?</p>
+          <button
+            onClick={() => {
+              setClienteSelecionado("");
+              setClienteNome("");
+              setClienteTelefone("");
+            }}
+            className="text-blue-600 hover:underline text-sm mt-1"
+          >
+            ➕ Cadastrar novo cliente
+          </button>
+        </>
+      ) : (
+        <div className="grid grid-cols-1 gap-2">
+          <input
+            type="text"
+            placeholder="Nome do novo cliente"
+            value={clienteNome}
+            onChange={(e) => setClienteNome(e.target.value)}
+            className="w-full border border-gray-300 p-2 rounded-md placeholder:text-sm"
+          />
+          <input
+            type="text"
+            placeholder="Telefone (ex: (99)99999-9999)"
+            value={clienteTelefone}
+            onChange={(e) => setClienteTelefone(formatTelefone(e.target.value))}
+            className="w-full border border-gray-300 p-2 rounded-md placeholder:text-sm"
+          />
+          {clientes.length > 0 && (
+            <Select
+              options={opcoes}
+              onChange={(e) => {
+                const id = e?.value || "";
+                setClienteSelecionado(id);
+                if (id) {
+                  const cliente = clientes.find((c) => c.id === id);
+                  if (cliente) {
+                    setEndereco(cliente.endereco || "");
+                    setEditandoEndereco(false);
+                  }
+                } else {
+                  setEndereco("");
+                }
+              }}
+              placeholder="Selecionar cliente existente..."
+              isClearable
+            />
+          )}
+        </div>
+      )}
+    </div>
+
+    {/* Entrega */}
+    <div className="mb-5">
+      <h3 className="font-semibold text-gray-700 mb-2">🚚 Tipo de Entrega</h3>
+      <div className="flex gap-3 flex-col sm:flex-row">
+        {[
+          { label: "🏪 Retirada", value: "retirada" },
+          { label: "🏍️ Entrega", value: "entrega" },
+        ].map((opcao) => (
+          <button
+            key={opcao.value}
+            onClick={() => setTipoEntrega(opcao.value)}
+            className={`flex-1 py-3 px-4 rounded-lg border font-medium text-sm text-center transition ${
+              tipoEntrega === opcao.value
+                ? "bg-blue-600 text-white border-blue-600 shadow-md"
+                : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
+            }`}
+          >
+            {opcao.label}
+          </button>
+        ))}
+      </div>
+
+      {tipoEntrega === "entrega" && (
+        <div className="mt-4 space-y-4 animate-fadeIn">
+          <textarea
+            rows={2}
+            value={endereco}
+            onChange={(e) => setEndereco(e.target.value)}
+            placeholder="📍 Endereço de entrega"
+            className="w-full border border-gray-300 p-2 rounded-md text-sm"
+          />
+          <input
+            type="number"
+            placeholder="💰 Taxa de entrega (R$)"
+            value={taxaEntrega}
+            onChange={(e) => setTaxaEntrega(e.target.value)}
+            className="w-full border border-gray-300 p-2 rounded-md placeholder:text-sm"
+          />
+          <input
+            type="text"
+            placeholder="👤 Nome do entregador"
+            value={entregador}
+            onChange={(e) => setEntregador(e.target.value)}
+            className="w-full border border-gray-300 p-2 rounded-md placeholder:text-sm"
+          />
+        </div>
+      )}
+    </div>
+
+    {/* Desconto */}
+    <div className="mb-5">
+      <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+        <FaPercentage /> Desconto (R$)
+      </label>
+      <input
+        type="number"
+        placeholder="Ex: 5.00"
+        value={desconto}
+        onChange={(e) => setDesconto(e.target.value)}
+        className="w-full border border-gray-300 p-2 rounded-md placeholder:text-sm mt-1"
+      />
+    </div>
+
+    {/* Total */}
+    <div className="flex justify-between items-center text-lg font-bold border-t pt-3">
+      <span>Total:</span>
+      <span className="text-green-600">R$ {totalFinal.toFixed(2)}</span>
+    </div>
+
+    {/* Ações */}
+    <div className="flex flex-col sm:flex-row justify-end gap-3 mt-5">
+      <button
+        onClick={aoFechar}
+        className="w-full sm:w-auto px-4 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-100 transition"
+      >
+        Cancelar
+      </button>
+      <button
+        onClick={handleFinalizar}
+        className="w-full sm:w-auto px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 shadow transition active:scale-95"
+      >
+        Confirmar Venda
+      </button>
+    </div>
+  </div>
+</div>
+
   );
 }

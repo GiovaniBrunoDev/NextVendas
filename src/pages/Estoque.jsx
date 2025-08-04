@@ -170,8 +170,9 @@ export default function Estoque() {
   };
 
 
-  return (
-    <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+
+     return (
+    <div className="p-4 grid grid-cols-1 lg:grid-cols-2 gap-6">
       {/* Lista de Produtos */}
       <div className="bg-white shadow rounded p-4">
         <h2 className="text-lg font-semibold mb-4">📦 Produtos</h2>
@@ -182,16 +183,15 @@ export default function Estoque() {
           onChange={(e) => setBusca(e.target.value)}
           className="w-full mb-4 px-3 py-2 border border-gray-300 rounded text-sm"
         />
-        <ul className="divide-y text-sm max-h-[500px] overflow-auto">
+        <ul className="divide-y text-sm max-h-[400px] md:max-h-[500px] overflow-auto">
           {produtosFiltrados.map((produto) => (
             <li
               key={produto.id}
               onClick={() => setProdutoSelecionado(produto)}
-              className={`p-3 cursor-pointer hover:bg-blue-50 rounded flex gap-3 items-center ${
+              className={`p-3 cursor-pointer hover:bg-blue-50 rounded flex gap-3 items-center transition-all duration-150 ${
                 produtoSelecionado?.id === produto.id ? "bg-blue-100 font-semibold" : ""
               }`}
             >
-              {/* Miniatura */}
               {produto.imagemUrlCompleta ? (
                 <img
                   src={produto.imagemUrlCompleta}
@@ -203,8 +203,6 @@ export default function Estoque() {
                   Sem imagem
                 </div>
               )}
-
-              {/* Informações do produto */}
               <div>
                 <p>{produto.nome}</p>
                 <p className="text-xs text-gray-500">R$ {produto.preco.toFixed(2)}</p>
@@ -215,203 +213,107 @@ export default function Estoque() {
         </ul>
       </div>
 
-      {/* Card do Produto Selecionado */}
+      {/* Detalhes do Produto */}
       <div className="bg-white shadow rounded p-4 min-h-[400px] relative">
-        <h2 className="text-lg font-semibold mb-4">🔢 Variações</h2>
         {!produtoSelecionado ? (
           <p className="text-gray-500 text-sm">Selecione um produto à esquerda.</p>
         ) : (
           <>
-            <div className="mb-6 border-b pb-4 relative">
-  <div className="flex gap-4 items-start">
-    {/* Imagem do produto com botão de editar */}
-    <div className="relative w-20 h-20">
-      {produtoSelecionado.imagemUrlCompleta ? (
-        <img
-          src={produtoSelecionado.imagemUrlCompleta}
-          alt={produtoSelecionado.nome}
-          className="w-20 h-20 object-cover rounded"
-        />
-      ) : (
-        <div className="w-20 h-20 bg-gray-200 flex items-center justify-center text-xs text-gray-500 rounded">
-          Sem imagem
-        </div>
-      )}
-
-      {/* Botão para trocar imagem */}
-      <button
-        className="absolute bottom-1 right-1 bg-white text-gray-700 rounded-full p-1 shadow hover:bg-gray-100"
-        title="Trocar imagem"
-        onClick={(e) => {
-          e.stopPropagation();
-          document.getElementById("uploadImagemCard")?.click();
-        }}
-      >
-        <FaPen size={12} />
-      </button>
-
-      <input
-        type="file"
-        accept="image/*"
-        id="uploadImagemCard"
-        onChange={handleSelecionarNovaImagem}
-        className="hidden"
-      />
-    </div>
-
-    {/* Informações de texto */}
-    <div className="space-y-1">
-      <p className="text-xl font-semibold text-gray-900">{produtoSelecionado.nome}</p>
-      <p className="text-sm text-gray-600">
-        Preço: <strong>R$ {produtoSelecionado.preco.toFixed(2)}</strong> &nbsp;|&nbsp;
-        Custo: <strong>R$ {produtoSelecionado.custoUnitario.toFixed(2)}</strong> &nbsp;|&nbsp;
-        Outros custos: <strong>R$ {produtoSelecionado.outrosCustos.toFixed(2)}</strong>
-      </p>
-    </div>
-  </div>
-
-  {/* Botão excluir produto */}
-  <button
-    onClick={() => excluirProduto(produtoSelecionado.id)}
-    className="absolute top-2 right-2 px-3 py-1.5 text-xs font-medium text-red-600 bg-transparent border border-red-300 rounded transition-colors duration-200 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-400"
-  >
-    Excluir Produto
-  </button>
-</div>
-
-
-            {/* Lista de Variações */}
-            <div className="space-y-4 max-h-[420px] overflow-auto">
-              {produtoSelecionado.variacoes.map((v) => {
-                const estaEditando = editandoEstoque[v.id];
-                return (
-                  <div key={v.id} className="border rounded-lg p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between bg-gray-50 shadow-sm">
-                    <div>
-                      <p className="font-medium">
-                        Numeração: <span className="text-blue-600">{v.numeracao}</span>
-                      </p>
-                      <p className="text-sm text-gray-500">
-                        Estoque atual: <span className="font-semibold">{v.estoque}</span>
-                      </p>
-                    </div>
-                    <div className="flex gap-2 mt-3 sm:mt-0 items-center">
-                      {estaEditando ? (
-                        <>
-                          <input
-                            type="number"
-                            className="border rounded px-2 py-1 w-24"
-                            value={estoquesEditados[v.id] ?? v.estoque}
-                            onChange={(e) => handleEstoqueChange(v.id, e.target.value)}
-                          />
-                          <button
-                            onClick={() => {
-                              salvarEstoque(v.id);
-                              setEditandoEstoque((prev) => ({ ...prev, [v.id]: false }));
-                            }}
-                            className="bg-green-500 hover:bg-green-600 text-white p-2 rounded-full transition"
-                            title="Salvar"
-                          >
-                            <FaSave size={16} />
-                          </button>
-                        </>
-                      ) : (
-                        <button
-                          onClick={() => setEditandoEstoque((prev) => ({ ...prev, [v.id]: true }))}
-                          className="bg-gray-400 hover:bg-gray-500 text-white p-2 rounded-full transition"
-                          title="Editar estoque"
-                        >
-                          <FaEdit size={16} />
-                        </button>
-                      )}
-                      <button
-                        onClick={() => excluirVariacao(v.id)}
-                        className="bg-red-500 hover:bg-red-600 text-white p-2 rounded-full transition"
-                        title="Excluir variação"
-                      >
-                        <FaTrashAlt size={16} />
-                      </button>
-                    </div>
+            <div className="mb-4 border-b pb-4 relative flex flex-col sm:flex-row sm:gap-4">
+              <div className="relative w-20 h-20">
+                {produtoSelecionado.imagemUrlCompleta ? (
+                  <img
+                    src={produtoSelecionado.imagemUrlCompleta}
+                    alt={produtoSelecionado.nome}
+                    className="w-20 h-20 object-cover rounded"
+                  />
+                ) : (
+                  <div className="w-20 h-20 bg-gray-200 flex items-center justify-center text-xs text-gray-500 rounded">
+                    Sem imagem
                   </div>
-                );
-              })}
+                )}
+                <button
+                  className="absolute bottom-1 right-1 bg-white text-gray-700 rounded-full p-1 shadow hover:bg-gray-100"
+                  title="Trocar imagem"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    document.getElementById("uploadImagemCard")?.click();
+                  }}
+                >
+                  <FaPen size={12} />
+                </button>
+                <input
+                  type="file"
+                  accept="image/*"
+                  id="uploadImagemCard"
+                  onChange={handleSelecionarNovaImagem}
+                  className="hidden"
+                />
+              </div>
+              <div className="space-y-1">
+                <p className="text-xl font-semibold text-gray-900">{produtoSelecionado.nome}</p>
+                <p className="text-sm text-gray-600">
+                  Preço: <strong>R$ {produtoSelecionado.preco.toFixed(2)}</strong> &nbsp;|&nbsp;
+                  Custo: <strong>R$ {produtoSelecionado.custoUnitario.toFixed(2)}</strong> &nbsp;|&nbsp;
+                  Outros custos: <strong>R$ {produtoSelecionado.outrosCustos.toFixed(2)}</strong>
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  if (window.confirm("Tem certeza que deseja excluir este produto?")) {
+                    api.delete(`/produtos/${produtoSelecionado.id}`);
+                    toast.success("Produto excluído!");
+                    setProdutoSelecionado(null);
+                    carregarProdutos();
+                  }
+                }}
+                className="absolute top-2 right-2 px-3 py-1.5 text-xs text-red-600 border border-red-300 rounded hover:bg-red-50"
+              >
+                Excluir
+              </button>
             </div>
 
-            {/* Adicionar Nova Variação */}
-            {!mostrarFormularioVariacao ? (
-              <div className="mt-6">
-                <button
-                  onClick={() => setMostrarFormularioVariacao(true)}
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 text-sm font-medium rounded-md shadow-sm transition duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-gray-300"
-                >
-                  <span className="text-lg">➕</span>
-                  <span>Adicionar Nova Variação</span>
-                </button>
-              </div>
-            ) : (
-              <div className="mt-6 border-t pt-4">
-                <h3 className="text-sm font-semibold mb-2">➕ Nova Variação</h3>
-                <div className="flex flex-col sm:flex-row gap-2 items-center">
-                  <input
-                    type="text"
-                    placeholder="Numeração (ex: 39)"
-                    value={novaVariacao.numeracao}
-                    onChange={(e) => setNovaVariacao({ ...novaVariacao, numeracao: e.target.value })}
-                    className="border rounded px-3 py-2 text-sm w-full sm:w-40"
-                  />
-                  <input
-                    type="number"
-                    placeholder="Estoque"
-                    value={novaVariacao.estoque}
-                    onChange={(e) => setNovaVariacao({ ...novaVariacao, estoque: e.target.value })}
-                    className="border rounded px-3 py-2 text-sm w-full sm:w-32"
-                  />
-                  <button
-                    onClick={adicionarVariacao}
-                    className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded text-sm"
-                  >
-                    <FaPlus className="inline mr-1" /> Adicionar
-                  </button>
-                  <button
-                    onClick={() => {
-                      setMostrarFormularioVariacao(false);
-                      setNovaVariacao({ numeracao: "", estoque: "" });
-                    }}
-                    className="text-sm text-gray-600 hover:underline ml-2"
-                  >
-                    Cancelar
-                  </button>
+            <div className="space-y-3 overflow-auto max-h-[400px]">
+              {produtoSelecionado.variacoes.map((v) => (
+                <div key={v.id} className="flex flex-col sm:flex-row sm:justify-between border rounded p-3 bg-gray-50">
+                  <div>
+                    <p className="font-medium">Numeração: <span className="text-blue-600">{v.numeracao}</span></p>
+                    <p className="text-sm text-gray-500">Estoque atual: <span className="font-semibold">{v.estoque}</span></p>
+                  </div>
+                  <div className="flex gap-2 mt-2 sm:mt-0">
+                    <input
+                      type="number"
+                      className="border px-2 py-1 rounded w-20"
+                      value={estoquesEditados[v.id] ?? v.estoque}
+                      onChange={(e) => handleEstoqueChange(v.id, e.target.value)}
+                    />
+                    <button
+                      onClick={() => salvarEstoque(v.id)}
+                      className="bg-green-500 hover:bg-green-600 text-white p-2 rounded-full"
+                    >
+                      <FaSave size={14} />
+                    </button>
+                    <button
+                      onClick={() => excluirVariacao(v.id)}
+                      className="bg-red-500 hover:bg-red-600 text-white p-2 rounded-full"
+                    >
+                      <FaTrashAlt size={14} />
+                    </button>
+                  </div>
                 </div>
-
-                {/* Botões de Grade Inteira */}
-                <div className="mt-4 flex flex-wrap gap-2">
-                  <button
-                    onClick={() => adicionarGradeCompleta("baixa")}
-                    className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded text-sm"
-                  >
-                    Adicionar Grade Baixa
-                  </button>
-                  <button
-                    onClick={() => adicionarGradeCompleta("alta")}
-                    className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded text-sm"
-                  >
-                    Adicionar Grade Alta
-                  </button>
-                </div>
-              </div>
-            )}
+              ))}
+            </div>
           </>
         )}
       </div>
 
-      {/* Botão de Cadastrar Produto */}
       <button
         onClick={() => setMostrarModal(true)}
-        className="fixed bottom-6 right-6 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-full shadow-lg"
+        className="fixed bottom-5 right-5 z-50 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-full shadow-lg"
       >
         + Cadastrar Produto
       </button>
 
-      {/* Modal */}
       {mostrarModal && (
         <ProdutoModal
           aoFechar={() => setMostrarModal(false)}
@@ -424,3 +326,5 @@ export default function Estoque() {
     </div>
   );
 }
+
+
