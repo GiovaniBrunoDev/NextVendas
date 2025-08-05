@@ -27,7 +27,7 @@ export default function SidebarLayout({ children, setTela }) {
     { key: "dashboard", label: "Dashboard", icon: FaHome },
     { key: "vendas", label: "Nova Venda", icon: FaCashRegister },
     { key: "estoque", label: "Estoque", icon: FaBoxOpen },
-    { key: "historico", label: "Vendas Realizadas", icon: FaClipboardList },
+    { key: "historico", label: "Vendas", icon: FaClipboardList },
     { key: "clientes", label: "Clientes", icon: FaUsers },
   ];
 
@@ -75,6 +75,7 @@ export default function SidebarLayout({ children, setTela }) {
         <aside className="w-64 bg-gradient-to-b from-blue-700 to-blue-900 text-white p-4 shadow-md">
           <div className="mb-6 flex flex-col items-center">
             <img src="/logo.png" alt="Logo" className="h-16 mb-2" />
+
           </div>
           {renderMenu()}
         </aside>

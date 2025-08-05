@@ -170,7 +170,7 @@ export default function Dashboard() {
 
   const icons = {
     "Vendas": <FaShoppingCart className="text-indigo-500 text-xl" />,
-    "Total Vendido": <FaMoneyBillWave className="text-green-500 text-xl" />,
+    "Total Faturado": <FaMoneyBillWave className="text-green-500 text-xl" />,
     "Produtos Vendidos": <FaBoxOpen className="text-yellow-500 text-xl" />,
     "Ticket Médio": <FaReceipt className="text-blue-500 text-xl" />,
     "Lucro Estimado": <FaChartLine className="text-pink-500 text-xl" />,
@@ -235,12 +235,12 @@ export default function Dashboard() {
           {/* Estoque Baixo */}
 {/* Produtos com Estoque Muito Baixo */}
 <div className="bg-white rounded-xl shadow p-4">
-  <h3 className="text-lg font-semibold mb-4 text-gray-700">⚠️ Estoque Muito Baixo</h3>
+  <h3 className="text-lg font-semibold mb-4 text-gray-700">⚠️ Estoque Baixo</h3>
   {produtosCriticos.filter(p => {
     const estoqueDisponivel = p.variacoes.reduce((acc, v) => acc + v.estoque, 0);
     return estoqueDisponivel < Math.floor(12 * 0.4); // menos de 5 pares
   }).length === 0 ? (
-    <p className="text-green-600 text-sm">Nenhum produto com estoque muito baixo! 🎉</p>
+    <p className="text-green-600 text-sm">Nenhum produto com estoque baixo! 🎉</p>
   ) : (
     <ul className="space-y-3">
       {produtosCriticos

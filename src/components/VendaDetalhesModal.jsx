@@ -8,7 +8,6 @@ export default function VendaDetalhesModal({
   aoExcluir,
   aoTroca,
 }) {
-    
   if (!venda) return null;
 
   const formatarData = (data) =>
@@ -26,12 +25,11 @@ export default function VendaDetalhesModal({
         className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
         aria-hidden="true"
       />
-
-      <div className="fixed inset-0 flex items-center justify-center p-4">
-        <Dialog.Panel className="bg-white rounded-3xl shadow-2xl max-w-3xl w-full overflow-hidden animate-fade-in">
-          {/* HEADER */}
-          <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-5 text-white relative">
-            <Dialog.Title className="text-xl font-bold">
+      <div className="fixed inset-0 flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
+        <Dialog.Panel className="bg-white rounded-3xl shadow-2xl w-full max-w-3xl sm:my-10 animate-fade-in">
+          {/* CABEÇALHO */}
+          <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-5 py-4 text-white relative">
+            <Dialog.Title className="text-lg sm:text-xl font-bold">
               Detalhes da Venda #{venda.id}
             </Dialog.Title>
             <button
@@ -43,36 +41,13 @@ export default function VendaDetalhesModal({
           </div>
 
           {/* CONTEÚDO */}
-          <div className="p-6 space-y-6">
-            {/* Infos principais */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-gray-50 rounded-xl p-3">
-                <p className="text-xs text-gray-500">Data / Hora</p>
-                <p className="font-semibold">{formatarData(venda.data)}</p>
-              </div>
+          <div className="p-4 sm:p-6 space-y-6 text-sm sm:text-base">
+            {/* Informações principais */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
               <div className="bg-gray-50 rounded-xl p-3">
                 <p className="text-xs text-gray-500">Total</p>
                 <p className="font-semibold text-green-600">
                   R$ {venda.total.toFixed(2)}
-                </p>
-              </div>
-              <div className="bg-gray-50 rounded-xl p-3">
-                <p className="text-xs text-gray-500">Forma de Pagamento</p>
-                <p className="font-semibold">{venda.formaPagamento || "N/A"}</p>
-              </div>
-              <div className="bg-gray-50 rounded-xl p-3">
-                <p className="text-xs text-gray-500">Entrega</p>
-                <p className="font-semibold">{venda.tipoEntrega || "N/A"}</p>
-                {venda.entregador && (
-                  <p className="text-xs text-gray-400">
-                    Entregador: {venda.entregador}
-                  </p>
-                )}
-              </div>
-              <div className="bg-gray-50 rounded-xl p-3">
-                <p className="text-xs text-gray-500">Taxa de Entrega</p>
-                <p className="font-semibold">
-                  R$ {venda.taxaEntrega?.toFixed(2) || "0,00"}
                 </p>
               </div>
               <div className="bg-gray-50 rounded-xl p-3">
@@ -84,9 +59,34 @@ export default function VendaDetalhesModal({
                   {venda.cliente?.telefone || "-"}
                 </p>
               </div>
+              <div className="bg-gray-50 rounded-xl p-3">
+                <p className="text-xs text-gray-500">Entrega</p>
+                <p className="font-semibold">{venda.tipoEntrega || "N/A"}</p>
+                {venda.entregador && (
+                  <p className="text-xs text-gray-400">
+                    Entregador: {venda.entregador}
+                  </p>
+                )}
+              </div>
+              <div className="bg-gray-50 rounded-xl p-3">
+                <p className="text-xs text-gray-500">Data / Hora</p>
+                <p className="font-semibold">{formatarData(venda.data)}</p>
+              </div>
+              <div className="bg-gray-50 rounded-xl p-3">
+                <p className="text-xs text-gray-500">Pagamento</p>
+                <p className="font-semibold">
+                  {venda.formaPagamento || "N/A"}
+                </p>
+              </div>
+              <div className="bg-gray-50 rounded-xl p-3">
+                <p className="text-xs text-gray-500">Taxa de Entrega</p>
+                <p className="font-semibold">
+                  R$ {venda.taxaEntrega?.toFixed(2) || "0,00"}
+                </p>
+              </div>
             </div>
 
-            {/* Observação opcional */}
+            {/* Observações do cliente */}
             {venda.cliente?.observacoes && (
               <div className="bg-yellow-50 rounded-xl p-3 text-sm text-gray-700">
                 <p className="font-medium">Observação do cliente:</p>
@@ -94,30 +94,28 @@ export default function VendaDetalhesModal({
               </div>
             )}
 
-            {/* Itens da venda */}
+            {/* Itens vendidos */}
             <div>
-              <h3 className="font-semibold mb-3 text-gray-700">Itens</h3>
-              <ul className="divide-y divide-gray-100 max-h-48 overflow-y-auto">
+              <h3 className="font-semibold mb-3 text-gray-700">Itens da venda</h3>
+              <ul className="divide-y divide-gray-100 max-h-52 sm:max-h-60 overflow-y-auto pr-1">
                 {venda.itens.map((item) => (
                   <li key={item.id} className="py-2">
                     <div className="flex justify-between text-sm">
                       <span>
                         <span className="font-medium">
                           {item.variacaoProduto.produto.nome}
-                        </span>
-                        {" – "}Tam {item.variacaoProduto.numeracao}
+                        </span>{" "}
+                        – Tam {item.variacaoProduto.numeracao}
                       </span>
-                      <span className="text-gray-500">
-                        {item.quantidade}x
-                      </span>
+                      <span className="text-gray-500">{item.quantidade}x</span>
                     </div>
                   </li>
                 ))}
               </ul>
             </div>
 
-            {/* Botões */}
-            <div className="flex flex-wrap justify-end gap-3 mt-6">
+            {/* Ações finais */}
+            <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4 border-t">
               <button className="flex items-center gap-2 px-4 py-2 rounded-xl bg-yellow-50 text-yellow-700 hover:bg-yellow-100 transition">
                 <Pencil size={18} /> Editar
               </button>
