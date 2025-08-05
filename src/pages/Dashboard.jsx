@@ -23,6 +23,7 @@ import {
 
 export default function Dashboard() {
   const [vendas, setVendas] = useState([]);
+  const [produtos, setProdutos] = useState([]); // <- Adicionado aqui
   const [vendasFiltradas, setVendasFiltradas] = useState([]);
   const [periodo, setPeriodo] = useState("dia");
 
@@ -232,47 +233,65 @@ export default function Dashboard() {
         {/* Coluna esquerda */}
         <div className="w-full lg:w-1/2 flex flex-col gap-4">
           {/* Estoque Baixo */}
-          <div className="bg-white rounded-xl shadow p-4">
-            <h3 className="text-lg font-semibold mb-4 text-gray-700">🚨 Estoque Baixo</h3>
-            {produtosCriticos.length === 0 ? (
-              <p className="text-green-600 text-sm">Nenhum produto com estoque crítico! 🎉</p>
-            ) : (
-              <ul className="space-y-3">
-                {produtosCriticos.map(p => {
-                  const total = p.variacoes.length;
-                  const indisponiveis = p.variacoes.filter(v => v.estoque === 0).length;
-                  const disponiveis = total - indisponiveis;
-                                    const porcentagem = Math.round((disponiveis / total) * 100);
+{/* Produtos com Estoque Muito Baixo */}
+<div className="bg-white rounded-xl shadow p-4">
+  <h3 className="text-lg font-semibold mb-4 text-gray-700">⚠️ Estoque Muito Baixo</h3>
+  {produtosCriticos.filter(p => {
+    const estoqueDisponivel = p.variacoes.reduce((acc, v) => acc + v.estoque, 0);
+    return estoqueDisponivel < Math.floor(12 * 0.4); // menos de 5 pares
+  }).length === 0 ? (
+    <p className="text-green-600 text-sm">Nenhum produto com estoque muito baixo! 🎉</p>
+  ) : (
+    <ul className="space-y-3">
+      {produtosCriticos
+        .filter(p => {
+          const estoqueDisponivel = p.variacoes.reduce((acc, v) => acc + v.estoque, 0);
+          return estoqueDisponivel < Math.floor(12 * 0.5); // menos de 5 pares
+        })
+        .map(p => {
+          const estoqueTotal = p.variacoes.reduce((acc, v) => acc + v.estoque, 0);
+          const estoqueDisponivel = p.variacoes
+            .filter(v => v.estoque > 0)
+            .reduce((acc, v) => acc + v.estoque, 0);
 
-                  let cor = "bg-red-400";
-                  if (porcentagem >= 80) cor = "bg-green-400";
-                  else if (porcentagem >= 50) cor = "bg-yellow-400";
+          const porcentagem = estoqueTotal === 0 ? 0 : Math.round((estoqueDisponivel / 12) * 100);
 
-                  return (
-                    <li key={p.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                      <div className="flex-1">
-                        <p className="text-sm font-medium text-gray-700">{p.nome}</p>
-                        <p className="text-xs text-gray-500">
-                          {indisponiveis} de {total} variações indisponíveis
-                        </p>
-                      </div>
-                      <div className="w-full sm:w-48">
-                        <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
-                          <div
-                            className={`${cor} h-3 transition-all duration-500`}
-                            style={{ width: `${porcentagem}%` }}
-                          ></div>
-                        </div>
-                        <p className="text-xs text-gray-500 text-right mt-1">
-                          {porcentagem}% disponível
-                        </p>
-                      </div>
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
-          </div>
+          let cor = "bg-red-400";
+          if (porcentagem >= 80) cor = "bg-green-400";
+          else if (porcentagem >= 50) cor = "bg-yellow-400";
+
+          return (
+            <li
+              key={p.id}
+              className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2"
+            >
+              <div className="flex-1">
+                <p className="text-sm font-medium text-gray-700">{p.nome}</p>
+                <p className="text-xs text-gray-500">
+                  {estoqueDisponivel} de 12 pares disponíveis
+                </p>
+              </div>
+              <div className="w-full sm:w-48">
+                <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                  <div
+                    className={`${cor} h-3 transition-all duration-500`}
+                    style={{ width: `${porcentagem}%` }}
+                  ></div>
+                </div>
+                <p className="text-xs text-gray-500 text-right mt-1">
+                  {porcentagem}% disponível
+                </p>
+              </div>
+            </li>
+          );
+        })}
+    </ul>
+  )}
+</div>
+
+
+
+
 
           {/* Gráfico de Vendas */}
           <div className="bg-white rounded-xl shadow p-4">
