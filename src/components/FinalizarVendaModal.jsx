@@ -83,6 +83,7 @@ export default function FinalizarVendaModal({ carrinho, aoFechar, aoFinalizar })
       });
 
       toast.success("Venda finalizada com sucesso!");
+      tocarSomVenda();
       aoFinalizar();
     } catch (err) {
       console.error(err);
@@ -95,6 +96,13 @@ export default function FinalizarVendaModal({ carrinho, aoFechar, aoFinalizar })
   function formatTelefone(value) {
     return value.replace(/\D/g, "").replace(/(\d{2})(\d)/, "($1)$2").replace(/(\d{5})(\d{4})$/, "$1-$2").substring(0, 14);
   }
+
+  const tocarSomVenda = () => {
+  const audio = new Audio('/kaching.mp3');
+  audio.play().catch(err => {
+    console.warn('Falha ao reproduzir som:', err);
+  });
+};
 
   return (
     <div className="fixed inset-0 z-50 bg-black bg-opacity-40 flex items-center justify-center px-2 backdrop-blur-sm">

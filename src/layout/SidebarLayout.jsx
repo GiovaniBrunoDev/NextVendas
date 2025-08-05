@@ -4,11 +4,12 @@ import {
   FaCashRegister,
   FaBoxOpen,
   FaClipboardList,
-  FaUsers
+  FaUsers,
 } from "react-icons/fa";
 
 export default function SidebarLayout({ children, setTela }) {
   const [isMobile, setIsMobile] = useState(false);
+  const [telaAtiva, setTelaAtiva] = useState("dashboard");
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth <= 768);
@@ -17,59 +18,59 @@ export default function SidebarLayout({ children, setTela }) {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  const trocarTela = (tela) => {
+    setTela(tela);
+    setTelaAtiva(tela);
+  };
+
+  const menuItems = [
+    { key: "dashboard", label: "Dashboard", icon: FaHome },
+    { key: "vendas", label: "Nova Venda", icon: FaCashRegister },
+    { key: "estoque", label: "Estoque", icon: FaBoxOpen },
+    { key: "historico", label: "Vendas Realizadas", icon: FaClipboardList },
+    { key: "clientes", label: "Clientes", icon: FaUsers },
+  ];
+
   const renderMenu = () => (
-    <nav className="space-y-2 mt-4">
-      <button onClick={() => setTela("dashboard")} className="menu-btn">
-        <FaHome className="mr-2 text-lg" />
-        Dashboard
-      </button>
-      <button onClick={() => setTela("vendas")} className="menu-btn">
-        <FaCashRegister className="mr-2 text-lg" />
-        Nova Venda
-      </button>
-      <button onClick={() => setTela("estoque")} className="menu-btn">
-        <FaBoxOpen className="mr-2 text-lg" />
-        Estoque
-      </button>
-      <button onClick={() => setTela("historico")} className="menu-btn">
-        <FaClipboardList className="mr-2 text-lg" />
-        Vendas Realizadas
-      </button>
-      <button onClick={() => setTela("clientes")} className="menu-btn">
-        <FaUsers className="mr-2 text-lg" />
-        Clientes
-      </button>
+    <nav className="space-y-1 mt-6">
+      {menuItems.map(({ key, label, icon: Icon }) => (
+        <button
+          key={key}
+          onClick={() => trocarTela(key)}
+          className={`flex items-center w-full px-4 py-3 rounded-lg transition 
+            ${
+              telaAtiva === key
+                ? "bg-blue-600 text-white shadow"
+                : "text-white hover:bg-blue-700 hover:shadow-sm"
+            }`}
+        >
+          <Icon className="mr-3 text-lg group-hover:scale-110 transition-transform" />
+          <span className="text-sm font-medium">{label}</span>
+        </button>
+      ))}
     </nav>
   );
 
   const renderBottomNav = () => (
-    <div className="fixed bottom-0 left-0 right-0 bg-blue-800 text-white flex justify-around py-2 shadow-inner z-50">
-      <button onClick={() => setTela("dashboard")} className="flex flex-col items-center text-xs">
-        <FaHome className="text-lg mb-1" />
-        Início
-      </button>
-      <button onClick={() => setTela("vendas")} className="flex flex-col items-center text-xs">
-        <FaCashRegister className="text-lg mb-1" />
-        Venda
-      </button>
-      <button onClick={() => setTela("estoque")} className="flex flex-col items-center text-xs">
-        <FaBoxOpen className="text-lg mb-1" />
-        Estoque
-      </button>
-      <button onClick={() => setTela("historico")} className="flex flex-col items-center text-xs">
-        <FaClipboardList className="text-lg mb-1" />
-        Histórico
-      </button>
-      <button onClick={() => setTela("clientes")} className="flex flex-col items-center text-xs">
-        <FaUsers className="text-lg mb-1" />
-        Clientes
-      </button>
+    <div className="fixed bottom-0 left-0 right-0 bg-blue-800 text-white flex justify-around py-2 shadow-inner z-50 border-t border-blue-700">
+      {menuItems.map(({ key, label, icon: Icon }) => (
+        <button
+          key={key}
+          onClick={() => trocarTela(key)}
+          className={`flex flex-col items-center text-xs px-2 transition ${
+            telaAtiva === key ? "text-yellow-300" : "text-white"
+          }`}
+        >
+          <Icon className="text-xl mb-1" />
+          {label}
+        </button>
+      ))}
     </div>
   );
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row pb-14 md:pb-0">
-      {/* Sidebar para desktop */}
+    <div className="min-h-screen flex flex-col md:flex-row pb-16 md:pb-0">
+      {/* Sidebar (Desktop) */}
       {!isMobile && (
         <aside className="w-64 bg-gradient-to-b from-blue-700 to-blue-900 text-white p-4 shadow-md">
           <div className="mb-6 flex flex-col items-center">
@@ -79,10 +80,10 @@ export default function SidebarLayout({ children, setTela }) {
         </aside>
       )}
 
-      {/* Conteúdo principal */}
+      {/* Main Content */}
       <main className="flex-1 bg-gray-50 p-6 overflow-y-auto">{children}</main>
 
-      {/* Menu inferior para mobile */}
+      {/* Bottom Nav (Mobile) */}
       {isMobile && renderBottomNav()}
     </div>
   );

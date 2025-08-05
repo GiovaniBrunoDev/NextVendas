@@ -127,158 +127,158 @@ const fazerUploadLocal = async () => {
 
   return (
     <div
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-      onClick={aoFechar}
-    >
-      <div
-        className="bg-white w-full max-w-xl rounded-2xl p-6 shadow-xl relative"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <h2 className="text-2xl font-semibold text-blue-700 mb-6 border-b pb-2">
-          Novo Produto
-        </h2>
+  className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center px-2 py-4 overflow-auto"
+  onClick={aoFechar}
+>
+  <div
+    className="bg-white w-full max-w-2xl rounded-2xl p-5 sm:p-6 shadow-xl relative animate-fadeIn"
+    onClick={(e) => e.stopPropagation()}
+  >
+    <h2 className="text-xl sm:text-2xl font-semibold text-blue-700 mb-5 border-b pb-2">
+      🛍️ Novo Produto
+    </h2>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <input
-            type="text"
-            name="nome"
-            placeholder="Nome do produto"
-            value={form.nome}
-            onChange={handleChange}
-            className="w-full border border-gray-300 p-3 rounded-md"
-            required
+    <form onSubmit={handleSubmit} className="space-y-5">
+      {/* Nome */}
+      <input
+        type="text"
+        name="nome"
+        placeholder="Nome do produto"
+        value={form.nome}
+        onChange={handleChange}
+        className="w-full border border-gray-300 p-3 rounded-md placeholder:text-sm"
+        required
+      />
+
+      {/* Preço, custos e imagem */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <input
+          type="number"
+          step="0.01"
+          name="preco"
+          placeholder="Preço (R$)"
+          value={form.preco}
+          onChange={handleChange}
+          className="border p-2 rounded placeholder:text-sm"
+        />
+        <input
+          type="number"
+          step="0.01"
+          name="custoUnitario"
+          placeholder="Custo Unitário"
+          value={form.custoUnitario}
+          onChange={handleChange}
+          className="border p-2 rounded placeholder:text-sm"
+        />
+        <input
+          type="number"
+          step="0.01"
+          name="outrosCustos"
+          placeholder="Outros Custos"
+          value={form.outrosCustos}
+          onChange={handleChange}
+          className="border p-2 rounded placeholder:text-sm"
+        />
+        <input
+          type="file"
+          accept="image/*"
+          onChange={handleSelecionarImagem}
+          className="border p-2 rounded text-sm"
+        />
+      </div>
+
+      {/* Preview da imagem */}
+      {imagemPreview && (
+        <div className="flex justify-center">
+          <img
+            src={imagemPreview}
+            alt="Prévia"
+            className="w-24 h-24 sm:w-28 sm:h-28 object-cover rounded-lg border shadow"
           />
+        </div>
+      )}
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      {/* Grade de variações */}
+      <div>
+        <label className="block font-semibold text-gray-700 mb-2">
+          Grade de Variações
+        </label>
+
+        {variacoes.map((v, index) => (
+          <div key={index} className="flex flex-wrap items-center gap-2 mb-2">
             <input
-              type="number"
-              step="0.01"
-              name="preco"
-              placeholder="Preço (R$)"
-              value={form.preco}
-              onChange={handleChange}
-              className="border p-2 rounded"
+              type="text"
+              placeholder="Numeração"
+              value={v.numeracao}
+              onChange={(e) => handleVariacaoChange(index, "numeracao", e.target.value)}
+              className="w-24 border p-2 rounded placeholder:text-sm"
+              required
             />
             <input
               type="number"
-              step="0.01"
-              name="custoUnitario"
-              placeholder="Custo Unitário"
-              value={form.custoUnitario}
-              onChange={handleChange}
-              className="border p-2 rounded"
+              placeholder="Estoque"
+              value={v.estoque}
+              onChange={(e) => handleVariacaoChange(index, "estoque", e.target.value)}
+              className="w-24 border p-2 rounded placeholder:text-sm"
+              required
             />
-            <input
-              type="number"
-              step="0.01"
-              name="outrosCustos"
-              placeholder="Outros Custos"
-              value={form.outrosCustos}
-              onChange={handleChange}
-              className="border p-2 rounded"
-            />
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleSelecionarImagem}
-              className="border p-2 rounded w-full"
-            />
-
-          </div>
-
-          {imagemPreview && (
-              <div className="flex justify-center">
-                <img
-                  src={imagemPreview}
-                  alt="Prévia"
-                  className="w-28 h-28 object-cover rounded-lg border shadow"
-                />
-              </div>
-            )}
-
-
-          <div>
-            <label className="block font-medium mb-2 text-gray-700">
-              Grade de variações
-            </label>
-
-            {variacoes.map((v, index) => (
-              <div key={index} className="flex items-center gap-2 mb-2">
-                <input
-                  type="text"
-                  placeholder="Numeração"
-                  value={v.numeracao}
-                  onChange={(e) =>
-                    handleVariacaoChange(index, "numeracao", e.target.value)
-                  }
-                  className="w-1/2 border p-2 rounded"
-                  required
-                />
-                <input
-                  type="number"
-                  placeholder="Estoque"
-                  value={v.estoque}
-                  onChange={(e) =>
-                    handleVariacaoChange(index, "estoque", e.target.value)
-                  }
-                  className="w-1/3 border p-2 rounded"
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => removerVariacao(index)}
-                  className="text-red-500 hover:text-red-700"
-                >
-                  ✖
-                </button>
-              </div>
-            ))}
-
-            <div className="flex flex-wrap gap-4 mt-4">
-              <button
-                type="button"
-                onClick={adicionarVariacao}
-                className="text-sm text-blue-600 hover:underline"
-              >
-                + Adicionar variação
-              </button>
-              <button
-                type="button"
-                onClick={() => adicionarGradeCompleta("baixa")}
-                className="text-sm text-gray-600 hover:underline"
-              >
-                Grade Baixa (34–39)
-              </button>
-              <button
-                type="button"
-                onClick={() => adicionarGradeCompleta("alta")}
-                className="text-sm text-gray-600 hover:underline"
-              >
-                Grade Alta (38–43)
-              </button>
-            </div>
-          </div>
-
-          <div className="flex justify-end gap-3 mt-6">
             <button
               type="button"
-              onClick={aoFechar}
-              className="px-4 py-2 rounded-md border border-gray-300 hover:bg-gray-100"
+              onClick={() => removerVariacao(index)}
+              className="text-red-500 hover:text-red-700 text-lg"
             >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              disabled={carregando}
-              className={`px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 ${
-                carregando ? "opacity-50 cursor-not-allowed" : ""
-              }`}
-            >
-              {carregando ? "Salvando..." : "Salvar Produto"}
+              ✖
             </button>
           </div>
-        </form>
+        ))}
+
+        <div className="flex flex-wrap gap-4 mt-3 text-sm">
+          <button
+            type="button"
+            onClick={adicionarVariacao}
+            className="text-blue-600 hover:underline"
+          >
+            + Adicionar Variação
+          </button>
+          <button
+            type="button"
+            onClick={() => adicionarGradeCompleta("baixa")}
+            className="text-gray-600 hover:underline"
+          >
+            Grade Baixa (34–39)
+          </button>
+          <button
+            type="button"
+            onClick={() => adicionarGradeCompleta("alta")}
+            className="text-gray-600 hover:underline"
+          >
+            Grade Alta (38–43)
+          </button>
+        </div>
       </div>
-    </div>
+
+      {/* Ações */}
+      <div className="flex justify-end gap-3 mt-6">
+        <button
+          type="button"
+          onClick={aoFechar}
+          className="px-4 py-2 rounded-md border border-gray-300 hover:bg-gray-100"
+        >
+          Cancelar
+        </button>
+        <button
+          type="submit"
+          disabled={carregando}
+          className={`px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition ${
+            carregando ? "opacity-50 cursor-not-allowed" : ""
+          }`}
+        >
+          {carregando ? "Salvando..." : "Salvar Produto"}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
   );
 }

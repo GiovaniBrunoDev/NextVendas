@@ -5,11 +5,15 @@ import FinalizarVendaModal from "../components/FinalizarVendaModal";
 import { toast } from "react-toastify";
 
 
+
 export default function Vendas() {
   const [produtos, setProdutos] = useState([]);
   const [busca, setBusca] = useState("");
   const [carrinho, setCarrinho] = useState([]);
   const [mostrarFinalizarModal, setMostrarFinalizarModal] = useState(false);
+
+  const [carregando, setCarregando] = useState(false);
+  const [erroCarregamento, setErroCarregamento] = useState(false);
 
   const [manualNome, setManualNome] = useState("");
   const [manualPreco, setManualPreco] = useState("");
@@ -75,14 +79,19 @@ export default function Vendas() {
   }
 
   async function carregarProdutos() {
-    try {
-      const res = await fetch("http://localhost:3001/produtos");
-      const data = await res.json();
-      setProdutos(data);
-    } catch (err) {
-      toast.error("Erro ao carregar produtos");
-    }
+  try {
+    setCarregando(true);
+    setErroCarregamento(false);
+    const res = await api.get("/produtos");
+    setProdutos(res.data);
+  } catch (err) {
+    console.error("Erro ao buscar produtos:", err);
+    setErroCarregamento(true);
+    toast.error("Erro ao buscar produtos. Verifique a conexão ou tente novamente.");
+  } finally {
+    setCarregando(false);
   }
+}
 
   useEffect(() => {
     carregarProdutos();
@@ -111,66 +120,85 @@ export default function Vendas() {
         />
 
         {busca.trim() !== "" && (
-          <>
-            {produtosFiltrados.length > 0 ? (
-              <div className="space-y-4">
-                {produtosFiltrados.map((produto) => (
-                  <div
-                    key={produto.id}
-                    className="bg-white border rounded p-4 shadow-sm"
-                  >
-                    <div className="flex items-center gap-3 mb-3">
-                      <img
-                        src={produto.imagemUrlCompleta || "https://cdn-icons-png.flaticon.com/512/771/771543.png"}
-                        alt={produto.nome}
-                        className="w-10 h-10 object-cover rounded"
-                      />
-                      <div>
-                        <p className="font-medium text-blue-800">{produto.nome}</p>
-                        <p className="text-sm text-gray-600">
-                          Código: {produto.codigo || "N/A"}
-                        </p>
-                      </div>
-                    </div>
-
-                    <p className="text-sm text-gray-500 mb-1">Selecione uma numeração:</p>
-                    <div className="flex gap-2 flex-wrap">
-                      {produto.variacoes.map((v) => (
-                        <button
-                          key={v.id}
-                          disabled={v.estoque === 0}
-                          onClick={() =>
-                            adicionarAoCarrinho({
-                              produtoId: produto.id,
-                              variacaoId: v.id,
-                              nome: produto.nome,
-                              preco: produto.preco,
-                              numeracao: v.numeracao,
-                              qtd: 1,
-                              estoque: v.estoque,
-                            })
-                          }
-                          className={`rounded-lg border px-3 py-2 text-sm font-medium transition-all duration-150 shadow-sm
-                            ${
-                              v.estoque === 0
-                                ? "bg-gray-100 text-gray-400 border-gray-300 cursor-not-allowed"
-                                : "bg-blue-50 text-blue-700 border-blue-300 hover:bg-blue-100"
-                            }
-                          `}
-                        >
-                          {v.numeracao} ({v.estoque})
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="bg-yellow-50 border border-yellow-300 p-4 rounded text-sm text-yellow-700">
-                <p className="mb-2">
-                  Nenhum produto encontrado. Deseja adicionar um produto manualmente?
+  <>
+    {carregando ? (
+      <div className="text-center text-blue-600 py-4 animate-pulse">
+        🔄 Carregando produtos...
+      </div>
+    ) : erroCarregamento ? (
+      <div className="text-center text-red-500 bg-red-50 border border-red-200 p-4 rounded">
+        ❌ Erro ao carregar produtos.{" "}
+        <button
+          onClick={carregarProdutos}
+          className="text-blue-600 underline hover:text-blue-800"
+        >
+          Tentar novamente
+        </button>
+      </div>
+    ) : produtosFiltrados.length > 0 ? (
+      <div className="space-y-4">
+        {produtosFiltrados.map((produto) => (
+          <div
+            key={produto.id}
+            className="bg-white border rounded p-4 shadow-sm"
+          >
+            <div className="flex items-center gap-3 mb-3">
+              <img
+                src={
+                  produto.imagemUrlCompleta ||
+                  "https://cdn-icons-png.flaticon.com/512/771/771543.png"
+                }
+                alt={produto.nome}
+                className="w-10 h-10 object-cover rounded"
+              />
+              <div>
+                <p className="font-medium text-blue-800">{produto.nome}</p>
+                <p className="text-sm text-gray-600">
+                  Código: {produto.codigo || "N/A"}
                 </p>
-                <div className="flex flex-col gap-2">
+              </div>
+            </div>
+
+            <p className="text-sm text-gray-500 mb-1">
+              Selecione uma numeração:
+            </p>
+            <div className="flex gap-2 flex-wrap">
+              {produto.variacoes.map((v) => (
+                <button
+                  key={v.id}
+                  disabled={v.estoque === 0}
+                  onClick={() =>
+                    adicionarAoCarrinho({
+                      produtoId: produto.id,
+                      variacaoId: v.id,
+                      nome: produto.nome,
+                      preco: produto.preco,
+                      numeracao: v.numeracao,
+                      qtd: 1,
+                      estoque: v.estoque,
+                    })
+                  }
+                  className={`rounded-lg border px-3 py-2 text-sm font-medium transition-all duration-150 shadow-sm
+                    ${
+                      v.estoque === 0
+                        ? "bg-gray-100 text-gray-400 border-gray-300 cursor-not-allowed"
+                        : "bg-blue-50 text-blue-700 border-blue-300 hover:bg-blue-100"
+                    }
+                  `}
+                >
+                  {v.numeracao} ({v.estoque})
+                </button>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    ) : (
+      <div className="bg-yellow-50 border border-yellow-300 p-4 rounded text-sm text-yellow-700">
+        <p className="mb-2">
+          Nenhum produto encontrado. Deseja adicionar um produto manualmente?
+        </p>
+        <div className="flex flex-col gap-2">
                   <input
                     type="text"
                     placeholder="Nome do produto"
