@@ -52,21 +52,27 @@ export default function SidebarLayout({ children, setTela }) {
   );
 
   const renderBottomNav = () => (
-    <div className="fixed bottom-0 left-0 right-0 bg-blue-800 text-white flex justify-around py-2 shadow-inner z-50 border-t border-blue-700">
-      {menuItems.map(({ key, label, icon: Icon }) => (
-        <button
-          key={key}
-          onClick={() => trocarTela(key)}
-          className={`flex flex-col items-center text-xs px-2 transition ${
-            telaAtiva === key ? "text-yellow-300" : "text-white"
-          }`}
-        >
-          <Icon className="text-xl mb-1" />
-          {label}
-        </button>
-      ))}
-    </div>
-  );
+  <>
+  {/* Barra de navegação flutuante */}
+  <div className="fixed bottom-4 left-0 right-0 bg-blue-800 text-white flex justify-around py-2 shadow-inner z-50 border-t border-blue-700 rounded-t-lg">
+    {menuItems.map(({ key, label, icon: Icon }) => (
+      <button
+        key={key}
+        onClick={() => trocarTela(key)}
+        className={`flex flex-col items-center text-xs px-2 transition ${
+          telaAtiva === key ? "text-yellow-300" : "text-white"
+        }`}
+      >
+        <Icon className="text-xl mb-1" />
+        {label}
+      </button>
+    ))}
+  </div>
+
+  {/* Preenchimento visual abaixo da barra */}
+  <div className="fixed bottom-0 left-0 right-0 h-4 bg-blue-800 z-40" />
+</>
+);
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row pb-16 md:pb-0">
