@@ -13,12 +13,24 @@ export default function Estoque() {
   const [editandoEstoque, setEditandoEstoque] = useState({});
   const [novaVariacao, setNovaVariacao] = useState({ numeracao: "", estoque: "" });
   const [mostrarFormularioVariacao, setMostrarFormularioVariacao] = useState(false);
+  const [mostrarBotaoFlutuante, setMostrarBotaoFlutuante] = useState(true);
   const inputImagemRef = useRef(null);
 
   async function carregarProdutos() {
     const res = await api.get("/produtos");
     setProdutos(res.data);
   }
+
+  // esconde o botão de adicionar produto no mobile 
+  useEffect(() => {
+  const handleScroll = () => {
+    const scrollY = window.scrollY;
+    setMostrarBotaoFlutuante(scrollY < 50); // esconde se rolar mais de 50px
+  };
+
+  window.addEventListener("scroll", handleScroll);
+  return () => window.removeEventListener("scroll", handleScroll);
+}, []);
 
   useEffect(() => {
     carregarProdutos();
@@ -175,25 +187,25 @@ export default function Estoque() {
   <>
     {/* Botão flutuante visível apenas no mobile */}
     <div className="block sm:hidden mb-4">
-      {!mostrarModal && (
-        <button
-          onClick={() => setMostrarModal(true)}
-          className="fixed bottom-24 right-4 z-50 bg-gradient-to-br from-blue-600 to-blue-500 dark:from-blue-500 dark:to-blue-400 text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center"
-          title="Novo Produto"
-          aria-label="Adicionar novo produto"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-6 w-6"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
+      {mostrarBotaoFlutuante && !mostrarModal && (
+          <button
+            onClick={() => setMostrarModal(true)}
+            className="fixed bottom-24 right-4 z-[999] bg-gradient-to-br from-blue-600 to-blue-500 text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center transition-opacity duration-300"
+            title="Novo Produto"
+            aria-label="Adicionar novo produto"
           >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-          </svg>
-        </button>
-      )}
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+            </svg>
+          </button>
+        )}
     </div>
 
  <div className="p-4 grid grid-cols-1 lg:grid-cols-2 gap-6">

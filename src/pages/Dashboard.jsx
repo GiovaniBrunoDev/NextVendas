@@ -169,15 +169,17 @@ export default function Dashboard() {
     : v => Math.round(v);
 
   const icons = {
-    "Vendas": <FaShoppingCart className="text-indigo-500 text-xl" />,
-    "Total Faturado": <FaMoneyBillWave className="text-green-500 text-xl" />,
-    "Produtos Vendidos": <FaBoxOpen className="text-yellow-500 text-xl" />,
-    "Ticket Médio": <FaReceipt className="text-blue-500 text-xl" />,
-    "Lucro Estimado": <FaChartLine className="text-pink-500 text-xl" />,
-    "Clientes Atendidos": <FaSmile className="text-purple-500 text-xl" />,
-    "Entregas Realizadas": <FaTruck className="text-orange-500 text-xl" />,
-    "Pagamento Mais Usado": <FaCreditCard className="text-gray-500 text-xl" />,
-  };
+  "Vendas": <FaShoppingCart className="text-gray-600 text-xl" />,
+  "Total Faturado": <FaMoneyBillWave className="text-green-500 text-xl" />, // Destaque financeiro
+  "Produtos Vendidos": <FaBoxOpen className="text-gray-600 text-xl" />,
+  "Ticket Médio": <FaReceipt className="text-gray-600 text-xl" />,
+  "Lucro Estimado": <FaChartLine className="text-blue-500 text-xl" />, // Destaque analítico
+  "Clientes Atendidos": <FaSmile className="text-gray-600 text-xl" />,
+  "Entregas Realizadas": <FaTruck className="text-gray-600 text-xl" />,
+  "Pagamento Mais Usado": <FaCreditCard className="text-gray-600 text-xl" />,
+};
+
+
 
   return (
     <div className="bg-white p-4 rounded-lg shadow flex items-center gap-4">
@@ -196,165 +198,140 @@ export default function Dashboard() {
 
 
   return (
-    <div className="space-y-8">
-      <h2 className="text-2xl font-bold text-gray-800">📊 Dashboard</h2>
+    <div className="space-y-10">
+  {/* Título */}
+  <div className="flex items-center justify-between">
+    <h2 className="text-2xl font-semibold text-gray-900">Dashboard</h2>
+  </div>
 
-      {/* Filtros */}
-      <div className="flex gap-4 mb-4">
-        {["dia", "7dias", "mes"].map(p => (
-          <button
-            key={p}
-            onClick={() => setPeriodo(p)}
-            className={`px-4 py-2 rounded ${
-              periodo === p
-                ? "bg-indigo-600 text-white"
-                : "bg-gray-200 text-gray-700"
-            }`}
-          >
-            {p === "dia" ? "Hoje" : p === "7dias" ? "Últimos 7 dias" : "Mês"}
-          </button>
-        ))}
+  {/* Filtros de Período */}
+  <div className="flex flex-wrap gap-2">
+    {["dia", "7dias", "mes"].map(p => (
+      <button
+        key={p}
+        onClick={() => setPeriodo(p)}
+        className={`px-4 py-2 text-sm font-medium rounded-md transition border ${
+          periodo === p
+            ? "bg-gray-900 text-white border-gray-900"
+            : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
+        }`}
+      >
+        {p === "dia" ? "Hoje" : p === "7dias" ? "Últimos 7 dias" : "Este mês"}
+      </button>
+    ))}
+  </div>
+
+  {/* Cards de Indicadores */}
+  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <Card titulo="Vendas" valor={vendasFiltradas.length} />
+    <Card titulo="Total Faturado" valor={total} isCurrency />
+    <Card titulo="Produtos Vendidos" valor={qtdProdutos} />
+    <Card titulo="Ticket Médio" valor={ticketMedio} isCurrency />
+    <Card titulo="Lucro Estimado" valor={lucro} isCurrency />
+    <Card titulo="Clientes Atendidos" valor={clientesAtendidos} />
+    <Card titulo="Entregas Realizadas" valor={entregas} />
+    <Card titulo="Forma de Pagamento Mais Usada" valor={formaPagamentoMaisUsada} />
+  </div>
+
+  {/* Seções Analíticas */}
+  <div className="flex flex-col lg:flex-row gap-6">
+    {/* Coluna esquerda */}
+    <div className="flex-1 space-y-6">
+      {/* Gráfico de Vendas */}
+      <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-6">
+        <h3 className="text-lg font-semibold text-gray-800 mb-4">
+          Evolução das Vendas ({periodo === "dia" ? "Hoje" : periodo === "7dias" ? "Últimos 7 dias" : "Mês"})
+        </h3>
+        <ResponsiveContainer width="100%" height={220}>
+          <LineChart data={dadosGrafico}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+            <XAxis dataKey="dia" tick={{ fontSize: 12, fill: "#6b7280" }} />
+            <YAxis tick={{ fontSize: 12, fill: "#6b7280" }} />
+            <Tooltip
+              contentStyle={{
+                backgroundColor: "#1f2937",
+                borderRadius: "8px",
+                color: "#fff",
+                fontSize: "12px",
+              }}
+              formatter={value => formatCurrency(value)}
+            />
+            <Line
+              type="monotone"
+              dataKey="total"
+              stroke="#2563eb"
+              strokeWidth={2}
+              dot={{ r: 3 }}
+              activeDot={{ r: 5, stroke: "#2563eb", strokeWidth: 2, fill: "#fff" }}
+            />
+          </LineChart>
+        </ResponsiveContainer>
       </div>
 
-      {/* Cards principais */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card titulo="Vendas" valor={vendasFiltradas.length} />
-        <Card titulo="Total Vendido" valor={total} isCurrency />
-        <Card titulo="Produtos Vendidos" valor={qtdProdutos} />
-        <Card titulo="Ticket Médio" valor={ticketMedio} isCurrency />
-        <Card titulo="Lucro Estimado" valor={lucro} isCurrency />
-        <Card titulo="Clientes Atendidos" valor={clientesAtendidos} />
-        <Card titulo="Entregas Realizadas" valor={entregas} />
-        <Card titulo="Pagamento Mais Usado" valor={formaPagamentoMaisUsada} />
+      {/* Estoque Baixo */}
+      <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-6">
+        <h3 className="text-lg font-semibold text-gray-800 mb-4">Estoque Baixo</h3>
+        {produtosCriticos.filter(p => {
+          const estoque = p.variacoes.reduce((acc, v) => acc + v.estoque, 0);
+          return estoque < Math.floor(12 * 0.5);
+        }).length === 0 ? (
+          <p className="text-sm text-gray-600">Nenhum produto com estoque crítico.</p>
+        ) : (
+          <ul className="space-y-4">
+            {produtosCriticos
+              .filter(p => p.variacoes.reduce((acc, v) => acc + v.estoque, 0) < Math.floor(12 * 0.5))
+              .map(p => {
+                const estoqueDisponivel = p.variacoes
+                  .filter(v => v.estoque > 0)
+                  .reduce((acc, v) => acc + v.estoque, 0);
+                const porcentagem = Math.round((estoqueDisponivel / 12) * 100);
+
+                return (
+                  <li key={p.id} className="space-y-1">
+                    <div className="flex justify-between text-sm font-medium text-gray-800">
+                      <span>{p.nome}</span>
+                      <span className="text-gray-500">{estoqueDisponivel} de 12 pares</span>
+                    </div>
+                    <div className="w-full bg-gray-200 h-2 rounded-full">
+                      <div
+                        className="bg-red-400 h-2 rounded-full transition-all"
+
+                        style={{ width: `${porcentagem}%` }}
+                      ></div>
+                    </div>
+                    <p className="text-xs text-right text-gray-500">{porcentagem}% disponível</p>
+                  </li>
+                );
+              })}
+          </ul>
+        )}
       </div>
+    </div>
 
-      {/* Cards laterais */}
-      <div className="flex flex-col lg:flex-row gap-4">
-        {/* Coluna esquerda */}
-        <div className="w-full lg:w-1/2 flex flex-col gap-4">
-          {/* Estoque Baixo */}
-{/* Produtos com Estoque Muito Baixo */}
-<div className="bg-white rounded-xl shadow p-4">
-  <h3 className="text-lg font-semibold mb-4 text-gray-700">⚠️ Estoque Baixo</h3>
-  {produtosCriticos.filter(p => {
-    const estoqueDisponivel = p.variacoes.reduce((acc, v) => acc + v.estoque, 0);
-    return estoqueDisponivel < Math.floor(12 * 0.4); // menos de 5 pares
-  }).length === 0 ? (
-    <p className="text-green-600 text-sm">Nenhum produto com estoque baixo! 🎉</p>
-  ) : (
-    <ul className="space-y-3">
-      {produtosCriticos
-        .filter(p => {
-          const estoqueDisponivel = p.variacoes.reduce((acc, v) => acc + v.estoque, 0);
-          return estoqueDisponivel < Math.floor(12 * 0.5); // menos de 5 pares
-        })
-        .map(p => {
-          const estoqueTotal = p.variacoes.reduce((acc, v) => acc + v.estoque, 0);
-          const estoqueDisponivel = p.variacoes
-            .filter(v => v.estoque > 0)
-            .reduce((acc, v) => acc + v.estoque, 0);
-
-          const porcentagem = estoqueTotal === 0 ? 0 : Math.round((estoqueDisponivel / 12) * 100);
-
-          let cor = "bg-red-400";
-          if (porcentagem >= 80) cor = "bg-green-400";
-          else if (porcentagem >= 50) cor = "bg-yellow-400";
-
-          return (
-            <li
-              key={p.id}
-              className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2"
-            >
-              <div className="flex-1">
-                <p className="text-sm font-medium text-gray-700">{p.nome}</p>
-                <p className="text-xs text-gray-500">
-                  {estoqueDisponivel} de 12 pares disponíveis
-                </p>
-              </div>
-              <div className="w-full sm:w-48">
-                <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
-                  <div
-                    className={`${cor} h-3 transition-all duration-500`}
-                    style={{ width: `${porcentagem}%` }}
-                  ></div>
+    {/* Coluna direita */}
+    <div className="flex-1">
+      <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-6 h-full">
+        <h3 className="text-lg font-semibold text-gray-800 mb-4">Produtos Mais Vendidos</h3>
+        {rankingProdutos.length === 0 ? (
+          <p className="text-sm text-gray-600">Nenhuma venda registrada neste período.</p>
+        ) : (
+          <ul className="space-y-3">
+            {rankingProdutos.map((produto, index) => (
+              <li key={produto.id} className="flex justify-between items-center">
+                <div className="flex items-center gap-3">
+                  <span className="text-sm text-gray-500 font-semibold w-5 text-right">{index + 1}.</span>
+                  <span className="text-sm text-gray-800">{produto.nome}</span>
                 </div>
-                <p className="text-xs text-gray-500 text-right mt-1">
-                  {porcentagem}% disponível
-                </p>
-              </div>
-            </li>
-          );
-        })}
-    </ul>
-  )}
+                <span className="text-sm text-gray-700 font-medium">{produto.quantidadeVendida} vendas</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </div>
+  </div>
 </div>
 
 
-
-
-
-          {/* Gráfico de Vendas */}
-          <div className="bg-white rounded-xl shadow p-4">
-            <h3 className="text-lg font-semibold mb-4 text-gray-700">
-              📈 Evolução das Vendas ({periodo === "dia" ? "Hoje" : periodo === "7dias" ? "Últimos 7 dias" : "Mês"})
-            </h3>
-            <ResponsiveContainer width="100%" height={220}>
-              <LineChart data={dadosGrafico} margin={{ top: 10, right: 20, left: -10, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                <XAxis dataKey="dia" tick={{ fontSize: 12, fill: "#6b7280" }} />
-                <YAxis tick={{ fontSize: 12, fill: "#6b7280" }} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "#1f2937",
-                    borderRadius: "8px",
-                    color: "#fff",
-                    fontSize: "12px",
-                  }}
-                  formatter={value => formatCurrency(value)}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="total"
-                  stroke="#4F46E5"
-                  strokeWidth={2}
-                  dot={{ r: 3 }}
-                  activeDot={{ r: 6, stroke: "#4F46E5", strokeWidth: 2, fill: "#fff" }}
-                  isAnimationActive={true}
-                  animationDuration={800}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        {/* Coluna direita - Ranking de Produtos */}
-        <div className="w-full lg:w-1/2">
-          <div className="bg-white rounded-xl shadow p-4">
-            <h3 className="text-lg font-semibold mb-4 text-gray-700">
-              🏆 Produtos Mais Vendidos ({periodo === "dia" ? "Hoje" : periodo === "7dias" ? "Últimos 7 dias" : "Mês"})
-            </h3>
-            {rankingProdutos.length === 0 ? (
-              <p className="text-sm text-gray-500">Nenhuma venda registrada neste período.</p>
-            ) : (
-              <ul className="space-y-3">
-                {rankingProdutos.map((produto, index) => (
-                  <li key={produto.id} className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-bold text-gray-600 w-6 text-center">
-                        {index + 1}.
-                      </span>
-                      <p className="text-sm text-gray-700">{produto.nome}</p>
-                    </div>
-                    <span className="text-sm font-medium text-indigo-600">
-                      {produto.quantidadeVendida} vendas
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
   );
 }
