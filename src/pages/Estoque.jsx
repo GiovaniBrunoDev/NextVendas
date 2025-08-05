@@ -172,22 +172,25 @@ export default function Estoque() {
 
 
      return (
-      <div className="block sm:hidden mb-2">
-          <button
-            onClick={() => setMostrarModal(true)}
-            className="flex items-center gap-1.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-3.5 py-1.5 text-xs font-medium rounded-md shadow-sm hover:shadow-md transform hover:scale-[1.02] transition-all duration-200 ease-in-out"
+      <div className="block sm:hidden mb-4">
+        <button
+          onClick={() => setMostrarModal(true)}
+          className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-4 py-2 text-sm font-medium rounded-md shadow-md hover:shadow-lg transform hover:scale-[1.03] transition-all duration-200 ease-in-out"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-4 w-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-3.5 w-3.5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-            Novo Produto
-          </button>
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          </svg>
+          Novo Produto
+        </button>
+
+
+          
 
 
 

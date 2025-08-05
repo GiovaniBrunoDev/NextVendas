@@ -33,36 +33,36 @@ export default function Clientes() {
   };
 
   return (
-    <div className="p-6">
-      <div className="flex items-center justify-between mb-6">
+    <div className="p-4 max-w-4xl mx-auto">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
         <h1 className="text-2xl font-bold text-blue-700">👥 Clientes</h1>
         <button
           onClick={abrirNovoCliente}
-          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow"
+          className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow text-sm"
         >
           <FaUserPlus />
           Novo Cliente
         </button>
       </div>
 
-      <div className="bg-white rounded shadow p-4">
-        <table className="w-full text-sm">
+      <div className="bg-white rounded shadow overflow-x-auto">
+        <table className="w-full text-sm min-w-[400px]">
           <thead className="border-b">
             <tr className="text-left text-gray-600">
-              <th className="py-2">Nome</th>
-              <th className="py-2">Telefone</th>
-              <th className="py-2">Ações</th>
+              <th className="py-2 px-3">Nome</th>
+              <th className="py-2 px-3">Telefone</th>
+              <th className="py-2 px-3">Ações</th>
             </tr>
           </thead>
           <tbody>
             {clientes.map((cliente) => (
               <tr key={cliente.id} className="border-t hover:bg-gray-50">
-                <td className="py-2">{cliente.nome}</td>
-                <td className="py-2">{cliente.telefone}</td>
-                <td className="py-2">
+                <td className="py-2 px-3 whitespace-nowrap">{cliente.nome}</td>
+                <td className="py-2 px-3 whitespace-nowrap">{cliente.telefone}</td>
+                <td className="py-2 px-3 whitespace-nowrap">
                   <button
                     onClick={() => editarCliente(cliente)}
-                    className="text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                    className="text-blue-600 hover:text-blue-800 flex items-center gap-1 text-sm"
                   >
                     <FaEdit />
                     Editar
