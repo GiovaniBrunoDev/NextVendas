@@ -36,3 +36,19 @@
     transform: rotate(360deg);
   }
 }
+
+/* styles.css ou dentro de um arquivo global */
+@keyframes spin-in {
+  0% {
+    transform: rotate(-20deg) scale(0.8);
+    opacity: 0;
+  }
+  100% {
+    transform: rotate(0deg) scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-spin-in {
+  animation: spin-in 0.4s ease-out forwards;
+}

@@ -173,24 +173,28 @@ export default function Estoque() {
 
      return (
       <div className="block sm:hidden mb-4">
-        <button
-          onClick={() => setMostrarModal(true)}
-          className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-4 py-2 text-sm font-medium rounded-md shadow-md hover:shadow-lg transform hover:scale-[1.03] transition-all duration-200 ease-in-out"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-4 w-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
+     
+        {/* Botão flutuante com rotação suave ao aparecer */}
+        {!mostrarModal && (
+          <button
+            onClick={() => setMostrarModal(true)}
+            className="fixed bottom-20 right-4 z-50 bg-gradient-to-br from-blue-600 to-blue-500 dark:from-blue-500 dark:to-blue-400 text-white w-12 h-12 rounded-full shadow-[0_6px_16px_rgba(0,0,0,0.25)] flex items-center justify-center focus:outline-none focus:ring-4 focus:ring-blue-300 dark:focus:ring-blue-800 transition-all duration-200 ease-out hover:scale-105 hover:shadow-[0_10px_24px_rgba(0,0,0,0.3)] animate-spin-in"
+            title="Novo Produto"
+            aria-label="Adicionar novo produto"
           >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-          </svg>
-          Novo Produto
-        </button>
-
-
-          
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+            </svg>
+          </button>
+        )}
+                    
 
 
 
