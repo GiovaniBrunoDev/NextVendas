@@ -172,158 +172,189 @@ export default function Estoque() {
 
 
      return (
-    <div className="p-4 grid grid-cols-1 lg:grid-cols-2 gap-6">
-      {/* Lista de Produtos */}
-      <div className="bg-white shadow rounded p-4">
-        <h2 className="text-lg font-semibold mb-4">📦 Produtos</h2>
-        <input
-          type="text"
-          placeholder="🔍 Buscar por nome ou código..."
-          value={busca}
-          onChange={(e) => setBusca(e.target.value)}
-          className="w-full mb-4 px-3 py-2 border border-gray-300 rounded text-sm"
-        />
-        <ul className="divide-y text-sm max-h-[400px] md:max-h-[500px] overflow-auto">
-          {produtosFiltrados.map((produto) => (
-            <li
-              key={produto.id}
-              onClick={() => setProdutoSelecionado(produto)}
-              className={`p-3 cursor-pointer hover:bg-blue-50 rounded flex gap-3 items-center transition-all duration-150 ${
-                produtoSelecionado?.id === produto.id ? "bg-blue-100 font-semibold" : ""
-              }`}
+      <div className="block sm:hidden mb-2">
+          <button
+            onClick={() => setMostrarModal(true)}
+            className="flex items-center gap-1.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-3.5 py-1.5 text-xs font-medium rounded-md shadow-sm hover:shadow-md transform hover:scale-[1.02] transition-all duration-200 ease-in-out"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-3.5 w-3.5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
             >
-              {produto.imagemUrlCompleta ? (
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            Novo Produto
+          </button>
+
+
+
+  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    {/* Lista de Produtos */}
+    <div className="bg-white shadow rounded p-4">
+      <h2 className="text-lg font-semibold mb-4">📦 Produtos</h2>
+      <input
+        type="text"
+        placeholder="🔍 Buscar por nome ou código..."
+        value={busca}
+        onChange={(e) => setBusca(e.target.value)}
+        className="w-full mb-4 px-3 py-2 border border-gray-300 rounded text-sm"
+      />
+      <ul className="divide-y text-sm max-h-[400px] md:max-h-[500px] overflow-auto">
+        {produtosFiltrados.map((produto) => (
+          <li
+            key={produto.id}
+            onClick={() => setProdutoSelecionado(produto)}
+            className={`p-3 cursor-pointer hover:bg-blue-50 rounded flex gap-3 items-center transition-all duration-150 ${
+              produtoSelecionado?.id === produto.id ? "bg-blue-100 font-semibold" : ""
+            }`}
+          >
+            {produto.imagemUrlCompleta ? (
+              <img
+                src={produto.imagemUrlCompleta}
+                alt={produto.nome}
+                className="w-12 h-12 object-cover rounded"
+              />
+            ) : (
+              <div className="w-12 h-12 bg-gray-200 rounded flex items-center justify-center text-xs text-gray-500">
+                Sem imagem
+              </div>
+            )}
+            <div>
+              <p>{produto.nome}</p>
+              <p className="text-xs text-gray-500">R$ {produto.preco.toFixed(2)}</p>
+              <p className="text-xs text-gray-500">
+                Estoque total: {calcularEstoqueTotal(produto)}
+              </p>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </div>
+
+    {/* Detalhes do Produto */}
+    <div className="bg-white shadow rounded p-4 min-h-[400px] relative">
+      {!produtoSelecionado ? (
+        <p className="text-gray-500 text-sm">Selecione um produto à esquerda.</p>
+      ) : (
+        <>
+          <div className="mb-4 border-b pb-4 relative flex flex-col sm:flex-row sm:gap-4">
+            <div className="relative w-20 h-20">
+              {produtoSelecionado.imagemUrlCompleta ? (
                 <img
-                  src={produto.imagemUrlCompleta}
-                  alt={produto.nome}
-                  className="w-12 h-12 object-cover rounded"
+                  src={produtoSelecionado.imagemUrlCompleta}
+                  alt={produtoSelecionado.nome}
+                  className="w-20 h-20 object-cover rounded"
                 />
               ) : (
-                <div className="w-12 h-12 bg-gray-200 rounded flex items-center justify-center text-xs text-gray-500">
+                <div className="w-20 h-20 bg-gray-200 flex items-center justify-center text-xs text-gray-500 rounded">
                   Sem imagem
                 </div>
               )}
-              <div>
-                <p>{produto.nome}</p>
-                <p className="text-xs text-gray-500">R$ {produto.preco.toFixed(2)}</p>
-                <p className="text-xs text-gray-500">Estoque total: {calcularEstoqueTotal(produto)}</p>
-              </div>
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      {/* Detalhes do Produto */}
-      <div className="bg-white shadow rounded p-4 min-h-[400px] relative">
-        {!produtoSelecionado ? (
-          <p className="text-gray-500 text-sm">Selecione um produto à esquerda.</p>
-        ) : (
-          <>
-            <div className="mb-4 border-b pb-4 relative flex flex-col sm:flex-row sm:gap-4">
-              <div className="relative w-20 h-20">
-                {produtoSelecionado.imagemUrlCompleta ? (
-                  <img
-                    src={produtoSelecionado.imagemUrlCompleta}
-                    alt={produtoSelecionado.nome}
-                    className="w-20 h-20 object-cover rounded"
-                  />
-                ) : (
-                  <div className="w-20 h-20 bg-gray-200 flex items-center justify-center text-xs text-gray-500 rounded">
-                    Sem imagem
-                  </div>
-                )}
-                <button
-                  className="absolute bottom-1 right-1 bg-white text-gray-700 rounded-full p-1 shadow hover:bg-gray-100"
-                  title="Trocar imagem"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    document.getElementById("uploadImagemCard")?.click();
-                  }}
-                >
-                  <FaPen size={12} />
-                </button>
-                <input
-                  type="file"
-                  accept="image/*"
-                  id="uploadImagemCard"
-                  onChange={handleSelecionarNovaImagem}
-                  className="hidden"
-                />
-              </div>
-              <div className="space-y-1">
-                <p className="text-xl font-semibold text-gray-900">{produtoSelecionado.nome}</p>
-                <p className="text-sm text-gray-600">
-                  Preço: <strong>R$ {produtoSelecionado.preco.toFixed(2)}</strong> &nbsp;|&nbsp;
-                  Custo: <strong>R$ {produtoSelecionado.custoUnitario.toFixed(2)}</strong> &nbsp;|&nbsp;
-                  Outros custos: <strong>R$ {produtoSelecionado.outrosCustos.toFixed(2)}</strong>
-                </p>
-              </div>
               <button
-                onClick={() => {
-                  if (window.confirm("Tem certeza que deseja excluir este produto?")) {
-                    api.delete(`/produtos/${produtoSelecionado.id}`);
-                    toast.success("Produto excluído!");
-                    setProdutoSelecionado(null);
-                    carregarProdutos();
-                  }
+                className="absolute bottom-1 right-1 bg-white text-gray-700 rounded-full p-1 shadow hover:bg-gray-100"
+                title="Trocar imagem"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  document.getElementById("uploadImagemCard")?.click();
                 }}
-                className="absolute top-2 right-2 px-3 py-1.5 text-xs text-red-600 border border-red-300 rounded hover:bg-red-50"
               >
-                Excluir
+                <FaPen size={12} />
               </button>
+              <input
+                type="file"
+                accept="image/*"
+                id="uploadImagemCard"
+                onChange={handleSelecionarNovaImagem}
+                className="hidden"
+              />
             </div>
+            <div className="space-y-1">
+              <p className="text-xl font-semibold text-gray-900">{produtoSelecionado.nome}</p>
+              <p className="text-sm text-gray-600">
+                Preço: <strong>R$ {produtoSelecionado.preco.toFixed(2)}</strong> &nbsp;|&nbsp;
+                Custo: <strong>R$ {produtoSelecionado.custoUnitario.toFixed(2)}</strong> &nbsp;|&nbsp;
+                Outros custos: <strong>R$ {produtoSelecionado.outrosCustos.toFixed(2)}</strong>
+              </p>
+            </div>
+            <button
+              onClick={() => {
+                if (window.confirm("Tem certeza que deseja excluir este produto?")) {
+                  api.delete(`/produtos/${produtoSelecionado.id}`);
+                  toast.success("Produto excluído!");
+                  setProdutoSelecionado(null);
+                  carregarProdutos();
+                }
+              }}
+              className="absolute top-2 right-2 px-3 py-1.5 text-xs text-red-600 border border-red-300 rounded hover:bg-red-50"
+            >
+              Excluir
+            </button>
+          </div>
 
-            <div className="space-y-3 overflow-auto max-h-[400px]">
-              {produtoSelecionado.variacoes.map((v) => (
-                <div key={v.id} className="flex flex-col sm:flex-row sm:justify-between border rounded p-3 bg-gray-50">
-                  <div>
-                    <p className="font-medium">Numeração: <span className="text-blue-600">{v.numeracao}</span></p>
-                    <p className="text-sm text-gray-500">Estoque atual: <span className="font-semibold">{v.estoque}</span></p>
-                  </div>
-                  <div className="flex gap-2 mt-2 sm:mt-0">
-                    <input
-                      type="number"
-                      className="border px-2 py-1 rounded w-20"
-                      value={estoquesEditados[v.id] ?? v.estoque}
-                      onChange={(e) => handleEstoqueChange(v.id, e.target.value)}
-                    />
-                    <button
-                      onClick={() => salvarEstoque(v.id)}
-                      className="bg-green-500 hover:bg-green-600 text-white p-2 rounded-full"
-                    >
-                      <FaSave size={14} />
-                    </button>
-                    <button
-                      onClick={() => excluirVariacao(v.id)}
-                      className="bg-red-500 hover:bg-red-600 text-white p-2 rounded-full"
-                    >
-                      <FaTrashAlt size={14} />
-                    </button>
-                  </div>
+          <div className="space-y-3 overflow-auto max-h-[400px]">
+            {produtoSelecionado.variacoes.map((v) => (
+              <div
+                key={v.id}
+                className="flex flex-col sm:flex-row sm:justify-between border rounded p-3 bg-gray-50"
+              >
+                <div>
+                  <p className="font-medium">
+                    Numeração: <span className="text-blue-600">{v.numeracao}</span>
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    Estoque atual: <span className="font-semibold">{v.estoque}</span>
+                  </p>
                 </div>
-              ))}
-            </div>
-          </>
-        )}
-      </div>
-
-      <button
-        onClick={() => setMostrarModal(true)}
-        className="fixed bottom-5 right-5 z-50 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-full shadow-lg"
-      >
-        + Cadastrar Produto
-      </button>
-
-      {mostrarModal && (
-        <ProdutoModal
-          aoFechar={() => setMostrarModal(false)}
-          aoCadastrar={() => {
-            setMostrarModal(false);
-            carregarProdutos();
-          }}
-        />
+                <div className="flex gap-2 mt-2 sm:mt-0">
+                  <input
+                    type="number"
+                    className="border px-2 py-1 rounded w-20"
+                    value={estoquesEditados[v.id] ?? v.estoque}
+                    onChange={(e) => handleEstoqueChange(v.id, e.target.value)}
+                  />
+                  <button
+                    onClick={() => salvarEstoque(v.id)}
+                    className="bg-green-500 hover:bg-green-600 text-white p-2 rounded-full"
+                  >
+                    <FaSave size={14} />
+                  </button>
+                  <button
+                    onClick={() => excluirVariacao(v.id)}
+                    className="bg-red-500 hover:bg-red-600 text-white p-2 rounded-full"
+                  >
+                    <FaTrashAlt size={14} />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
       )}
     </div>
+  </div>
+
+  {/* BOTÃO FIXO DESKTOP */}
+  <button
+    onClick={() => setMostrarModal(true)}
+    className="hidden sm:block fixed bottom-5 right-5 z-50 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-full shadow-lg"
+  >
+    + Cadastrar Produto
+  </button>
+
+  {mostrarModal && (
+    <ProdutoModal
+      aoFechar={() => setMostrarModal(false)}
+      aoCadastrar={() => {
+        setMostrarModal(false);
+        carregarProdutos();
+      }}
+    />
+  )}
+</div>
+
   );
 }
 
