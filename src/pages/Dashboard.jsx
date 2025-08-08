@@ -79,17 +79,24 @@ export default function Dashboard() {
 
     const filtrarPorPeriodo = venda => {
       const dataVenda = new Date(venda.data);
+      const dataVendaStr = dataVenda.toDateString();
+      const hojeStr = hoje.toDateString();
+
       if (periodo === "dia") {
-        return dataVenda.toISOString().slice(0, 10) === hoje.toISOString().slice(0, 10);
+        return dataVendaStr === hojeStr;
       }
+
       if (periodo === "7dias") {
         return dataVenda >= inicio7Dias && dataVenda <= hoje;
       }
+
       if (periodo === "mes") {
         return dataVenda >= inicioMes && dataVenda <= hoje;
       }
+
       return false;
     };
+
 
     const vendasPeriodo = vendas.filter(filtrarPorPeriodo);
     setVendasFiltradas(vendasPeriodo);
@@ -267,6 +274,8 @@ export default function Dashboard() {
           </LineChart>
         </ResponsiveContainer>
       </div>
+
+      
 
       {/* Estoque Baixo */}
       <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-6">

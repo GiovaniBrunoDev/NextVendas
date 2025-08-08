@@ -73,6 +73,7 @@ export default function Estoque() {
       });
       toast.success("Variação adicionada com sucesso!");
       setNovaVariacao({ numeracao: "", estoque: "" });
+      setMostrarFormularioVariacao(false); //
       carregarProdutos();
     } catch (err) {
       toast.error("Erro ao adicionar variação");
@@ -181,6 +182,7 @@ export default function Estoque() {
     return (produto.variacoes || []).reduce((soma, v) => soma + v.estoque, 0);
   };
 
+  
 
 
      return (
@@ -338,6 +340,43 @@ export default function Estoque() {
                   </div>
                 </div>
               ))}
+            </div>
+            <div className="mt-4 border-t pt-4">
+              <button
+                className="text-sm text-gray-500 hover:text-blue-600 flex items-center gap-1"
+                onClick={() => setMostrarFormularioVariacao((v) => !v)}
+              >
+                <FaPlus className="text-xs" /> Adicionar variação
+              </button>
+
+              {mostrarFormularioVariacao && (
+                  <div className="mt-2 flex flex-row flex-wrap gap-2 items-center">
+                    <input
+                      type="text"
+                      placeholder="Numeração"
+                      className="border px-2 py-1 rounded w-1/3 min-w-[100px]"
+                      value={novaVariacao.numeracao}
+                      onChange={(e) =>
+                        setNovaVariacao((v) => ({ ...v, numeracao: e.target.value }))
+                      }
+                    />
+                    <input
+                      type="number"
+                      placeholder="Estoque"
+                      className="border px-2 py-1 rounded w-1/3 min-w-[100px]"
+                      value={novaVariacao.estoque}
+                      onChange={(e) =>
+                        setNovaVariacao((v) => ({ ...v, estoque: e.target.value }))
+                      }
+                    />
+                    <button
+                      onClick={adicionarVariacao}
+                      className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded w-1/3 min-w-[100px]"
+                    >
+                      Adicionar
+                    </button>
+                  </div>
+                )}
             </div>
           </>
         )}

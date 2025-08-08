@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import api from "../services/api";
 import { toast } from "react-toastify";
 
 export default function ProdutoModal({ aoFechar, aoCadastrar }) {
   const [etapa, setEtapa] = useState(1);
+  const [isMobile, setIsMobile] = useState(false);
   const [form, setForm] = useState({
     nome: "",
     preco: "",
@@ -15,6 +16,13 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
   const [imagemFile, setImagemFile] = useState(null);
   const [variacoes, setVariacoes] = useState([{ numeracao: "", estoque: "" }]);
   const [carregando, setCarregando] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 640);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -92,29 +100,20 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
       }
 
       let imagemUrl = "";
-
-      if (imagemFile) {
-        try {
-          imagemUrl = await fazerUploadLocal();
-        } catch (error) {
-          toast.error("Erro ao enviar imagem.");
-          return;
-        }
-      }
+      if (imagemFile) imagemUrl = await fazerUploadLocal();
 
       await api.post("/produtos", {
         ...form,
         preco,
-        imagemUrl,
         custoUnitario,
         outrosCustos,
+        imagemUrl,
         variacoes: variacoesValidadas,
       });
 
       toast.success("Produto cadastrado com sucesso!");
-      setForm({ nome: "", preco: "", custoUnitario: "", outrosCustos: "", imagemUrl: "" });
+      setForm({ nome: "", preco: "", custoUnitario: "", outrosCustos: "" });
       setVariacoes([{ numeracao: "", estoque: "" }]);
-
       setTimeout(() => aoCadastrar(), 800);
     } catch (err) {
       console.error(err);
@@ -133,13 +132,12 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
         className="bg-white w-full max-w-2xl rounded-2xl p-5 sm:p-6 shadow-xl relative animate-fadeIn"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="text-xl sm:text-2xl font-semibold text-blue-700 mb-5 border-b pb-2">
-          🛍️ {etapa === 1 ? "Informações do Produto" : "Grade de Variações"}
+        <h2 className="text-xl sm:text-2xl font-semibold text-gray-800 mb-6 border-b pb-2">
+          🛍️ {isMobile && etapa === 2 ? "Grade de Variações" : "Cadastrar Produto"}
         </h2>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* ETAPA 1 - INFORMAÇÕES */}
-          {etapa === 1 && (
+        <form onSubmit={handleSubmit} className="space-y-6 text-sm text-gray-700">
+          {(!isMobile || etapa === 1) && (
             <>
               <input
                 type="text"
@@ -199,11 +197,9 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
             </>
           )}
 
-          {/* ETAPA 2 - VARIAÇÕES */}
-          {etapa === 2 && (
+          {(!isMobile || etapa === 2) && (
             <div>
-              <label className="block font-semibold text-gray-700 mb-2">Grade de Variações</label>
-
+              <label className="block font-medium text-gray-700 mb-3">Grade de Variações</label>
               {variacoes.map((v, index) => (
                 <div key={index} className="flex flex-wrap items-center gap-2 mb-2">
                   <input
@@ -233,34 +229,21 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
               ))}
 
               <div className="flex flex-wrap gap-4 mt-3 text-sm">
-                <button
-                  type="button"
-                  onClick={adicionarVariacao}
-                  className="text-blue-600 hover:underline"
-                >
+                <button type="button" onClick={adicionarVariacao} className="text-blue-600 hover:underline">
                   + Adicionar Variação
                 </button>
-                <button
-                  type="button"
-                  onClick={() => adicionarGradeCompleta("baixa")}
-                  className="text-gray-600 hover:underline"
-                >
+                <button type="button" onClick={() => adicionarGradeCompleta("baixa")} className="text-gray-600 hover:underline">
                   Grade Baixa (34–39)
                 </button>
-                <button
-                  type="button"
-                  onClick={() => adicionarGradeCompleta("alta")}
-                  className="text-gray-600 hover:underline"
-                >
+                <button type="button" onClick={() => adicionarGradeCompleta("alta")} className="text-gray-600 hover:underline">
                   Grade Alta (38–43)
                 </button>
               </div>
             </div>
           )}
 
-          {/* AÇÕES */}
           <div className="flex justify-between mt-8">
-            {etapa === 2 ? (
+            {isMobile && etapa === 2 ? (
               <button
                 type="button"
                 onClick={() => setEtapa(1)}
@@ -280,8 +263,7 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
               >
                 Cancelar
               </button>
-
-              {etapa === 1 ? (
+              {isMobile && etapa === 1 ? (
                 <button
                   type="button"
                   onClick={() => setEtapa(2)}
@@ -293,9 +275,7 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
                 <button
                   type="submit"
                   disabled={carregando}
-                  className={`px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition ${
-                    carregando ? "opacity-50 cursor-not-allowed" : ""
-                  }`}
+                  className={`px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition ${carregando ? "opacity-50 cursor-not-allowed" : ""}`}
                 >
                   {carregando ? "Salvando..." : "Salvar Produto"}
                 </button>
