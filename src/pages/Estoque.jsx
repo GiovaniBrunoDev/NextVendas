@@ -266,45 +266,50 @@ const { totalProdutos, totalVariacoes, quantidadeTotal, valorTotal, custoTotal }
 
  <div className="p-4 grid grid-cols-1 lg:grid-cols-2 gap-6">
       {/* Lista de Produtos */}
-      <div className="bg-white shadow rounded p-4">
-        <h2 className="text-lg font-semibold mb-4">Produtos</h2>
-        <input
-          type="text"
-          placeholder="Buscar por nome ou código..."
-          value={busca}
-          onChange={(e) => setBusca(e.target.value)}
-          className="w-full mb-4 px-3 py-2 border border-gray-300 rounded text-sm"
-        />
-        <ul className="divide-y text-sm max-h-[400px] md:max-h-[500px] overflow-auto">
-          {produtosFiltrados.map((produto) => (
-            <li
-              key={produto.id}
-              onClick={() => setProdutoSelecionado(produto)}
-              className={`p-3 cursor-pointer hover:bg-blue-50 rounded flex gap-3 items-center transition-all duration-150 ${
-                produtoSelecionado?.id === produto.id ? "bg-blue-100 font-semibold" : ""
-              }`}
-            >
-              {produto.imagemUrl ? (
-                <img
-                  src={produto.imagemUrl}
-                  alt={produto.nome}
-                  className="w-12 h-12 object-cover rounded"
-                />
-              ) : (
-                <div className="w-12 h-12 bg-gray-200 rounded flex items-center justify-center text-xs text-gray-500">
-                  Sem imagem
-                </div>
-              )}
+          <div className="bg-white shadow rounded p-4">
+            <h2 className="text-lg font-semibold mb-4">Produtos</h2>
+            <input
+              type="text"
+              placeholder="Buscar por nome ou código..."
+              value={busca}
+              onChange={(e) => setBusca(e.target.value)}
+              className="w-full mb-4 px-3 py-2 border border-gray-300 rounded text-sm"
+            />
+            <ul className="divide-y text-sm max-h-[400px] md:max-h-[500px] overflow-auto">
+              {produtosFiltrados
+                .sort((a, b) => a.nome.localeCompare(b.nome)) // ordena A → Z
+                .map((produto) => (
+                  <li
+                    key={produto.id}
+                    onClick={() => setProdutoSelecionado(produto)}
+                    className={`p-3 cursor-pointer hover:bg-blue-50 rounded flex gap-3 items-center transition-all duration-150 ${
+                      produtoSelecionado?.id === produto.id ? "bg-blue-100 font-semibold" : ""
+                    }`}
+                  >
+                    {produto.imagemUrl ? (
+                      <img
+                        src={produto.imagemUrl}
+                        alt={produto.nome}
+                        className="w-12 h-12 object-cover rounded"
+                      />
+                    ) : (
+                      <div className="w-12 h-12 bg-gray-200 rounded flex items-center justify-center text-xs text-gray-500">
+                        Sem imagem
+                      </div>
+                    )}
 
-              <div>
-                <p>{produto.nome}</p>
-                <p className="text-xs text-gray-500">R$ {produto.preco.toFixed(2)}</p>
-                <p className="text-xs text-gray-500">Estoque total: {calcularEstoqueTotal(produto)}</p>
-              </div>
-            </li>
-          ))}
-        </ul>
-      </div>
+                    <div>
+                      <p>{produto.nome}</p>
+                      <p className="text-xs text-gray-500">R$ {produto.preco.toFixed(2)}</p>
+                      <p className="text-xs text-gray-500">
+                        Estoque total: {calcularEstoqueTotal(produto)}
+                      </p>
+                    </div>
+                  </li>
+                ))}
+            </ul>
+          </div>
+
 
       
 
