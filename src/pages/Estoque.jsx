@@ -284,9 +284,9 @@ const { totalProdutos, totalVariacoes, quantidadeTotal, valorTotal, custoTotal }
                 produtoSelecionado?.id === produto.id ? "bg-blue-100 font-semibold" : ""
               }`}
             >
-              {produto.imagemUrlCompleta ? (
+              {produto.imagemUrl ? (
                 <img
-                  src={produto.imagemUrlCompleta}
+                  src={produto.imagemUrl}
                   alt={produto.nome}
                   className="w-12 h-12 object-cover rounded"
                 />
@@ -295,6 +295,7 @@ const { totalProdutos, totalVariacoes, quantidadeTotal, valorTotal, custoTotal }
                   Sem imagem
                 </div>
               )}
+
               <div>
                 <p>{produto.nome}</p>
                 <p className="text-xs text-gray-500">R$ {produto.preco.toFixed(2)}</p>
@@ -315,17 +316,18 @@ const { totalProdutos, totalVariacoes, quantidadeTotal, valorTotal, custoTotal }
           <>
             <div className="mb-4 border-b pb-4 relative flex flex-col sm:flex-row sm:gap-4">
               <div className="relative w-20 h-20">
-                {produtoSelecionado.imagemUrlCompleta ? (
-                  <img
-                    src={produtoSelecionado.imagemUrlCompleta}
-                    alt={produtoSelecionado.nome}
-                    className="w-20 h-20 object-cover rounded"
-                  />
-                ) : (
-                  <div className="w-20 h-20 bg-gray-200 flex items-center justify-center text-xs text-gray-500 rounded">
-                    Sem imagem
-                  </div>
-                )}
+                              {produtoSelecionado.imagemUrl ? (
+                <img
+                  src={produtoSelecionado.imagemUrl}
+                  alt={produtoSelecionado.nome}
+                  className="w-20 h-20 object-cover rounded"
+                />
+              ) : (
+                <div className="w-20 h-20 bg-gray-200 flex items-center justify-center text-xs text-gray-500 rounded">
+                  Sem imagem
+                </div>
+              )}
+
                 <button
                   className="absolute bottom-1 right-1 bg-white text-gray-700 rounded-full p-1 shadow hover:bg-gray-100"
                   title="Trocar imagem"
