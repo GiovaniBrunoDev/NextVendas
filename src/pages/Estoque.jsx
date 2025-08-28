@@ -3,6 +3,16 @@ import api from "../services/api";
 import ProdutoModal from "../components/ProdutoModal";
 import { toast } from "react-toastify";
 import { FaEdit, FaSave, FaTrashAlt, FaPlus, FaPen } from "react-icons/fa";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+
+const dadosMovimentacao = [
+  { mes: "Jan", entrou: 120, saiu: 80 },
+  { mes: "Fev", entrou: 150, saiu: 110 },
+  // puxar isso da API real
+];
+
+
+
 
 export default function Estoque() {
   const [produtos, setProdutos] = useState([]);
@@ -14,7 +24,32 @@ export default function Estoque() {
   const [novaVariacao, setNovaVariacao] = useState({ numeracao: "", estoque: "" });
   const [mostrarFormularioVariacao, setMostrarFormularioVariacao] = useState(false);
   const [mostrarBotaoFlutuante, setMostrarBotaoFlutuante] = useState(true);
+  const [estoqueEditandoId, setEstoqueEditandoId] = useState(null);
+
   const inputImagemRef = useRef(null);
+
+  const calcularRelatorio = () => {
+  let totalProdutos = produtos.length;
+  let totalVariacoes = 0;
+  let quantidadeTotal = 0;
+  let valorTotal = 0;
+  let custoTotal = 0;
+
+  produtos.forEach((produto) => {
+    (produto.variacoes || []).forEach((v) => {
+      totalVariacoes++;
+      quantidadeTotal += v.estoque;
+      valorTotal += v.estoque * produto.preco;
+      custoTotal += v.estoque * (produto.custoUnitario + produto.outrosCustos);
+    });
+  });
+
+  return { totalProdutos, totalVariacoes, quantidadeTotal, valorTotal, custoTotal };
+};
+
+
+
+
 
   async function carregarProdutos() {
     const res = await api.get("/produtos");
@@ -181,6 +216,7 @@ export default function Estoque() {
   const calcularEstoqueTotal = (produto) => {
     return (produto.variacoes || []).reduce((soma, v) => soma + v.estoque, 0);
   };
+const { totalProdutos, totalVariacoes, quantidadeTotal, valorTotal, custoTotal } = calcularRelatorio();
 
   
 
@@ -251,6 +287,8 @@ export default function Estoque() {
         </ul>
       </div>
 
+      
+
       {/* Detalhes do Produto */}
       <div className="bg-white shadow rounded p-4 min-h-[400px] relative">
         {!produtoSelecionado ? (
@@ -312,35 +350,74 @@ export default function Estoque() {
             </div>
 
             <div className="space-y-3 overflow-auto max-h-[400px]">
-              {produtoSelecionado.variacoes.map((v) => (
-                <div key={v.id} className="flex flex-col sm:flex-row sm:justify-between border rounded p-3 bg-gray-50">
-                  <div>
-                    <p className="font-medium">Numeração: <span className="text-blue-600">{v.numeracao}</span></p>
-                    <p className="text-sm text-gray-500">Estoque atual: <span className="font-semibold">{v.estoque}</span></p>
-                  </div>
-                  <div className="flex gap-2 mt-2 sm:mt-0">
-                    <input
-                      type="number"
-                      className="border px-2 py-1 rounded w-20"
-                      value={estoquesEditados[v.id] ?? v.estoque}
-                      onChange={(e) => handleEstoqueChange(v.id, e.target.value)}
-                    />
-                    <button
-                      onClick={() => salvarEstoque(v.id)}
-                      className="bg-green-500 hover:bg-green-600 text-white p-2 rounded-full"
-                    >
-                      <FaSave size={14} />
-                    </button>
-                    <button
-                      onClick={() => excluirVariacao(v.id)}
-                      className="bg-red-500 hover:bg-red-600 text-white p-2 rounded-full"
-                    >
-                      <FaTrashAlt size={14} />
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
+                {produtoSelecionado.variacoes
+                  .slice()
+                  .sort((a, b) => a.numeracao - b.numeracao)
+                  .map((v) => {
+                    const emEdicao = estoqueEditandoId === v.id; // estado para controlar edição
+                    return (
+                      <div
+                        key={v.id}
+                        className="flex flex-col sm:flex-row sm:justify-between border rounded p-3 bg-gray-50"
+                      >
+                        <div>
+                          <p className="font-medium">
+                            Numeração: <span className="text-blue-600">{v.numeracao}</span>
+                          </p>
+                          <p className="text-sm text-gray-500">
+                            Estoque atual:{" "}
+                            {emEdicao ? (
+                              <input
+                                type="number"
+                                className="border px-2 py-1 rounded w-20"
+                                value={estoquesEditados[v.id] ?? v.estoque}
+                                onChange={(e) => handleEstoqueChange(v.id, e.target.value)}
+                              />
+                            ) : (
+                              <span className="font-semibold">{v.estoque}</span>
+                            )}
+                          </p>
+                        </div>
+
+                        <div className="flex gap-2 mt-2 sm:mt-0">
+                          {emEdicao ? (
+                            <>
+                              <button
+                                onClick={() => salvarEstoque(v.id)}
+                                className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded"
+                              >
+                                Salvar
+                              </button>
+                              <button
+                                onClick={() => setEstoqueEditandoId(null)}
+                                className="bg-gray-400 hover:bg-gray-500 text-white px-3 py-1 rounded"
+                              >
+                                Cancelar
+                              </button>
+                            </>
+                          ) : (
+                            <>
+                              <button
+                                onClick={() => setEstoqueEditandoId(v.id)}
+                                className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded"
+                              >
+                                Editar
+                              </button>
+                              <button
+                                onClick={() => excluirVariacao(v.id)}
+                                className="bg-red-500 hover:bg-red-600 text-white p-2 rounded-full"
+                              >
+                                <FaTrashAlt size={14} />
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+              </div>
+
+
             <div className="mt-4 border-t pt-4">
               <button
                 className="text-sm text-gray-500 hover:text-blue-600 flex items-center gap-1"
@@ -381,6 +458,45 @@ export default function Estoque() {
           </>
         )}
       </div>
+
+      {/* Relatório de Estoque */}
+        <div className="bg-white shadow rounded p-4 lg:col-span-2">
+          <h2 className="text-lg font-semibold mb-4">📊 Relatório de Estoque</h2>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+            <div className="p-3 rounded-lg border bg-gray-50">
+              <p className="text-gray-600">Produtos</p>
+              <p className="text-xl font-bold">{totalProdutos}</p>
+            </div>
+            <div className="p-3 rounded-lg border bg-gray-50">
+              <p className="text-gray-600">Variações</p>
+              <p className="text-xl font-bold">{totalVariacoes}</p>
+            </div>
+            <div className="p-3 rounded-lg border bg-gray-50">
+              <p className="text-gray-600">Qtd. Total</p>
+              <p className="text-xl font-bold">{quantidadeTotal}</p>
+            </div>
+            <div className="p-3 rounded-lg border bg-gray-50">
+              <p className="text-gray-600">Valor em Estoque</p>
+              <p className="text-xl font-bold">R$ {valorTotal.toFixed(2)}</p>
+            </div>
+            <div className="p-3 rounded-lg border bg-gray-50">
+              <p className="text-gray-600">Custo em Estoque</p>
+              <p className="text-xl font-bold">R$ {custoTotal.toFixed(2)}</p>
+            </div>
+          </div>
+        </div>
+
+
+
+<ResponsiveContainer width="100%" height={300}>
+  <BarChart data={dadosMovimentacao}>
+    <XAxis dataKey="mes" />
+    <YAxis />
+    <Tooltip />
+    <Bar dataKey="entrou" fill="#3b82f6" />
+    <Bar dataKey="saiu" fill="#ef4444" />
+  </BarChart>
+</ResponsiveContainer>
 
       <button
         onClick={() => setMostrarModal(true)}

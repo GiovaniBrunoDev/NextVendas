@@ -163,33 +163,37 @@ export default function Vendas() {
               Selecione uma numeração:
             </p>
             <div className="flex gap-2 flex-wrap">
-              {produto.variacoes.map((v) => (
-                <button
-                  key={v.id}
-                  disabled={v.estoque === 0}
-                  onClick={() =>
-                    adicionarAoCarrinho({
-                      produtoId: produto.id,
-                      variacaoId: v.id,
-                      nome: produto.nome,
-                      preco: produto.preco,
-                      numeracao: v.numeracao,
-                      qtd: 1,
-                      estoque: v.estoque,
-                    })
-                  }
-                  className={`rounded-lg border px-3 py-2 text-sm font-medium transition-all duration-150 shadow-sm
-                    ${
-                      v.estoque === 0
-                        ? "bg-gray-100 text-gray-400 border-gray-300 cursor-not-allowed"
-                        : "bg-blue-50 text-blue-700 border-blue-300 hover:bg-blue-100"
-                    }
-                  `}
-                >
-                  {v.numeracao} ({v.estoque})
-                </button>
-              ))}
-            </div>
+                {produto.variacoes
+                  .slice()
+                  .sort((a, b) => a.numeracao - b.numeracao) // ordena do menor para o maior
+                  .map((v) => (
+                    <button
+                      key={v.id}
+                      disabled={v.estoque === 0}
+                      onClick={() =>
+                        adicionarAoCarrinho({
+                          produtoId: produto.id,
+                          variacaoId: v.id,
+                          nome: produto.nome,
+                          preco: produto.preco,
+                          numeracao: v.numeracao,
+                          qtd: 1,
+                          estoque: v.estoque,
+                        })
+                      }
+                      className={`rounded-lg border px-3 py-2 text-sm font-medium transition-all duration-150 shadow-sm
+                        ${
+                          v.estoque === 0
+                            ? "bg-gray-100 text-gray-400 border-gray-300 cursor-not-allowed"
+                            : "bg-blue-50 text-blue-700 border-blue-300 hover:bg-blue-100"
+                        }
+                      `}
+                    >
+                      {v.numeracao} ({v.estoque})
+                    </button>
+                  ))}
+              </div>
+
           </div>
         ))}
       </div>

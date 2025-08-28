@@ -205,28 +205,50 @@ export default function Dashboard() {
 
 
   return (
-    <div className="space-y-10">
-  {/* Título */}
-  <div className="flex items-center justify-between">
-    <h2 className="text-2xl font-semibold text-gray-900">Dashboard</h2>
+<div className="p-6 space-y-10 bg-gray-50 min-h-screen">
+  {/* Cabeçalho */}
+  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    {/* Título */}
+    <h2 className="text-2xl font-semibold text-gray-900 tracking-tight">
+      Dashboard
+    </h2>
+
+    {/* Ações e filtros */}
+    <div className="flex flex-wrap items-center gap-3">
+      {/* Botão discreto */}
+      <button className="px-3 py-1 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition">
+        Exportar
+      </button>
+
+      {/* Toggle de período moderno */}
+      <div className="inline-flex bg-gray-100 rounded-xl p-1 gap-1">
+        {["dia", "7dias", "mes"].map((p) => {
+          const ativo = periodo === p;
+          return (
+            <button
+              key={p}
+              onClick={() => setPeriodo(p)}
+              className={`
+                relative px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200
+                ${ativo
+                  ? "bg-white text-gray-900 shadow-sm"
+                  : "text-gray-600 hover:text-gray-900 hover:bg-gray-200"}
+              `}
+            >
+              {p === "dia"
+                ? "Hoje"
+                : p === "7dias"
+                ? "Últimos 7 dias"
+                : "Este mês"}
+            </button>
+          );
+        })}
+      </div>
+    </div>
   </div>
 
-  {/* Filtros de Período */}
-  <div className="flex flex-wrap gap-2">
-    {["dia", "7dias", "mes"].map(p => (
-      <button
-        key={p}
-        onClick={() => setPeriodo(p)}
-        className={`px-4 py-2 text-sm font-medium rounded-md transition border ${
-          periodo === p
-            ? "bg-gray-900 text-white border-gray-900"
-            : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
-        }`}
-      >
-        {p === "dia" ? "Hoje" : p === "7dias" ? "Últimos 7 dias" : "Este mês"}
-      </button>
-    ))}
-  </div>
+
+
 
   {/* Cards de Indicadores */}
   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
