@@ -145,9 +145,10 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
                 placeholder="Nome do produto"
                 value={form.nome}
                 onChange={handleChange}
-                className="w-full border border-gray-300 p-3 rounded-md placeholder:text-sm"
+                className="w-full border border-gray-300 p-3 rounded-md placeholder:text-sm text-base"
                 required
               />
+
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                 <input
