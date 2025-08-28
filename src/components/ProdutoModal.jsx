@@ -59,6 +59,28 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
     toast.info(`Grade ${tipo} carregada. Ajuste conforme necessário.`);
   };
 
+  const API_KEY = "6371650aa50b8af82e574e8022553613"; // sua API Key do ImgBB
+
+const fazerUploadImgBB = async () => {
+  if (!imagemFile) return "";
+
+  const formData = new FormData();
+  formData.append("image", imagemFile); // ImgBB aceita o arquivo direto como "image"
+
+  try {
+    const res = await fetch(`https://api.imgbb.com/1/upload?key=${API_KEY}`, {
+      method: "POST",
+      body: formData,
+    });
+    const data = await res.json();
+    return data.data.url; // URL pública da imagem
+  } catch (err) {
+    console.error("Erro ao enviar para ImgBB:", err);
+    return "";
+  }
+};
+
+
   const handleSelecionarImagem = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -67,16 +89,7 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
     }
   };
 
-  const fazerUploadLocal = async () => {
-    const formData = new FormData();
-    formData.append("imagem", imagemFile);
-
-    const res = await api.post("/produtos/upload", formData, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
-
-    return res.data.imageUrl;
-  };
+  
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -99,8 +112,9 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
         return;
       }
 
-      let imagemUrl = "";
-      if (imagemFile) imagemUrl = await fazerUploadLocal();
+     let imagemUrl = "";
+      if (imagemFile) imagemUrl = await fazerUploadImgBB();
+
 
       await api.post("/produtos", {
         ...form,

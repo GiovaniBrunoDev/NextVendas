@@ -178,35 +178,53 @@ export default function Estoque() {
     }
   };
 
-  const trocarImagemProduto = async (file) => {
-    const formData = new FormData();
-    formData.append("imagem", file);
+  const API_KEY = "6371650aa50b8af82e574e8022553613"; // sua API Key do ImgBB
 
-    try {
-      const resUpload = await api.post("/produtos/upload", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+const fazerUploadImgBB = async (imagemFile) => {
+  if (!imagemFile) return "";
 
-      const novaUrl = resUpload.data.imageUrl;
+  const formData = new FormData();
+  formData.append("image", imagemFile);
 
-      await api.put(`/produtos/${produtoSelecionado.id}`, {
-        ...produtoSelecionado,
-        imagemUrl: novaUrl,
-      });
+  try {
+    const res = await fetch(`https://api.imgbb.com/1/upload?key=${API_KEY}`, {
+      method: "POST",
+      body: formData,
+    });
+    const data = await res.json();
+    return data.data.url;
+  } catch (err) {
+    console.error("Erro ao enviar para ImgBB:", err);
+    return "";
+  }
+};
 
-      toast.success("Imagem atualizada com sucesso!");
-      carregarProdutos();
-    } catch (err) {
-      toast.error("Erro ao atualizar imagem.");
-    }
-  };
+const trocarImagemProduto = async (file) => {
+  try {
+    // Faz upload para ImgBB e obtém a URL pública
+    const novaUrl = await fazerUploadImgBB(file);
+    if (!novaUrl) throw new Error("Falha ao obter URL da imagem");
 
-  const handleSelecionarNovaImagem = (e) => {
-    const file = e.target.files[0];
-    if (file && produtoSelecionado) {
-      trocarImagemProduto(file);
-    }
-  };
+    // Atualiza o produto com a nova URL
+    await api.put(`/produtos/${produtoSelecionado.id}`, {
+      ...produtoSelecionado,
+      imagemUrl: novaUrl,
+    });
+
+    toast.success("Imagem atualizada com sucesso!");
+    carregarProdutos();
+  } catch (err) {
+    console.error("Erro ao atualizar imagem:", err);
+    toast.error("Erro ao atualizar imagem.");
+  }
+};
+
+const handleSelecionarNovaImagem = (e) => {
+  const file = e.target.files[0];
+  if (file && produtoSelecionado) {
+    trocarImagemProduto(file);
+  }
+};
 
   const produtosFiltrados = produtos.filter((p) =>
     p.nome.toLowerCase().includes(busca.toLowerCase()) ||
