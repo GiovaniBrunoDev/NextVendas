@@ -205,23 +205,20 @@ export default function Dashboard() {
 
 
   return (
-<div className="p-6 space-y-10 bg-gray-50 min-h-screen">
+<div className="p-4 sm:p-6 space-y-8 bg-gray-50 min-h-screen">
   {/* Cabeçalho */}
   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-    {/* Título */}
-    <h2 className="text-2xl font-semibold text-gray-900 tracking-tight">
+    <h2 className="text-xl sm:text-2xl font-semibold text-gray-900 tracking-tight">
       Dashboard
     </h2>
 
-    {/* Ações e filtros */}
-    <div className="flex flex-wrap items-center gap-3">
-      {/* Botão discreto */}
+    {/* Ações e toggle */}
+    <div className="flex flex-wrap items-center gap-2 sm:gap-3">
       <button className="px-3 py-1 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition">
         Exportar
       </button>
 
-      {/* Toggle de período moderno */}
-      <div className="inline-flex bg-gray-100 rounded-xl p-1 gap-1">
+      <div className="inline-flex bg-gray-100 rounded-xl p-1 gap-1 flex-wrap">
         {["dia", "7dias", "mes"].map((p) => {
           const ativo = periodo === p;
           return (
@@ -229,7 +226,7 @@ export default function Dashboard() {
               key={p}
               onClick={() => setPeriodo(p)}
               className={`
-                relative px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200
+                relative px-3 sm:px-4 py-1 text-sm font-medium rounded-lg transition-all duration-200
                 ${ativo
                   ? "bg-white text-gray-900 shadow-sm"
                   : "text-gray-600 hover:text-gray-900 hover:bg-gray-200"}
