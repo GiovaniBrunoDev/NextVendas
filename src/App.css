@@ -52,3 +52,7 @@
 .animate-spin-in {
   animation: spin-in 0.4s ease-out forwards;
 }
+
+input, select, textarea {
+  font-size: 16px !important;
+}

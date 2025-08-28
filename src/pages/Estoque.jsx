@@ -213,10 +213,10 @@ export default function Estoque() {
  <div className="p-4 grid grid-cols-1 lg:grid-cols-2 gap-6">
       {/* Lista de Produtos */}
       <div className="bg-white shadow rounded p-4">
-        <h2 className="text-lg font-semibold mb-4">📦 Produtos</h2>
+        <h2 className="text-lg font-semibold mb-4">Produtos</h2>
         <input
           type="text"
-          placeholder="🔍 Buscar por nome ou código..."
+          placeholder="Buscar por nome ou código..."
           value={busca}
           onChange={(e) => setBusca(e.target.value)}
           className="w-full mb-4 px-3 py-2 border border-gray-300 rounded text-sm"
