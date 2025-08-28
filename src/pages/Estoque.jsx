@@ -460,43 +460,34 @@ const { totalProdutos, totalVariacoes, quantidadeTotal, valorTotal, custoTotal }
       </div>
 
       {/* Relatório de Estoque */}
-        <div className="bg-white shadow rounded p-4 lg:col-span-2">
-          <h2 className="text-lg font-semibold mb-4">📊 Relatório de Estoque</h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
-            <div className="p-3 rounded-lg border bg-gray-50">
-              <p className="text-gray-600">Produtos</p>
-              <p className="text-xl font-bold">{totalProdutos}</p>
+      <div className="bg-white shadow-md rounded-xl p-5 lg:col-span-2 space-y-5">
+        <h2 className="text-lg font-semibold mb-2">📊 Relatório de Estoque</h2>
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-sm">
+          {[
+            { label: "Produtos", value: totalProdutos },
+            { label: "Variações", value: totalVariacoes },
+            { label: "Qtd. Total", value: quantidadeTotal },
+            {
+              label: "Valor em Estoque",
+              value: new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(valorTotal),
+            },
+            {
+              label: "Custo em Estoque",
+              value: new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(custoTotal),
+            },
+          ].map((item) => (
+            <div
+              key={item.label}
+              className="p-4 rounded-lg border border-gray-200 bg-gray-50 flex flex-col items-start justify-center hover:shadow-sm transition"
+            >
+              <p className="text-gray-500 text-xs sm:text-sm">{item.label}</p>
+              <p className="text-lg sm:text-xl font-semibold text-gray-900">{item.value}</p>
             </div>
-            <div className="p-3 rounded-lg border bg-gray-50">
-              <p className="text-gray-600">Variações</p>
-              <p className="text-xl font-bold">{totalVariacoes}</p>
-            </div>
-            <div className="p-3 rounded-lg border bg-gray-50">
-              <p className="text-gray-600">Qtd. Total</p>
-              <p className="text-xl font-bold">{quantidadeTotal}</p>
-            </div>
-            <div className="p-3 rounded-lg border bg-gray-50">
-              <p className="text-gray-600">Valor em Estoque</p>
-              <p className="text-xl font-bold">R$ {valorTotal.toFixed(2)}</p>
-            </div>
-            <div className="p-3 rounded-lg border bg-gray-50">
-              <p className="text-gray-600">Custo em Estoque</p>
-              <p className="text-xl font-bold">R$ {custoTotal.toFixed(2)}</p>
-            </div>
-          </div>
+          ))}
         </div>
+      </div>
 
-
-
-<ResponsiveContainer width="100%" height={300}>
-  <BarChart data={dadosMovimentacao}>
-    <XAxis dataKey="mes" />
-    <YAxis />
-    <Tooltip />
-    <Bar dataKey="entrou" fill="#3b82f6" />
-    <Bar dataKey="saiu" fill="#ef4444" />
-  </BarChart>
-</ResponsiveContainer>
 
       <button
         onClick={() => setMostrarModal(true)}
