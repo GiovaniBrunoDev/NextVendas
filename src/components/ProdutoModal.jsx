@@ -157,7 +157,7 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
                 placeholder="Preço (R$)"
                 value={form.preco}
                 onChange={handleChange}
-                className="border p-2 rounded placeholder:text-sm text-base"
+                className="w-full border border-gray-300 p-3 rounded-md placeholder:text-sm text-base"
               />
               <input
                 type="number"
@@ -166,7 +166,7 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
                 placeholder="Custo Unitário"
                 value={form.custoUnitario}
                 onChange={handleChange}
-                className="border p-2 rounded placeholder:text-sm text-base"
+                className="w-full border border-gray-300 p-3 rounded-md placeholder:text-sm text-base"
               />
               <input
                 type="number"
@@ -175,13 +175,13 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
                 placeholder="Outros Custos"
                 value={form.outrosCustos}
                 onChange={handleChange}
-                className="border p-2 rounded placeholder:text-sm text-base"
+                className="w-full border border-gray-300 p-3 rounded-md placeholder:text-sm text-base"
               />
               <input
                 type="file"
                 accept="image/*"
                 onChange={handleSelecionarImagem}
-                className="border p-2 rounded text-sm text-base"
+                className="w-full border border-gray-300 p-3 rounded-md placeholder:text-sm text-base"
               />
             </div>
 
