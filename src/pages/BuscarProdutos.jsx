@@ -41,7 +41,7 @@ export default function BuscaProdutos() {
           value={busca}
           onChange={(e) => setBusca(e.target.value)}
           placeholder="Digite nome ou código..."
-          className="w-full p-2 border rounded-lg text-sm focus:ring focus:ring-gray-200"
+          className="w-full border border-gray-300 p-3 rounded-md placeholder:text-sm text-base"
         />
       </div>
 

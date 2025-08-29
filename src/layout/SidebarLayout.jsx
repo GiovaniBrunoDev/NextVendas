@@ -30,12 +30,14 @@ export default function SidebarLayout({ children, setTela }) {
     { key: "estoque", label: "Estoque", icon: FaBoxOpen },
     { key: "historico", label: "Vendas", icon: FaClipboardList },
     { key: "clientes", label: "Clientes", icon: FaUsers, desktopOnly: true },
-    { key: "produtos", label: "Produtos", icon: FaSearch }
+    { key: "produtos", label: "Consultar", icon: FaSearch }
 ];
 
   const renderMenu = () => (
-    <nav className="space-y-1 mt-6">
-      {menuItems.map(({ key, label, icon: Icon }) => (
+  <nav className="space-y-1 mt-6">
+    {menuItems
+      .filter((item) => !isMobile || !item.desktopOnly) // 🔹 só mostra desktopOnly no desktop
+      .map(({ key, label, icon: Icon }) => (
         <button
           key={key}
           onClick={() => trocarTela(key)}
@@ -50,8 +52,9 @@ export default function SidebarLayout({ children, setTela }) {
           <span className="text-sm font-medium">{label}</span>
         </button>
       ))}
-    </nav>
-  );
+  </nav>
+);
+
 
   const renderBottomNav = () => (
   <>

@@ -273,7 +273,7 @@ const { totalProdutos, totalVariacoes, quantidadeTotal, valorTotal, custoTotal }
               placeholder="Buscar por nome ou código..."
               value={busca}
               onChange={(e) => setBusca(e.target.value)}
-              className="w-full mb-4 px-3 py-2 border border-gray-300 rounded text-sm"
+              className="w-full border border-gray-300 p-3 rounded-md placeholder:text-sm text-base"
             />
             <ul className="divide-y text-sm max-h-[400px] md:max-h-[500px] overflow-auto">
               {produtosFiltrados
