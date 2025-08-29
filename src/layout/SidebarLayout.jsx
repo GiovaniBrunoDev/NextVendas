@@ -29,9 +29,9 @@ export default function SidebarLayout({ children, setTela }) {
     { key: "vendas", label: "Nova Venda", icon: FaCashRegister },
     { key: "estoque", label: "Estoque", icon: FaBoxOpen },
     { key: "historico", label: "Vendas", icon: FaClipboardList },
-    { key: "clientes", label: "Clientes", icon: FaUsers },
-    { key: "produtos", label: "Produtos", icon: FaSearch}
-  ];
+    { key: "clientes", label: "Clientes", icon: FaUsers, desktopOnly: true },
+    { key: "produtos", label: "Produtos", icon: FaSearch }
+];
 
   const renderMenu = () => (
     <nav className="space-y-1 mt-6">
@@ -57,17 +57,19 @@ export default function SidebarLayout({ children, setTela }) {
   <>
   {/* Barra de navegação flutuante */}
   <div className="fixed bottom-4 left-0 right-0 bg-blue-800 text-white flex justify-around py-2 shadow-inner z-50 border-t border-blue-700 rounded-t-lg">
-    {menuItems.map(({ key, label, icon: Icon }) => (
-      <button
-        key={key}
-        onClick={() => trocarTela(key)}
-        className={`flex flex-col items-center text-xs px-2 transition ${
-          telaAtiva === key ? "text-yellow-300" : "text-white"
-        }`}
-      >
-        <Icon className="text-xl mb-1" />
-        {label}
-      </button>
+    {menuItems
+      .filter((item) => !item.desktopOnly)
+      .map(({ key, label, icon: Icon }) => (
+        <button
+          key={key}
+          onClick={() => trocarTela(key)}
+          className={`flex flex-col items-center text-xs px-2 transition ${
+            telaAtiva === key ? "text-yellow-300" : "text-white"
+          }`}
+        >
+          <Icon className="text-xl mb-1" />
+          {label}
+        </button>
     ))}
   </div>
 
