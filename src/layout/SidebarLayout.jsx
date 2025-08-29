@@ -5,6 +5,7 @@ import {
   FaBoxOpen,
   FaClipboardList,
   FaUsers,
+  FaSearch,
 } from "react-icons/fa";
 
 export default function SidebarLayout({ children, setTela }) {
@@ -29,6 +30,7 @@ export default function SidebarLayout({ children, setTela }) {
     { key: "estoque", label: "Estoque", icon: FaBoxOpen },
     { key: "historico", label: "Vendas", icon: FaClipboardList },
     { key: "clientes", label: "Clientes", icon: FaUsers },
+    { key: "produtos", label: "Produtos", icon: FaSearch}
   ];
 
   const renderMenu = () => (

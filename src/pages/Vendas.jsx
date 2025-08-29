@@ -123,7 +123,7 @@ export default function Vendas() {
   <>
     {carregando ? (
       <div className="text-center text-blue-600 py-4 animate-pulse">
-        🔄 Carregando produtos...
+         Carregando produtos...
       </div>
     ) : erroCarregamento ? (
       <div className="text-center text-red-500 bg-red-50 border border-red-200 p-4 rounded">
@@ -145,7 +145,7 @@ export default function Vendas() {
             <div className="flex items-center gap-3 mb-3">
               <img
                 src={
-                  produto.imagemUrlCompleta ||
+                  produto.imagemUrl ||
                   "https://cdn-icons-png.flaticon.com/512/771/771543.png"
                 }
                 alt={produto.nome}
