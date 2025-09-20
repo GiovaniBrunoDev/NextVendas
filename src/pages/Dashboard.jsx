@@ -46,6 +46,8 @@ export default function Dashboard() {
       currency: "BRL",
     }).format(valor);
 
+
+
   useEffect(() => {
     async function carregarDados() {
       try {
@@ -169,220 +171,233 @@ export default function Dashboard() {
   // ===============================
   // NOVO: Tela de carregamento
   // ===============================
-  if (carregando) {
-  return (
-    <div className="flex flex-col items-center justify-center h-screen bg-gray-50">
-      {/* Ícone animado */}
-      <motion.div
-        animate={{ x: [0, 20, 0] }}
-        transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-        className="text-gray-700"
-      >
-        <FaShoppingCart className="text-5xl" />
-      </motion.div>
 
-      {/* Texto com fade/pulse */}
-      <motion.p
-        className="mt-6 text-gray-600 font-medium text-lg"
-        animate={{ opacity: [0.5, 1, 0.5] }}
-        transition={{ duration: 1.5, repeat: Infinity }}
-      >
-        Carregando dados do dashboard...
-      </motion.p>
-    </div>
-  );
-}
+  if (carregando) {
+    return (
+      <div className="flex flex-col items-center justify-center h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+        {/* Círculo Loader */}
+        <motion.svg
+          className="w-16 h-16 text-gray-600"
+          viewBox="0 0 50 50"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          animate={{ rotate: 360 }}
+          transition={{ repeat: Infinity, duration: 1.2, ease: "linear" }}
+        >
+          <circle
+            cx="25"
+            cy="25"
+            r="20"
+            stroke="currentColor"
+            strokeWidth="4"
+            strokeLinecap="round"
+            strokeDasharray="100"
+            strokeDashoffset="60"
+          />
+        </motion.svg>
+
+        {/* Texto */}
+        <motion.p
+          className="mt-6 text-gray-600 font-medium text-lg tracking-wide"
+          animate={{ opacity: [0.3, 1, 0.3] }}
+          transition={{ repeat: Infinity, duration: 2 }}
+        >
+          Carregando Dados...
+        </motion.p>
+      </div>
+    );
+  }
 
 
   function Card({ titulo, valor, isCurrency = false }) {
-  const format = isCurrency
-    ? v => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(v)
-    : v => Math.round(v);
+    const format = isCurrency
+      ? v => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(v)
+      : v => Math.round(v);
 
-  const icons = {
-  "Vendas": <FaShoppingCart className="text-gray-600 text-xl" />,
-  "Total Faturado": <FaMoneyBillWave className="text-green-500 text-xl" />, // Destaque financeiro
-  "Produtos Vendidos": <FaBoxOpen className="text-gray-600 text-xl" />,
-  "Ticket Médio": <FaReceipt className="text-gray-600 text-xl" />,
-  "Lucro Estimado": <FaChartLine className="text-blue-500 text-xl" />, // Destaque analítico
-  "Clientes Atendidos": <FaSmile className="text-gray-600 text-xl" />,
-  "Entregas Realizadas": <FaTruck className="text-gray-600 text-xl" />,
-  "Pagamento Mais Usado": <FaCreditCard className="text-gray-600 text-xl" />,
-};
+    const icons = {
+      "Vendas": <FaShoppingCart className="text-gray-600 text-xl" />,
+      "Total Faturado": <FaMoneyBillWave className="text-green-500 text-xl" />, // Destaque financeiro
+      "Produtos Vendidos": <FaBoxOpen className="text-gray-600 text-xl" />,
+      "Ticket Médio": <FaReceipt className="text-gray-600 text-xl" />,
+      "Lucro Estimado": <FaChartLine className="text-blue-500 text-xl" />, // Destaque analítico
+      "Clientes Atendidos": <FaSmile className="text-gray-600 text-xl" />,
+      "Entregas Realizadas": <FaTruck className="text-gray-600 text-xl" />,
+      "Pagamento Mais Usado": <FaCreditCard className="text-gray-600 text-xl" />,
+    };
 
+
+
+    return (
+      <div className="bg-white p-4 rounded-lg shadow flex items-center gap-4">
+        <div className="w-10 h-10 flex items-center justify-center bg-gray-100 rounded-full">
+          {icons[titulo] || <FaChartLine className="text-gray-400 text-xl" />}
+        </div>
+        <div className="flex flex-col">
+          <span className="text-sm text-gray-500">{titulo}</span>
+          <span className="text-xl font-semibold text-gray-800 mt-1">
+            <AnimatedNumber value={valor} format={format} />
+          </span>
+        </div>
+      </div>
+    );
+  }
 
 
   return (
-    <div className="bg-white p-4 rounded-lg shadow flex items-center gap-4">
-      <div className="w-10 h-10 flex items-center justify-center bg-gray-100 rounded-full">
-        {icons[titulo] || <FaChartLine className="text-gray-400 text-xl" />}
-      </div>
-      <div className="flex flex-col">
-        <span className="text-sm text-gray-500">{titulo}</span>
-        <span className="text-xl font-semibold text-gray-800 mt-1">
-          <AnimatedNumber value={valor} format={format} />
-        </span>
-      </div>
-    </div>
-  );
-}
+    <div className="p-4 sm:p-6 space-y-8 bg-gray-50 min-h-screen">
+      {/* Cabeçalho */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <h2 className="text-xl sm:text-2xl font-semibold text-gray-900 tracking-tight">
+          Dashboard
+        </h2>
 
+        {/* Ações e toggle */}
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+          <button className="px-3 py-1 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition">
+            Exportar
+          </button>
 
-  return (
-<div className="p-4 sm:p-6 space-y-8 bg-gray-50 min-h-screen">
-  {/* Cabeçalho */}
-  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-    <h2 className="text-xl sm:text-2xl font-semibold text-gray-900 tracking-tight">
-      Dashboard
-    </h2>
-
-    {/* Ações e toggle */}
-    <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-      <button className="px-3 py-1 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition">
-        Exportar
-      </button>
-
-      <div className="inline-flex bg-gray-100 rounded-xl p-1 gap-1 flex-wrap">
-        {["dia", "7dias", "mes"].map((p) => {
-          const ativo = periodo === p;
-          return (
-            <button
-              key={p}
-              onClick={() => setPeriodo(p)}
-              className={`
+          <div className="inline-flex bg-gray-100 rounded-xl p-1 gap-1 flex-wrap">
+            {["dia", "7dias", "mes"].map((p) => {
+              const ativo = periodo === p;
+              return (
+                <button
+                  key={p}
+                  onClick={() => setPeriodo(p)}
+                  className={`
                 relative px-3 sm:px-4 py-1 text-sm font-medium rounded-lg transition-all duration-200
                 ${ativo
-                  ? "bg-white text-gray-900 shadow-sm"
-                  : "text-gray-600 hover:text-gray-900 hover:bg-gray-200"}
+                      ? "bg-white text-gray-900 shadow-sm"
+                      : "text-gray-600 hover:text-gray-900 hover:bg-gray-200"}
               `}
-            >
-              {p === "dia"
-                ? "Hoje"
-                : p === "7dias"
-                ? "Últimos 7 dias"
-                : "Este mês"}
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  </div>
-
-
-
-
-  {/* Cards de Indicadores */}
-  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-    <Card titulo="Vendas" valor={vendasFiltradas.length} />
-    <Card titulo="Total Faturado" valor={total} isCurrency />
-    <Card titulo="Produtos Vendidos" valor={qtdProdutos} />
-    <Card titulo="Ticket Médio" valor={ticketMedio} isCurrency />
-    <Card titulo="Lucro Estimado" valor={lucro} isCurrency />
-    <Card titulo="Clientes Atendidos" valor={clientesAtendidos} />
-    <Card titulo="Entregas Realizadas" valor={entregas} />
-    <Card titulo="Forma de Pagamento Mais Usada" valor={formaPagamentoMaisUsada} />
-  </div>
-
-  {/* Seções Analíticas */}
-  <div className="flex flex-col lg:flex-row gap-6">
-    {/* Coluna esquerda */}
-    <div className="flex-1 space-y-6">
-      {/* Gráfico de Vendas */}
-      <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-6">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">
-          Evolução das Vendas ({periodo === "dia" ? "Hoje" : periodo === "7dias" ? "Últimos 7 dias" : "Mês"})
-        </h3>
-        <ResponsiveContainer width="100%" height={220}>
-          <LineChart data={dadosGrafico}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-            <XAxis dataKey="dia" tick={{ fontSize: 12, fill: "#6b7280" }} />
-            <YAxis tick={{ fontSize: 12, fill: "#6b7280" }} />
-            <Tooltip
-              contentStyle={{
-                backgroundColor: "#1f2937",
-                borderRadius: "8px",
-                color: "#fff",
-                fontSize: "12px",
-              }}
-              formatter={value => formatCurrency(value)}
-            />
-            <Line
-              type="monotone"
-              dataKey="total"
-              stroke="#2563eb"
-              strokeWidth={2}
-              dot={{ r: 3 }}
-              activeDot={{ r: 5, stroke: "#2563eb", strokeWidth: 2, fill: "#fff" }}
-            />
-          </LineChart>
-        </ResponsiveContainer>
+                >
+                  {p === "dia"
+                    ? "Hoje"
+                    : p === "7dias"
+                      ? "Últimos 7 dias"
+                      : "Este mês"}
+                </button>
+              );
+            })}
+          </div>
+        </div>
       </div>
 
-      
 
-      {/* Estoque Baixo */}
-      <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-6">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">Estoque Baixo</h3>
-        {produtosCriticos.filter(p => {
-          const estoque = p.variacoes.reduce((acc, v) => acc + v.estoque, 0);
-          return estoque < Math.floor(12 * 0.5);
-        }).length === 0 ? (
-          <p className="text-sm text-gray-600">Nenhum produto com estoque crítico.</p>
-        ) : (
-          <ul className="space-y-4">
-            {produtosCriticos
-              .filter(p => p.variacoes.reduce((acc, v) => acc + v.estoque, 0) < Math.floor(12 * 0.5))
-              .map(p => {
-                const estoqueDisponivel = p.variacoes
-                  .filter(v => v.estoque > 0)
-                  .reduce((acc, v) => acc + v.estoque, 0);
-                const porcentagem = Math.round((estoqueDisponivel / 12) * 100);
 
-                return (
-                  <li key={p.id} className="space-y-1">
-                    <div className="flex justify-between text-sm font-medium text-gray-800">
-                      <span>{p.nome}</span>
-                      <span className="text-gray-500">{estoqueDisponivel} de 12 pares</span>
+
+      {/* Cards de Indicadores */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card titulo="Vendas" valor={vendasFiltradas.length} />
+        <Card titulo="Total Faturado" valor={total} isCurrency />
+        <Card titulo="Produtos Vendidos" valor={qtdProdutos} />
+        <Card titulo="Ticket Médio" valor={ticketMedio} isCurrency />
+        <Card titulo="Lucro Estimado" valor={lucro} isCurrency />
+        <Card titulo="Clientes Atendidos" valor={clientesAtendidos} />
+        <Card titulo="Entregas Realizadas" valor={entregas} />
+        <Card titulo="Forma de Pagamento Mais Usada" valor={formaPagamentoMaisUsada} />
+      </div>
+
+      {/* Seções Analíticas */}
+      <div className="flex flex-col lg:flex-row gap-6">
+        {/* Coluna esquerda */}
+        <div className="flex-1 space-y-6">
+          {/* Gráfico de Vendas */}
+          <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-6">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">
+              Evolução das Vendas ({periodo === "dia" ? "Hoje" : periodo === "7dias" ? "Últimos 7 dias" : "Mês"})
+            </h3>
+            <ResponsiveContainer width="100%" height={220}>
+              <LineChart data={dadosGrafico}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                <XAxis dataKey="dia" tick={{ fontSize: 12, fill: "#6b7280" }} />
+                <YAxis tick={{ fontSize: 12, fill: "#6b7280" }} />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "#1f2937",
+                    borderRadius: "8px",
+                    color: "#fff",
+                    fontSize: "12px",
+                  }}
+                  formatter={value => formatCurrency(value)}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="total"
+                  stroke="#2563eb"
+                  strokeWidth={2}
+                  dot={{ r: 3 }}
+                  activeDot={{ r: 5, stroke: "#2563eb", strokeWidth: 2, fill: "#fff" }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+
+
+
+          {/* Estoque Baixo */}
+          <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-6">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">Estoque Baixo</h3>
+            {produtosCriticos.filter(p => {
+              const estoque = p.variacoes.reduce((acc, v) => acc + v.estoque, 0);
+              return estoque < Math.floor(12 * 0.5);
+            }).length === 0 ? (
+              <p className="text-sm text-gray-600">Nenhum produto com estoque crítico.</p>
+            ) : (
+              <ul className="space-y-4">
+                {produtosCriticos
+                  .filter(p => p.variacoes.reduce((acc, v) => acc + v.estoque, 0) < Math.floor(12 * 0.5))
+                  .map(p => {
+                    const estoqueDisponivel = p.variacoes
+                      .filter(v => v.estoque > 0)
+                      .reduce((acc, v) => acc + v.estoque, 0);
+                    const porcentagem = Math.round((estoqueDisponivel / 12) * 100);
+
+                    return (
+                      <li key={p.id} className="space-y-1">
+                        <div className="flex justify-between text-sm font-medium text-gray-800">
+                          <span>{p.nome}</span>
+                          <span className="text-gray-500">{estoqueDisponivel} de 12 pares</span>
+                        </div>
+                        <div className="w-full bg-gray-200 h-2 rounded-full">
+                          <div
+                            className="bg-red-400 h-2 rounded-full transition-all"
+
+                            style={{ width: `${porcentagem}%` }}
+                          ></div>
+                        </div>
+                        <p className="text-xs text-right text-gray-500">{porcentagem}% disponível</p>
+                      </li>
+                    );
+                  })}
+              </ul>
+            )}
+          </div>
+        </div>
+
+        {/* Coluna direita */}
+        <div className="flex-1">
+          <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-6 h-full">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">Produtos Mais Vendidos</h3>
+            {rankingProdutos.length === 0 ? (
+              <p className="text-sm text-gray-600">Nenhuma venda registrada neste período.</p>
+            ) : (
+              <ul className="space-y-3">
+                {rankingProdutos.map((produto, index) => (
+                  <li key={produto.id} className="flex justify-between items-center">
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm text-gray-500 font-semibold w-5 text-right">{index + 1}.</span>
+                      <span className="text-sm text-gray-800">{produto.nome}</span>
                     </div>
-                    <div className="w-full bg-gray-200 h-2 rounded-full">
-                      <div
-                        className="bg-red-400 h-2 rounded-full transition-all"
-
-                        style={{ width: `${porcentagem}%` }}
-                      ></div>
-                    </div>
-                    <p className="text-xs text-right text-gray-500">{porcentagem}% disponível</p>
+                    <span className="text-sm text-gray-700 font-medium">{produto.quantidadeVendida} vendas</span>
                   </li>
-                );
-              })}
-          </ul>
-        )}
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
       </div>
     </div>
-
-    {/* Coluna direita */}
-    <div className="flex-1">
-      <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-6 h-full">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">Produtos Mais Vendidos</h3>
-        {rankingProdutos.length === 0 ? (
-          <p className="text-sm text-gray-600">Nenhuma venda registrada neste período.</p>
-        ) : (
-          <ul className="space-y-3">
-            {rankingProdutos.map((produto, index) => (
-              <li key={produto.id} className="flex justify-between items-center">
-                <div className="flex items-center gap-3">
-                  <span className="text-sm text-gray-500 font-semibold w-5 text-right">{index + 1}.</span>
-                  <span className="text-sm text-gray-800">{produto.nome}</span>
-                </div>
-                <span className="text-sm text-gray-700 font-medium">{produto.quantidadeVendida} vendas</span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-    </div>
-  </div>
-</div>
 
 
   );

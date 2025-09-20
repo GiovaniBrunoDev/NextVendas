@@ -5,16 +5,27 @@ import { Dialog } from "@headlessui/react";
 import { toast } from "react-toastify";
 import VendaDetalhesModal from "../components/VendaDetalhesModal";
 import TrocaModal from "../components/TrocaModal";
+import { motion } from "framer-motion"; // 👈 precisa do framer-motion instalado
+
 
 export default function VendasListadas() {
   const [mostrarTrocaModal, setMostrarTrocaModal] = useState(false);
   const [vendas, setVendas] = useState([]);
   const [busca, setBusca] = useState("");
   const [vendaSelecionada, setVendaSelecionada] = useState(null);
+  const [carregando, setCarregando] = useState(true); // 👈 novo state
 
-  async function carregarVendas() {
-    const res = await api.get("/vendas");
-    setVendas(res.data);
+
+    async function carregarVendas() {
+    try {
+      setCarregando(true);
+      const res = await api.get("/vendas");
+      setVendas(res.data);
+    } catch (err) {
+      toast.error("Erro ao carregar vendas");
+    } finally {
+      setCarregando(false);
+    }
   }
 
   useEffect(() => {
@@ -69,6 +80,41 @@ export default function VendasListadas() {
 
   const abrirModal = (venda) => setVendaSelecionada(venda);
   const fecharModal = () => setVendaSelecionada(null);
+
+   // 🔥 Tela de carregamento
+  if (carregando) {
+    return (
+      <div className="flex flex-col items-center justify-center h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+        <motion.svg
+          className="w-16 h-16 text-gray-600"
+          viewBox="0 0 50 50"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          animate={{ rotate: 360 }}
+          transition={{ repeat: Infinity, duration: 1.2, ease: "linear" }}
+        >
+          <circle
+            cx="25"
+            cy="25"
+            r="20"
+            stroke="currentColor"
+            strokeWidth="4"
+            strokeLinecap="round"
+            strokeDasharray="100"
+            strokeDashoffset="60"
+          />
+        </motion.svg>
+
+        <motion.p
+          className="mt-6 text-gray-600 font-medium text-lg tracking-wide"
+          animate={{ opacity: [0.3, 1, 0.3] }}
+          transition={{ repeat: Infinity, duration: 2 }}
+        >
+          Carregando Vendas...
+        </motion.p>
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 sm:p-6 max-w-7xl mx-auto">

@@ -4,6 +4,8 @@ import ProdutoModal from "../components/ProdutoModal";
 import { toast } from "react-toastify";
 import { FaEdit, FaSave, FaTrashAlt, FaPlus, FaPen } from "react-icons/fa";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import { motion } from "framer-motion"; // 👈 precisa do framer-motion instalado
+
 
 const dadosMovimentacao = [
   { mes: "Jan", entrou: 120, saiu: 80 },
@@ -16,6 +18,7 @@ const dadosMovimentacao = [
 
 export default function Estoque() {
   const [produtos, setProdutos] = useState([]);
+  const [carregando, setCarregando] = useState(true); // 👈 novo state
   const [mostrarModal, setMostrarModal] = useState(false);
   const [estoquesEditados, setEstoquesEditados] = useState({});
   const [produtoSelecionado, setProdutoSelecionado] = useState(null);
@@ -29,46 +32,58 @@ export default function Estoque() {
   const inputImagemRef = useRef(null);
 
   const calcularRelatorio = () => {
-  let totalProdutos = produtos.length;
-  let totalVariacoes = 0;
-  let quantidadeTotal = 0;
-  let valorTotal = 0;
-  let custoTotal = 0;
+    let totalProdutos = produtos.length;
+    let totalVariacoes = 0;
+    let quantidadeTotal = 0;
+    let valorTotal = 0;
+    let custoTotal = 0;
 
-  produtos.forEach((produto) => {
-    (produto.variacoes || []).forEach((v) => {
-      totalVariacoes++;
-      quantidadeTotal += v.estoque;
-      valorTotal += v.estoque * produto.preco;
-      custoTotal += v.estoque * (produto.custoUnitario + produto.outrosCustos);
+    produtos.forEach((produto) => {
+      (produto.variacoes || []).forEach((v) => {
+        totalVariacoes++;
+        quantidadeTotal += v.estoque;
+        valorTotal += v.estoque * produto.preco;
+        custoTotal += v.estoque * (produto.custoUnitario + produto.outrosCustos);
+      });
     });
-  });
 
-  return { totalProdutos, totalVariacoes, quantidadeTotal, valorTotal, custoTotal };
-};
-
-
-
-
+    return { totalProdutos, totalVariacoes, quantidadeTotal, valorTotal, custoTotal };
+  };
 
   async function carregarProdutos() {
-    const res = await api.get("/produtos");
-    setProdutos(res.data);
+    try {
+      setCarregando(true);
+      const res = await api.get("/produtos");
+      setProdutos(res.data);
+    } catch (err) {
+      toast.error("Erro ao carregar produtos");
+    } finally {
+      setCarregando(false); // 👈 desliga loader
+    }
   }
 
   // esconde o botão de adicionar produto no mobile 
   useEffect(() => {
-  const handleScroll = () => {
-    const scrollY = window.scrollY;
-    setMostrarBotaoFlutuante(scrollY < 50); // esconde se rolar mais de 50px
-  };
+    const handleScroll = () => {
+      const scrollY = window.scrollY;
+      setMostrarBotaoFlutuante(scrollY < 50); // esconde se rolar mais de 50px
+    };
 
-  window.addEventListener("scroll", handleScroll);
-  return () => window.removeEventListener("scroll", handleScroll);
-}, []);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   useEffect(() => {
     carregarProdutos();
+  }, []);
+
+  // esconde botão flutuante no scroll
+  useEffect(() => {
+    const handleScroll = () => {
+      setMostrarBotaoFlutuante(window.scrollY < 50);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const handleEstoqueChange = (variacaoId, novoEstoque) => {
@@ -180,51 +195,51 @@ export default function Estoque() {
 
   const API_KEY = "6371650aa50b8af82e574e8022553613"; // sua API Key do ImgBB
 
-const fazerUploadImgBB = async (imagemFile) => {
-  if (!imagemFile) return "";
+  const fazerUploadImgBB = async (imagemFile) => {
+    if (!imagemFile) return "";
 
-  const formData = new FormData();
-  formData.append("image", imagemFile);
+    const formData = new FormData();
+    formData.append("image", imagemFile);
 
-  try {
-    const res = await fetch(`https://api.imgbb.com/1/upload?key=${API_KEY}`, {
-      method: "POST",
-      body: formData,
-    });
-    const data = await res.json();
-    return data.data.url;
-  } catch (err) {
-    console.error("Erro ao enviar para ImgBB:", err);
-    return "";
-  }
-};
+    try {
+      const res = await fetch(`https://api.imgbb.com/1/upload?key=${API_KEY}`, {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      return data.data.url;
+    } catch (err) {
+      console.error("Erro ao enviar para ImgBB:", err);
+      return "";
+    }
+  };
 
-const trocarImagemProduto = async (file) => {
-  try {
-    // Faz upload para ImgBB e obtém a URL pública
-    const novaUrl = await fazerUploadImgBB(file);
-    if (!novaUrl) throw new Error("Falha ao obter URL da imagem");
+  const trocarImagemProduto = async (file) => {
+    try {
+      // Faz upload para ImgBB e obtém a URL pública
+      const novaUrl = await fazerUploadImgBB(file);
+      if (!novaUrl) throw new Error("Falha ao obter URL da imagem");
 
-    // Atualiza o produto com a nova URL
-    await api.put(`/produtos/${produtoSelecionado.id}`, {
-      ...produtoSelecionado,
-      imagemUrl: novaUrl,
-    });
+      // Atualiza o produto com a nova URL
+      await api.put(`/produtos/${produtoSelecionado.id}`, {
+        ...produtoSelecionado,
+        imagemUrl: novaUrl,
+      });
 
-    toast.success("Imagem atualizada com sucesso!");
-    carregarProdutos();
-  } catch (err) {
-    console.error("Erro ao atualizar imagem:", err);
-    toast.error("Erro ao atualizar imagem.");
-  }
-};
+      toast.success("Imagem atualizada com sucesso!");
+      carregarProdutos();
+    } catch (err) {
+      console.error("Erro ao atualizar imagem:", err);
+      toast.error("Erro ao atualizar imagem.");
+    }
+  };
 
-const handleSelecionarNovaImagem = (e) => {
-  const file = e.target.files[0];
-  if (file && produtoSelecionado) {
-    trocarImagemProduto(file);
-  }
-};
+  const handleSelecionarNovaImagem = (e) => {
+    const file = e.target.files[0];
+    if (file && produtoSelecionado) {
+      trocarImagemProduto(file);
+    }
+  };
 
   const produtosFiltrados = produtos.filter((p) =>
     p.nome.toLowerCase().includes(busca.toLowerCase()) ||
@@ -234,16 +249,52 @@ const handleSelecionarNovaImagem = (e) => {
   const calcularEstoqueTotal = (produto) => {
     return (produto.variacoes || []).reduce((soma, v) => soma + v.estoque, 0);
   };
-const { totalProdutos, totalVariacoes, quantidadeTotal, valorTotal, custoTotal } = calcularRelatorio();
+  const { totalProdutos, totalVariacoes, quantidadeTotal, valorTotal, custoTotal } = calcularRelatorio();
 
-  
+   // 🔥 LOADING SCREEN
+  if (carregando) {
+    return (
+      <div className="flex flex-col items-center justify-center h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+        {/* Loader animado */}
+        <motion.svg
+          className="w-16 h-16 text-gray-600"
+          viewBox="0 0 50 50"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          animate={{ rotate: 360 }}
+          transition={{ repeat: Infinity, duration: 1.2, ease: "linear" }}
+        >
+          <circle
+            cx="25"
+            cy="25"
+            r="20"
+            stroke="currentColor"
+            strokeWidth="4"
+            strokeLinecap="round"
+            strokeDasharray="100"
+            strokeDashoffset="60"
+          />
+        </motion.svg>
+
+        {/* Texto pulsando */}
+        <motion.p
+          className="mt-6 text-gray-600 font-medium text-lg tracking-wide"
+          animate={{ opacity: [0.3, 1, 0.3] }}
+          transition={{ repeat: Infinity, duration: 2 }}
+        >
+          Carregando Estoque...
+        </motion.p>
+      </div>
+    );
+  }
 
 
-     return (
-  <>
-    {/* Botão flutuante visível apenas no mobile */}
-    <div className="block sm:hidden mb-4">
-      {mostrarBotaoFlutuante && !mostrarModal && (
+
+  return (
+    <>
+      {/* Botão flutuante visível apenas no mobile */}
+      <div className="block sm:hidden mb-4">
+        {mostrarBotaoFlutuante && !mostrarModal && (
           <button
             onClick={() => setMostrarModal(true)}
             className="fixed bottom-24 right-4 z-[999] bg-gradient-to-br from-blue-600 to-blue-500 text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center transition-opacity duration-300"
@@ -262,119 +313,118 @@ const { totalProdutos, totalVariacoes, quantidadeTotal, valorTotal, custoTotal }
             </svg>
           </button>
         )}
-    </div>
+      </div>
 
- <div className="p-4 grid grid-cols-1 lg:grid-cols-2 gap-6">
-      {/* Lista de Produtos */}
-          <div className="bg-white shadow rounded p-4">
-            <h2 className="text-lg font-semibold mb-4">Produtos</h2>
-            <input
-              type="text"
-              placeholder="Buscar por nome ou código..."
-              value={busca}
-              onChange={(e) => setBusca(e.target.value)}
-              className="w-full border border-gray-300 p-3 rounded-md placeholder:text-sm text-base"
-            />
-            <ul className="divide-y text-sm max-h-[400px] md:max-h-[500px] overflow-auto">
-              {produtosFiltrados
-                .sort((a, b) => a.nome.localeCompare(b.nome)) // ordena A → Z
-                .map((produto) => (
-                  <li
-                    key={produto.id}
-                    onClick={() => setProdutoSelecionado(produto)}
-                    className={`p-3 cursor-pointer hover:bg-blue-50 rounded flex gap-3 items-center transition-all duration-150 ${
-                      produtoSelecionado?.id === produto.id ? "bg-blue-100 font-semibold" : ""
+      <div className="p-4 grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Lista de Produtos */}
+        <div className="bg-white shadow rounded p-4">
+          <h2 className="text-lg font-semibold mb-4">Produtos</h2>
+          <input
+            type="text"
+            placeholder="Buscar por nome ou código..."
+            value={busca}
+            onChange={(e) => setBusca(e.target.value)}
+            className="w-full border border-gray-300 p-3 rounded-md placeholder:text-sm text-base"
+          />
+          <ul className="divide-y text-sm max-h-[400px] md:max-h-[500px] overflow-auto">
+            {produtosFiltrados
+              .sort((a, b) => a.nome.localeCompare(b.nome)) // ordena A → Z
+              .map((produto) => (
+                <li
+                  key={produto.id}
+                  onClick={() => setProdutoSelecionado(produto)}
+                  className={`p-3 cursor-pointer hover:bg-blue-50 rounded flex gap-3 items-center transition-all duration-150 ${produtoSelecionado?.id === produto.id ? "bg-blue-100 font-semibold" : ""
                     }`}
-                  >
-                    {produto.imagemUrl ? (
-                      <img
-                        src={produto.imagemUrl}
-                        alt={produto.nome}
-                        className="w-12 h-12 object-cover rounded"
-                      />
-                    ) : (
-                      <div className="w-12 h-12 bg-gray-200 rounded flex items-center justify-center text-xs text-gray-500">
-                        Sem imagem
-                      </div>
-                    )}
-
-                    <div>
-                      <p>{produto.nome}</p>
-                      <p className="text-xs text-gray-500">R$ {produto.preco.toFixed(2)}</p>
-                      <p className="text-xs text-gray-500">
-                        Estoque total: {calcularEstoqueTotal(produto)}
-                      </p>
-                    </div>
-                  </li>
-                ))}
-            </ul>
-          </div>
-
-
-      
-
-      {/* Detalhes do Produto */}
-      <div className="bg-white shadow rounded p-4 min-h-[400px] relative">
-        {!produtoSelecionado ? (
-          <p className="text-gray-500 text-sm">Selecione um produto à esquerda.</p>
-        ) : (
-          <>
-            <div className="mb-4 border-b pb-4 relative flex flex-col sm:flex-row sm:gap-4">
-              <div className="relative w-20 h-20">
-                              {produtoSelecionado.imagemUrl ? (
-                <img
-                  src={produtoSelecionado.imagemUrl}
-                  alt={produtoSelecionado.nome}
-                  className="w-20 h-20 object-cover rounded"
-                />
-              ) : (
-                <div className="w-20 h-20 bg-gray-200 flex items-center justify-center text-xs text-gray-500 rounded">
-                  Sem imagem
-                </div>
-              )}
-
-                <button
-                  className="absolute bottom-1 right-1 bg-white text-gray-700 rounded-full p-1 shadow hover:bg-gray-100"
-                  title="Trocar imagem"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    document.getElementById("uploadImagemCard")?.click();
-                  }}
                 >
-                  <FaPen size={12} />
-                </button>
-                <input
-                  type="file"
-                  accept="image/*"
-                  id="uploadImagemCard"
-                  onChange={handleSelecionarNovaImagem}
-                  className="hidden"
-                />
-              </div>
-              <div className="space-y-1">
-                <p className="text-xl font-semibold text-gray-900">{produtoSelecionado.nome}</p>
-                <p className="text-sm text-gray-600">
-                  Preço: <strong>R$ {produtoSelecionado.preco.toFixed(2)}</strong> &nbsp;|&nbsp;
-                  Custo: <strong>R$ {produtoSelecionado.custoUnitario.toFixed(2)}</strong> &nbsp;|&nbsp;
-                  Outros custos: <strong>R$ {produtoSelecionado.outrosCustos.toFixed(2)}</strong>
-                </p>
-              </div>
-              <button
-                onClick={() => {
-                  if (window.confirm("Tem certeza que deseja excluir este produto?")) {
-                    api.delete(`/produtos/${produtoSelecionado.id}`);
-                    toast.success("Produto excluído!");
-                    setProdutoSelecionado(null);
-                    carregarProdutos();
-                  }
-                }}
-                className="absolute top-2 right-2 px-3 py-1.5 text-xs text-red-600 border border-red-300 rounded hover:bg-red-50"
-              >
-                Excluir
-              </button>
-            </div>
+                  {produto.imagemUrl ? (
+                    <img
+                      src={produto.imagemUrl}
+                      alt={produto.nome}
+                      className="w-12 h-12 object-cover rounded"
+                    />
+                  ) : (
+                    <div className="w-12 h-12 bg-gray-200 rounded flex items-center justify-center text-xs text-gray-500">
+                      Sem imagem
+                    </div>
+                  )}
 
-            <div className="space-y-3 overflow-auto max-h-[400px]">
+                  <div>
+                    <p>{produto.nome}</p>
+                    <p className="text-xs text-gray-500">R$ {produto.preco.toFixed(2)}</p>
+                    <p className="text-xs text-gray-500">
+                      Estoque total: {calcularEstoqueTotal(produto)}
+                    </p>
+                  </div>
+                </li>
+              ))}
+          </ul>
+        </div>
+
+
+
+
+        {/* Detalhes do Produto */}
+        <div className="bg-white shadow rounded p-4 min-h-[400px] relative">
+          {!produtoSelecionado ? (
+            <p className="text-gray-500 text-sm">Selecione um produto à esquerda.</p>
+          ) : (
+            <>
+              <div className="mb-4 border-b pb-4 relative flex flex-col sm:flex-row sm:gap-4">
+                <div className="relative w-20 h-20">
+                  {produtoSelecionado.imagemUrl ? (
+                    <img
+                      src={produtoSelecionado.imagemUrl}
+                      alt={produtoSelecionado.nome}
+                      className="w-20 h-20 object-cover rounded"
+                    />
+                  ) : (
+                    <div className="w-20 h-20 bg-gray-200 flex items-center justify-center text-xs text-gray-500 rounded">
+                      Sem imagem
+                    </div>
+                  )}
+
+                  <button
+                    className="absolute bottom-1 right-1 bg-white text-gray-700 rounded-full p-1 shadow hover:bg-gray-100"
+                    title="Trocar imagem"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      document.getElementById("uploadImagemCard")?.click();
+                    }}
+                  >
+                    <FaPen size={12} />
+                  </button>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    id="uploadImagemCard"
+                    onChange={handleSelecionarNovaImagem}
+                    className="hidden"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <p className="text-xl font-semibold text-gray-900">{produtoSelecionado.nome}</p>
+                  <p className="text-sm text-gray-600">
+                    Preço: <strong>R$ {produtoSelecionado.preco.toFixed(2)}</strong> &nbsp;|&nbsp;
+                    Custo: <strong>R$ {produtoSelecionado.custoUnitario.toFixed(2)}</strong> &nbsp;|&nbsp;
+                    Outros custos: <strong>R$ {produtoSelecionado.outrosCustos.toFixed(2)}</strong>
+                  </p>
+                </div>
+                <button
+                  onClick={() => {
+                    if (window.confirm("Tem certeza que deseja excluir este produto?")) {
+                      api.delete(`/produtos/${produtoSelecionado.id}`);
+                      toast.success("Produto excluído!");
+                      setProdutoSelecionado(null);
+                      carregarProdutos();
+                    }
+                  }}
+                  className="absolute top-2 right-2 px-3 py-1.5 text-xs text-red-600 border border-red-300 rounded hover:bg-red-50"
+                >
+                  Excluir
+                </button>
+              </div>
+
+              <div className="space-y-3 overflow-auto max-h-[400px]">
                 {produtoSelecionado.variacoes
                   .slice()
                   .sort((a, b) => a.numeracao - b.numeracao)
@@ -443,15 +493,15 @@ const { totalProdutos, totalVariacoes, quantidadeTotal, valorTotal, custoTotal }
               </div>
 
 
-            <div className="mt-4 border-t pt-4">
-              <button
-                className="text-sm text-gray-500 hover:text-blue-600 flex items-center gap-1"
-                onClick={() => setMostrarFormularioVariacao((v) => !v)}
-              >
-                <FaPlus className="text-xs" /> Adicionar variação
-              </button>
+              <div className="mt-4 border-t pt-4">
+                <button
+                  className="text-sm text-gray-500 hover:text-blue-600 flex items-center gap-1"
+                  onClick={() => setMostrarFormularioVariacao((v) => !v)}
+                >
+                  <FaPlus className="text-xs" /> Adicionar variação
+                </button>
 
-              {mostrarFormularioVariacao && (
+                {mostrarFormularioVariacao && (
                   <div className="mt-2 flex flex-row flex-wrap gap-2 items-center">
                     <input
                       type="text"
@@ -479,58 +529,58 @@ const { totalProdutos, totalVariacoes, quantidadeTotal, valorTotal, custoTotal }
                     </button>
                   </div>
                 )}
-            </div>
-          </>
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Relatório de Estoque */}
+        <div className="bg-white shadow-md rounded-xl p-5 lg:col-span-2 space-y-5">
+          <h2 className="text-lg font-semibold mb-2">📊 Relatório de Estoque</h2>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-sm">
+            {[
+              { label: "Produtos", value: totalProdutos },
+              { label: "Variações", value: totalVariacoes },
+              { label: "Qtd. Total", value: quantidadeTotal },
+              {
+                label: "Valor em Estoque",
+                value: new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(valorTotal),
+              },
+              {
+                label: "Custo em Estoque",
+                value: new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(custoTotal),
+              },
+            ].map((item) => (
+              <div
+                key={item.label}
+                className="p-4 rounded-lg border border-gray-200 bg-gray-50 flex flex-col items-start justify-center hover:shadow-sm transition"
+              >
+                <p className="text-gray-500 text-xs sm:text-sm">{item.label}</p>
+                <p className="text-lg sm:text-xl font-semibold text-gray-900">{item.value}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+
+        <button
+          onClick={() => setMostrarModal(true)}
+          className="hidden md:flex fixed bottom-5 right-5 z-50 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-full shadow-lg items-center"
+        >
+          + Cadastrar Produto
+        </button>
+
+        {mostrarModal && (
+          <ProdutoModal
+            aoFechar={() => setMostrarModal(false)}
+            aoCadastrar={() => {
+              setMostrarModal(false);
+              carregarProdutos();
+            }}
+          />
         )}
       </div>
-
-      {/* Relatório de Estoque */}
-      <div className="bg-white shadow-md rounded-xl p-5 lg:col-span-2 space-y-5">
-        <h2 className="text-lg font-semibold mb-2">📊 Relatório de Estoque</h2>
-
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-sm">
-          {[
-            { label: "Produtos", value: totalProdutos },
-            { label: "Variações", value: totalVariacoes },
-            { label: "Qtd. Total", value: quantidadeTotal },
-            {
-              label: "Valor em Estoque",
-              value: new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(valorTotal),
-            },
-            {
-              label: "Custo em Estoque",
-              value: new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(custoTotal),
-            },
-          ].map((item) => (
-            <div
-              key={item.label}
-              className="p-4 rounded-lg border border-gray-200 bg-gray-50 flex flex-col items-start justify-center hover:shadow-sm transition"
-            >
-              <p className="text-gray-500 text-xs sm:text-sm">{item.label}</p>
-              <p className="text-lg sm:text-xl font-semibold text-gray-900">{item.value}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-
-
-      <button
-        onClick={() => setMostrarModal(true)}
-        className="hidden md:flex fixed bottom-5 right-5 z-50 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-full shadow-lg items-center"
-      >
-        + Cadastrar Produto
-      </button>
-
-      {mostrarModal && (
-        <ProdutoModal
-          aoFechar={() => setMostrarModal(false)}
-          aoCadastrar={() => {
-            setMostrarModal(false);
-            carregarProdutos();
-          }}
-        />
-      )}
-    </div>
     </>
   );
 }
