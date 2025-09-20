@@ -23,7 +23,9 @@ import {
 
 export default function Dashboard() {
   const [vendas, setVendas] = useState([]);
-  const [produtos, setProdutos] = useState([]); // <- Adicionado aqui
+  const [produtosCriticos, setProdutosCriticos] = useState([]);
+  const [dadosGrafico, setDadosGrafico] = useState([]);
+  const [rankingProdutos, setRankingProdutos] = useState([]);
   const [vendasFiltradas, setVendasFiltradas] = useState([]);
   const [periodo, setPeriodo] = useState("dia");
 
@@ -34,11 +36,10 @@ export default function Dashboard() {
   const [lucro, setLucro] = useState(0);
   const [entregas, setEntregas] = useState(0);
   const [formaPagamentoMaisUsada, setFormaPagamentoMaisUsada] = useState("N/A");
-  const [produtosCriticos, setProdutosCriticos] = useState([]);
-  const [dadosGrafico, setDadosGrafico] = useState([]);
-  const [rankingProdutos, setRankingProdutos] = useState([]);
 
-  const formatCurrency = valor =>
+  const [carregando, setCarregando] = useState(true);
+
+  const formatCurrency = (valor) =>
     new Intl.NumberFormat("pt-BR", {
       style: "currency",
       currency: "BRL",
@@ -47,6 +48,7 @@ export default function Dashboard() {
   useEffect(() => {
     async function carregarDados() {
       try {
+        setCarregando(true);
         const [resVendas, resProdutos] = await Promise.all([
           api.get("/vendas"),
           api.get("/produtos"),
@@ -56,15 +58,17 @@ export default function Dashboard() {
         const produtos = resProdutos.data;
         setVendas(vendasData);
 
-        const criticos = produtos.filter(p => {
+        const criticos = produtos.filter((p) => {
           const totalVar = p.variacoes.length;
           if (totalVar === 0) return false;
-          const zerados = p.variacoes.filter(v => v.estoque === 0).length;
+          const zerados = p.variacoes.filter((v) => v.estoque === 0).length;
           return zerados / totalVar >= 0.5;
         });
         setProdutosCriticos(criticos);
       } catch (err) {
         console.error("Erro ao carregar dados", err);
+      } finally {
+        setCarregando(false);
       }
     }
 
@@ -72,31 +76,23 @@ export default function Dashboard() {
   }, []);
 
   useEffect(() => {
+    if (!vendas.length) return;
+
     const hoje = new Date();
     const inicio7Dias = new Date(hoje);
     inicio7Dias.setDate(hoje.getDate() - 6);
     const inicioMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
 
-    const filtrarPorPeriodo = venda => {
+    const filtrarPorPeriodo = (venda) => {
       const dataVenda = new Date(venda.data);
       const dataVendaStr = dataVenda.toDateString();
       const hojeStr = hoje.toDateString();
 
-      if (periodo === "dia") {
-        return dataVendaStr === hojeStr;
-      }
-
-      if (periodo === "7dias") {
-        return dataVenda >= inicio7Dias && dataVenda <= hoje;
-      }
-
-      if (periodo === "mes") {
-        return dataVenda >= inicioMes && dataVenda <= hoje;
-      }
-
+      if (periodo === "dia") return dataVendaStr === hojeStr;
+      if (periodo === "7dias") return dataVenda >= inicio7Dias && dataVenda <= hoje;
+      if (periodo === "mes") return dataVenda >= inicioMes && dataVenda <= hoje;
       return false;
     };
-
 
     const vendasPeriodo = vendas.filter(filtrarPorPeriodo);
     setVendasFiltradas(vendasPeriodo);
@@ -106,13 +102,12 @@ export default function Dashboard() {
       (acc, v) => acc + v.itens.reduce((soma, i) => soma + i.quantidade, 0),
       0
     );
-    const ticket =
-      vendasPeriodo.length > 0 ? totalPeriodo / vendasPeriodo.length : 0;
+    const ticket = vendasPeriodo.length > 0 ? totalPeriodo / vendasPeriodo.length : 0;
 
     let lucroTotal = 0;
     const ranking = {};
-    vendasPeriodo.forEach(venda => {
-      venda.itens.forEach(item => {
+    vendasPeriodo.forEach((venda) => {
+      venda.itens.forEach((item) => {
         const produto = item.variacaoProduto?.produto;
         if (produto) {
           const lucroUnitario =
@@ -132,21 +127,21 @@ export default function Dashboard() {
       }))
       .sort((a, b) => b.quantidadeVendida - a.quantidadeVendida);
 
-    const clientes = new Set(vendasPeriodo.map(v => v.clienteId).filter(Boolean));
+    const clientes = new Set(vendasPeriodo.map((v) => v.clienteId).filter(Boolean));
     const clientesAtendidos = clientes.size;
 
-    const entregas = vendasPeriodo.filter(v => v.tipoEntrega === "Entrega").length;
+    const entregas = vendasPeriodo.filter((v) => v.tipoEntrega === "Entrega").length;
 
     const pagamentos = {};
-    vendasPeriodo.forEach(v => {
+    vendasPeriodo.forEach((v) => {
       const metodo = v.formaPagamento || "Indefinido";
       pagamentos[metodo] = (pagamentos[metodo] || 0) + 1;
     });
-    const maisUsado = Object.entries(pagamentos)
-      .sort((a, b) => b[1] - a[1])[0]?.[0] || "N/A";
+    const maisUsado =
+      Object.entries(pagamentos).sort((a, b) => b[1] - a[1])[0]?.[0] || "N/A";
 
     const mapa = {};
-    vendasPeriodo.forEach(v => {
+    vendasPeriodo.forEach((v) => {
       const dia = new Date(v.data).toLocaleDateString("pt-BR");
       mapa[dia] = (mapa[dia] || 0) + v.total;
     });
@@ -169,6 +164,20 @@ export default function Dashboard() {
     setDadosGrafico(grafico);
     setRankingProdutos(rankingFinal);
   }, [vendas, periodo]);
+
+  // ===============================
+  // NOVO: Tela de carregamento
+  // ===============================
+  if (carregando) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-gray-50">
+        <div className="text-center">
+          <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <p className="mt-4 text-gray-600 font-medium">Carregando dados...</p>
+        </div>
+      </div>
+    );
+  }
 
   function Card({ titulo, valor, isCurrency = false }) {
   const format = isCurrency
