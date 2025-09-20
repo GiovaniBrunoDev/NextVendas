@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import api from "../services/api";
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
+import { motion } from "framer-motion";
+
 
 export default function BuscaProdutos() {
   const [produtos, setProdutos] = useState([]);
@@ -81,6 +83,43 @@ export default function BuscaProdutos() {
 
     const conteudo = await zip.generateAsync({ type: "blob" });
     saveAs(conteudo, `imagens_variacao_${numeracaoSelecionada}.zip`);
+  }
+
+   // 🔥 Tela de carregamento
+  if (carregando) {
+    return (
+      <div className="flex flex-col items-center justify-center h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+        {/* Círculo Loader */}
+        <motion.svg
+          className="w-16 h-16 text-gray-600"
+          viewBox="0 0 50 50"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          animate={{ rotate: 360 }}
+          transition={{ repeat: Infinity, duration: 1.2, ease: "linear" }}
+        >
+          <circle
+            cx="25"
+            cy="25"
+            r="20"
+            stroke="currentColor"
+            strokeWidth="4"
+            strokeLinecap="round"
+            strokeDasharray="100"
+            strokeDashoffset="60"
+          />
+        </motion.svg>
+
+        {/* Texto */}
+        <motion.p
+          className="mt-6 text-gray-600 font-medium text-lg tracking-wide"
+          animate={{ opacity: [0.3, 1, 0.3] }}
+          transition={{ repeat: Infinity, duration: 2 }}
+        >
+          Carregando Produtos...
+        </motion.p>
+      </div>
+    );
   }
 
   return (
