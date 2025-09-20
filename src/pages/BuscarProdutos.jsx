@@ -10,8 +10,16 @@ export default function BuscaProdutos() {
   const [busca, setBusca] = useState("");
   const [carregando, setCarregando] = useState(false);
   const [erroCarregamento, setErroCarregamento] = useState(false);
-
+  const [fraseIndex, setFraseIndex] = useState(0);
   const [numeracaoSelecionada, setNumeracaoSelecionada] = useState("");
+
+   const frases = [
+    "🔍 Consultando base de dados...",
+    "📦 Preparando estoque...",
+    "⚡ Otimizando resultados...",
+    "🚀 Quase lá..."
+  ];
+
 
   async function carregarProdutos() {
     try {
@@ -30,6 +38,15 @@ export default function BuscaProdutos() {
   useEffect(() => {
     carregarProdutos();
   }, []);
+
+  // alterna frases a cada 2s
+  useEffect(() => {
+    if (!carregando) return;
+    const interval = setInterval(() => {
+      setFraseIndex((prev) => (prev + 1) % frases.length);
+    }, 2000);
+    return () => clearInterval(interval);
+  }, [carregando]);
 
   // Lista de numerações únicas (ordenadas)
   const todasNumeracoes = [
@@ -86,42 +103,49 @@ export default function BuscaProdutos() {
   }
 
    // 🔥 Tela de carregamento
-  if (carregando) {
+ if (carregando) {
     return (
       <div className="flex flex-col items-center justify-center h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-        {/* Círculo Loader */}
-        <motion.svg
-          className="w-16 h-16 text-gray-600"
-          viewBox="0 0 50 50"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          animate={{ rotate: 360 }}
-          transition={{ repeat: Infinity, duration: 1.2, ease: "linear" }}
-        >
-          <circle
-            cx="25"
-            cy="25"
-            r="20"
-            stroke="currentColor"
-            strokeWidth="4"
-            strokeLinecap="round"
-            strokeDasharray="100"
-            strokeDashoffset="60"
-          />
-        </motion.svg>
-
-        {/* Texto */}
-        <motion.p
-          className="mt-6 text-gray-600 font-medium text-lg tracking-wide"
-          animate={{ opacity: [0.3, 1, 0.3] }}
-          transition={{ repeat: Infinity, duration: 2 }}
-        >
-          Carregando Produtos...
-        </motion.p>
+      {/* Spinner minimalista */}
+      <div className="relative w-16 h-16">
+        <div className="absolute inset-0 rounded-full border-4 border-gray-200"></div>
+        <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-gray-700 animate-spin"></div>
       </div>
-    );
-  }
 
+      {/* Texto animado com frases dinâmicas */}
+      <motion.p
+        key={fraseIndex}
+        className="mt-6 text-gray-700 font-medium text-lg tracking-wide"
+        initial={{ opacity: 0, y: 5 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        {frases[fraseIndex]}
+      </motion.p>
+
+      {/* Linha de progresso clean */}
+      <div className="mt-4 w-48 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+        <div className="h-full bg-gray-700 animate-[progress_1.5s_ease-in-out_infinite]"></div>
+      </div>
+
+      {/* Keyframes da barra */}
+      <style jsx>{`
+        @keyframes progress {
+          0% {
+            transform: translateX(-100%);
+          }
+          50% {
+            transform: translateX(0);
+          }
+          100% {
+            transform: translateX(100%);
+          }
+        }
+      `}</style>
+    </div>
+  );
+}
   return (
     <div className="p-4 max-w-md mx-auto">
       {/* Campo de busca fixo */}
