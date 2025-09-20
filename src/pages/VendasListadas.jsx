@@ -85,36 +85,43 @@ export default function VendasListadas() {
   if (carregando) {
     return (
       <div className="flex flex-col items-center justify-center h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-        <motion.svg
-          className="w-16 h-16 text-gray-600"
-          viewBox="0 0 50 50"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          animate={{ rotate: 360 }}
-          transition={{ repeat: Infinity, duration: 1.2, ease: "linear" }}
-        >
-          <circle
-            cx="25"
-            cy="25"
-            r="20"
-            stroke="currentColor"
-            strokeWidth="4"
-            strokeLinecap="round"
-            strokeDasharray="100"
-            strokeDashoffset="60"
-          />
-        </motion.svg>
+      {/* Spinner moderno com gradiente neutro/azulado */}
+        <div className="relative w-16 h-16">
+          {/* Fundo do spinner */}
+          <div className="absolute inset-0 rounded-full border-4 border-slate-200"></div>
 
-        <motion.p
-          className="mt-6 text-gray-600 font-medium text-lg tracking-wide"
-          animate={{ opacity: [0.3, 1, 0.3] }}
-          transition={{ repeat: Infinity, duration: 2 }}
-        >
-          Carregando Vendas...
-        </motion.p>
-      </div>
-    );
-  }
+          {/* Parte animada */}
+          <div className="absolute inset-0 rounded-full border-4 border-transparent 
+                  border-t-slate-300 border-r-slate-400 animate-spin"></div>
+        </div>
+
+      {/* Texto animado */}
+      <p className="mt-6 text-gray-700 font-medium text-lg animate-pulse">
+        Carregando suas vendas...
+      </p>
+
+      {/* Neutro com leve azul acinzentado */}
+        <div className="mt-4 w-48 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+          <div className="h-full bg-gradient-to-r from-slate-300 to-slate-400 animate-[progress_1.5s_ease-in-out_infinite]"></div>
+        </div>
+
+      {/* Keyframes para a barra */}
+      <style jsx>{`
+        @keyframes progress {
+          0% {
+            transform: translateX(-100%);
+          }
+          50% {
+            transform: translateX(0);
+          }
+          100% {
+            transform: translateX(100%);
+          }
+        }
+      `}</style>
+    </div>
+  );
+}
 
   return (
     <div className="p-4 sm:p-6 max-w-7xl mx-auto">

@@ -175,21 +175,25 @@ export default function Dashboard() {
   if (carregando) {
   return (
     <div className="flex flex-col items-center justify-center h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-      {/* Spinner moderno com gradiente */}
-      <div className="relative w-16 h-16">
-        <div className="absolute inset-0 rounded-full border-4 border-gray-200"></div>
-        <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-blue-500 border-r-purple-500 animate-spin"></div>
-      </div>
+      {/* Spinner moderno com gradiente neutro/azulado */}
+        <div className="relative w-16 h-16">
+          {/* Fundo do spinner */}
+          <div className="absolute inset-0 rounded-full border-4 border-slate-200"></div>
+
+          {/* Parte animada */}
+          <div className="absolute inset-0 rounded-full border-4 border-transparent 
+                  border-t-slate-300 border-r-slate-400 animate-spin"></div>
+        </div>
 
       {/* Texto animado */}
       <p className="mt-6 text-gray-700 font-medium text-lg animate-pulse">
         Carregando seu dashboard...
       </p>
 
-      {/* Linha de progresso falsa para dar mais dinamismo */}
-      <div className="mt-4 w-48 h-1.5 bg-gray-200 rounded-full overflow-hidden">
-        <div className="h-full bg-gradient-to-r from-blue-500 to-purple-500 animate-[progress_1.5s_ease-in-out_infinite]"></div>
-      </div>
+      {/* Neutro com leve azul acinzentado */}
+        <div className="mt-4 w-48 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+          <div className="h-full bg-gradient-to-r from-slate-300 to-slate-400 animate-[progress_1.5s_ease-in-out_infinite]"></div>
+        </div>
 
       {/* Keyframes para a barra */}
       <style jsx>{`

@@ -13,7 +13,7 @@ export default function BuscaProdutos() {
   const [fraseIndex, setFraseIndex] = useState(0);
   const [numeracaoSelecionada, setNumeracaoSelecionada] = useState("");
 
-   const frases = [
+  const frases = [
     "🔍 Consultando base de dados...",
     "📦 Preparando estoque...",
     "⚡ Otimizando resultados...",
@@ -87,9 +87,8 @@ export default function BuscaProdutos() {
         const blob = await res.blob();
 
         // Nome seguro para o arquivo (sem espaços e com código/id)
-        const nomeArquivo = `${produto.codigo || produto.id || "produto"}_${
-          numeracaoSelecionada
-        }.jpg`;
+        const nomeArquivo = `${produto.codigo || produto.id || "produto"}_${numeracaoSelecionada
+          }.jpg`;
 
         zip.file(nomeArquivo, blob);
       } catch (err) {
@@ -102,35 +101,40 @@ export default function BuscaProdutos() {
     saveAs(conteudo, `imagens_variacao_${numeracaoSelecionada}.zip`);
   }
 
-   // 🔥 Tela de carregamento
- if (carregando) {
+  // 🔥 Tela de carregamento
+  if (carregando) {
     return (
       <div className="flex flex-col items-center justify-center h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-      {/* Spinner minimalista */}
-      <div className="relative w-16 h-16">
-        <div className="absolute inset-0 rounded-full border-4 border-gray-200"></div>
-        <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-gray-700 animate-spin"></div>
-      </div>
+        {/* Spinner moderno com gradiente neutro/azulado */}
+        <div className="relative w-16 h-16">
+          {/* Fundo do spinner */}
+          <div className="absolute inset-0 rounded-full border-4 border-slate-200"></div>
 
-      {/* Texto animado com frases dinâmicas */}
-      <motion.p
-        key={fraseIndex}
-        className="mt-6 text-gray-700 font-medium text-lg tracking-wide"
-        initial={{ opacity: 0, y: 5 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        {frases[fraseIndex]}
-      </motion.p>
+          {/* Parte animada */}
+          <div className="absolute inset-0 rounded-full border-4 border-transparent 
+                  border-t-slate-300 border-r-slate-400 animate-spin"></div>
+        </div>
 
-      {/* Linha de progresso clean */}
-      <div className="mt-4 w-48 h-1.5 bg-gray-200 rounded-full overflow-hidden">
-        <div className="h-full bg-gray-700 animate-[progress_1.5s_ease-in-out_infinite]"></div>
-      </div>
+        {/* Texto animado com frases dinâmicas */}
+        <motion.p
+          key={fraseIndex}
+          className="mt-6 text-gray-700 font-medium text-lg tracking-wide"
+          initial={{ opacity: 0, y: 5 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          {frases[fraseIndex]}
+        </motion.p>
 
-      {/* Keyframes da barra */}
-      <style jsx>{`
+        {/* Neutro com leve azul acinzentado */}
+        <div className="mt-4 w-48 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+          <div className="h-full bg-gradient-to-r from-slate-300 to-slate-400 animate-[progress_1.5s_ease-in-out_infinite]"></div>
+        </div>
+
+
+        {/* Keyframes da barra */}
+        <style jsx>{`
         @keyframes progress {
           0% {
             transform: translateX(-100%);
@@ -143,9 +147,9 @@ export default function BuscaProdutos() {
           }
         }
       `}</style>
-    </div>
-  );
-}
+      </div>
+    );
+  }
   return (
     <div className="p-4 max-w-md mx-auto">
       {/* Campo de busca fixo */}
