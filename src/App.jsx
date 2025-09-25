@@ -9,6 +9,7 @@ import Estoque from "./pages/Estoque";
 import Clientes from "./pages/Clientes";
 import MobileHome from "./pages/MobileHome";
 import BuscarProdutos from "./pages/BuscarProdutos";
+import Metas from "./pages/Metas";
 
 // Toastify
 import { ToastContainer } from "react-toastify";
@@ -38,6 +39,8 @@ function AppWrapper() {
         return <Clientes />;
       case "produtos": 
         return <BuscarProdutos />;
+      case "metas": 
+        return <Metas />;
       default:
         return <Dashboard />;
     }
