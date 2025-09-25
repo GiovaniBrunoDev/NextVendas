@@ -20,6 +20,8 @@ import {
   FaCreditCard,
   FaChartLine,
 } from "react-icons/fa";
+import { TrendingUp, TrendingDown, Minus } from 'react-feather'; // ou 'react-icons/fi'
+
 
 export default function Dashboard() {
   const [vendas, setVendas] = useState([]);
@@ -275,51 +277,64 @@ export default function Dashboard() {
   // Card com variação
   // ===============================
   function Card({ titulo, valor, isCurrency = false, variacao }) {
-  const format = isCurrency
-    ? (v) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(v)
-    : (v) => Math.round(v);
+    const format = isCurrency
+      ? (v) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(v)
+      : (v) => Math.round(v);
 
-  const icons = {
-    Vendas: <FaShoppingCart className="text-gray-600 text-xl" />,
-    "Total Faturado": <FaMoneyBillWave className="text-green-500 text-xl" />,
-    "Produtos Vendidos": <FaBoxOpen className="text-gray-600 text-xl" />,
-    "Ticket Médio": <FaReceipt className="text-gray-600 text-xl" />,
-    "Lucro Estimado": <FaChartLine className="text-blue-500 text-xl" />,
-    "Clientes Atendidos": <FaSmile className="text-gray-600 text-xl" />,
-    "Taxas de Entrega": <FaTruck className="text-gray-600 text-xl" />,
-    "Pagamento Mais Usada": <FaCreditCard className="text-gray-600 text-xl" />,
-  };
+    const icons = {
+      Vendas: <FaShoppingCart className="text-gray-600 text-xl" />,
+      "Total Faturado": <FaMoneyBillWave className="text-green-500 text-xl" />,
+      "Produtos Vendidos": <FaBoxOpen className="text-gray-600 text-xl" />,
+      "Ticket Médio": <FaReceipt className="text-gray-600 text-xl" />,
+      "Lucro Estimado": <FaChartLine className="text-blue-500 text-xl" />,
+      "Clientes Atendidos": <FaSmile className="text-gray-600 text-xl" />,
+      "Taxas de Entrega": <FaTruck className="text-gray-600 text-xl" />,
+      "Pagamento Mais Usada": <FaCreditCard className="text-gray-600 text-xl" />,
+    };
 
-  const variacaoClasse =
-    variacao > 0
-      ? "bg-green-100 text-green-600"
-      : variacao < 0
-      ? "bg-red-100 text-red-600"
-      : "bg-gray-100 text-gray-500";
+    const variacaoClasse =
+      variacao > 0
+        ? "bg-green-100 text-green-600"
+        : variacao < 0
+          ? "bg-red-100 text-red-600"
+          : "bg-gray-100 text-gray-500";
 
 
     return (
-      <div className="relative bg-white p-5 rounded-xl shadow hover:shadow-lg transition-shadow duration-200 flex flex-col gap-3">
-      {/* Badge de variação no canto superior direito */}
-      {variacao !== undefined && (
-        <div className={`absolute top-3 right-3 px-2 py-0.5 text-xs font-medium rounded-full ${variacaoClasse} flex items-center gap-1`}>
-          {variacao > 0 ? "▲" : variacao < 0 ? "▼" : "→"} {Math.abs(variacao).toFixed(1)}%
-        </div>
-      )}
+      <div className="relative bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 flex items-center gap-3">
+        {/* Badge de variação no canto superior direito */}
+       {variacao !== undefined && (
+  <div
+    className={`absolute top-2 right-2 px-2 py-0.5 text-[10px] font-medium flex items-center gap-1
+      ${variacao > 0 ? "text-green-500" : variacao < 0 ? "text-red-500" : "text-gray-500"}`}
+  >
+    {/* Ícone de tendência */}
+    {variacao > 0 && <TrendingUp size={16} className="mr-1.5" />}
+    {variacao < 0 && <TrendingDown size={16} className="mr-1.5" />}
+    {variacao === 0 && <Minus size={16} className="mr-1.5" />}
 
-      <div className="flex items-center gap-3">
-        <div className="w-12 h-12 flex items-center justify-center bg-gray-100 rounded-full">
-          {icons[titulo] || <FaChartLine className="text-gray-400 text-xl" />}
+    {/* Valor percentual */}
+    {Math.abs(variacao).toFixed(1)}%
+  </div>
+)}
+
+
+
+
+        <div className="w-10 h-10 flex items-center justify-center bg-gray-50 rounded-full text-gray-400 text-lg">
+          {icons[titulo] || <FaChartLine />}
         </div>
+
         <div className="flex flex-col">
-          <span className="text-sm text-gray-500">{titulo}</span>
-          <span className="text-2xl font-semibold text-gray-800 mt-1">
+          <span className="text-xs text-gray-400">{titulo}</span>
+          <span className="text-xl font-semibold text-gray-800 mt-0.5">
             <AnimatedNumber value={valor} format={format} />
           </span>
         </div>
       </div>
-    </div>
     );
+
+
   }
 
   // --------------------------
@@ -329,10 +344,11 @@ export default function Dashboard() {
     <div className="p-4 sm:p-6 space-y-8 bg-gray-50 min-h-screen">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <h2 className="text-xl sm:text-2xl font-semibold text-gray-900 tracking-tight">Dashboard</h2>
-        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-          <button className="px-3 py-1 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition">
-            Exportar
-          </button>
+        <div className="flex flex-col items-start gap-2 text-sm font-medium text-gray-500">
+          {/* Botão Exportar */}
+          <button className="hover:text-gray-900 transition-colors">Exportar</button>
+
+          {/* Selector de período */}
           <div className="inline-flex bg-gray-100 rounded-xl p-1 gap-1 flex-wrap">
             {["dia", "7dias", "mes"].map((p) => {
               const ativo = periodo === p;
@@ -340,22 +356,24 @@ export default function Dashboard() {
                 <button
                   key={p}
                   onClick={() => setPeriodo(p)}
-                  className={`relative px -3 sm:px-4 py-1 text-sm font-medium rounded-lg transition-all duration-200
-                    ${ativo
+                  className={`relative px-3 sm:px-4 py-1 text-sm font-medium rounded-lg transition-all duration-200
+            ${ativo
                       ? "bg-white text-gray-900 shadow-sm"
-                      : "text-gray-600 hover:text-gray-900 hover:bg-gray-200"}
-                  `}
+                      : "text-gray-600 hover:text-gray-900 hover:bg-gray-200"
+                    }`}
                 >
                   {p === "dia"
                     ? "Hoje"
                     : p === "7dias"
-                    ? "Últimos 7 dias"
-                    : "Este mês"}
+                      ? "Últimos 7 dias"
+                      : "Este mês"}
                 </button>
               );
             })}
           </div>
         </div>
+
+
       </div>
 
       {/* Cards de Indicadores com comparação */}
