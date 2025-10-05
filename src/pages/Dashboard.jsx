@@ -106,6 +106,7 @@ export default function Dashboard() {
       if (periodo === "dia") return dataVendaStr === hojeStr;
       if (periodo === "7dias") return dataVenda >= inicio7Dias && dataVenda <= hoje;
       if (periodo === "mes") return dataVenda >= inicioMes && dataVenda <= hoje;
+      if (periodo === "tudo") return true; // ✅ novo filtro
       return false;
     };
 
@@ -188,6 +189,10 @@ export default function Dashboard() {
         (v) => new Date(v.data) >= inicioMesAnterior && new Date(v.data) <= fimMesAnterior
       );
     }
+    if (periodo === "tudo") {
+      vendasPeriodoAnterior = [];
+    }
+
 
     const totalPeriodoAnterior = vendasPeriodoAnterior.reduce((acc, v) => acc + v.total, 0);
     const totalProdutosPeriodoAnterior = vendasPeriodoAnterior.reduce(
@@ -303,20 +308,20 @@ export default function Dashboard() {
     return (
       <div className="relative bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 flex items-center gap-3">
         {/* Badge de variação no canto superior direito */}
-       {variacao !== undefined && (
-  <div
-    className={`absolute top-2 right-2 px-2 py-0.5 text-[10px] font-medium flex items-center gap-1
+        {variacao !== undefined && (
+          <div
+            className={`absolute top-2 right-2 px-2 py-0.5 text-[10px] font-medium flex items-center gap-1
       ${variacao > 0 ? "text-green-500" : variacao < 0 ? "text-red-500" : "text-gray-500"}`}
-  >
-    {/* Ícone de tendência */}
-    {variacao > 0 && <TrendingUp size={16} className="mr-1.5" />}
-    {variacao < 0 && <TrendingDown size={16} className="mr-1.5" />}
-    {variacao === 0 && <Minus size={16} className="mr-1.5" />}
+          >
+            {/* Ícone de tendência */}
+            {variacao > 0 && <TrendingUp size={16} className="mr-1.5" />}
+            {variacao < 0 && <TrendingDown size={16} className="mr-1.5" />}
+            {variacao === 0 && <Minus size={16} className="mr-1.5" />}
 
-    {/* Valor percentual */}
-    {Math.abs(variacao).toFixed(1)}%
-  </div>
-)}
+            {/* Valor percentual */}
+            {Math.abs(variacao).toFixed(1)}%
+          </div>
+        )}
 
 
 
@@ -350,7 +355,8 @@ export default function Dashboard() {
 
           {/* Selector de período */}
           <div className="inline-flex bg-gray-100 rounded-xl p-1 gap-1 flex-wrap">
-            {["dia", "7dias", "mes"].map((p) => {
+            {["dia", "7dias", "mes", "tudo"].map((p) => {
+
               const ativo = periodo === p;
               return (
                 <button
@@ -366,7 +372,10 @@ export default function Dashboard() {
                     ? "Hoje"
                     : p === "7dias"
                       ? "Últimos 7 dias"
-                      : "Este mês"}
+                      : p === "mes"
+                        ? "Este mês"
+                        : "Todo o período"}
+
                 </button>
               );
             })}
@@ -426,7 +435,16 @@ export default function Dashboard() {
       {/* Gráfico de vendas */}
       <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-6">
         <h3 className="text-lg font-semibold text-gray-800 mb-4">
-          Evolução das Vendas ({periodo === "dia" ? "Hoje" : periodo === "7dias" ? "Últimos 7 dias" : "Mês"})
+          Evolução das Vendas (
+          {periodo === "dia"
+            ? "Hoje"
+            : periodo === "7dias"
+              ? "Últimos 7 dias"
+              : periodo === "mes"
+                ? "Este mês"
+                : "Todo o período"}
+          )
+
         </h3>
         <ResponsiveContainer width="100%" height={220}>
           <LineChart data={dadosGrafico}>
