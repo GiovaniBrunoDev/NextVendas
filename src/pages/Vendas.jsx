@@ -3,6 +3,7 @@ import api from "../services/api";
 import CarrinhoItem from "../components/CarrinhoItem";
 import FinalizarVendaModal from "../components/FinalizarVendaModal";
 import { toast } from "react-toastify";
+import NovoPedidoModal from "../components/NovoPedidoModal";
 
 
 
@@ -11,6 +12,7 @@ export default function Vendas() {
   const [busca, setBusca] = useState("");
   const [carrinho, setCarrinho] = useState([]);
   const [mostrarFinalizarModal, setMostrarFinalizarModal] = useState(false);
+  const [mostrarPedidoModal, setMostrarPedidoModal] = useState(false);
 
   const [carregando, setCarregando] = useState(false);
   const [erroCarregamento, setErroCarregamento] = useState(false);
@@ -79,19 +81,19 @@ export default function Vendas() {
   }
 
   async function carregarProdutos() {
-  try {
-    setCarregando(true);
-    setErroCarregamento(false);
-    const res = await api.get("/produtos");
-    setProdutos(res.data);
-  } catch (err) {
-    console.error("Erro ao buscar produtos:", err);
-    setErroCarregamento(true);
-    toast.error("Erro ao buscar produtos. Verifique a conexão ou tente novamente.");
-  } finally {
-    setCarregando(false);
+    try {
+      setCarregando(true);
+      setErroCarregamento(false);
+      const res = await api.get("/produtos");
+      setProdutos(res.data);
+    } catch (err) {
+      console.error("Erro ao buscar produtos:", err);
+      setErroCarregamento(true);
+      toast.error("Erro ao buscar produtos. Verifique a conexão ou tente novamente.");
+    } finally {
+      setCarregando(false);
+    }
   }
-}
 
   useEffect(() => {
     carregarProdutos();
@@ -105,7 +107,7 @@ export default function Vendas() {
     setBusca("");
   }
 
-  
+
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6">
@@ -120,89 +122,88 @@ export default function Vendas() {
         />
 
         {busca.trim() !== "" && (
-  <>
-    {carregando ? (
-      <div className="text-center text-blue-600 py-4 animate-pulse">
-         Carregando produtos...
-      </div>
-    ) : erroCarregamento ? (
-      <div className="text-center text-red-500 bg-red-50 border border-red-200 p-4 rounded">
-        ❌ Erro ao carregar produtos.{" "}
-        <button
-          onClick={carregarProdutos}
-          className="text-blue-600 underline hover:text-blue-800"
-        >
-          Tentar novamente
-        </button>
-      </div>
-    ) : produtosFiltrados.length > 0 ? (
-      <div className="space-y-4">
-        {produtosFiltrados.map((produto) => (
-          <div
-            key={produto.id}
-            className="bg-white border rounded p-4 shadow-sm"
-          >
-            <div className="flex items-center gap-3 mb-3">
-              <img
-                src={
-                  produto.imagemUrl ||
-                  "https://cdn-icons-png.flaticon.com/512/771/771543.png"
-                }
-                alt={produto.nome}
-                className="w-10 h-10 object-cover rounded"
-              />
-              <div>
-                <p className="font-medium text-blue-800">{produto.nome}</p>
-                <p className="text-sm text-gray-600">
-                  Código: {produto.codigo || "N/A"}
-                </p>
+          <>
+            {carregando ? (
+              <div className="text-center text-blue-600 py-4 animate-pulse">
+                Carregando produtos...
               </div>
-            </div>
-
-            <p className="text-sm text-gray-500 mb-1">
-              Selecione uma numeração:
-            </p>
-            <div className="flex gap-2 flex-wrap">
-                {produto.variacoes
-                  .slice()
-                  .sort((a, b) => a.numeracao - b.numeracao) // ordena do menor para o maior
-                  .map((v) => (
-                    <button
-                      key={v.id}
-                      disabled={v.estoque === 0}
-                      onClick={() =>
-                        adicionarAoCarrinho({
-                          produtoId: produto.id,
-                          variacaoId: v.id,
-                          nome: produto.nome,
-                          preco: produto.preco,
-                          numeracao: v.numeracao,
-                          qtd: 1,
-                          estoque: v.estoque,
-                        })
-                      }
-                      className={`rounded-lg border px-3 py-2 text-sm font-medium transition-all duration-150 shadow-sm
-                        ${
-                          v.estoque === 0
-                            ? "bg-gray-100 text-gray-400 border-gray-300 cursor-not-allowed"
-                            : "bg-blue-50 text-blue-700 border-blue-300 hover:bg-blue-100"
+            ) : erroCarregamento ? (
+              <div className="text-center text-red-500 bg-red-50 border border-red-200 p-4 rounded">
+                ❌ Erro ao carregar produtos.{" "}
+                <button
+                  onClick={carregarProdutos}
+                  className="text-blue-600 underline hover:text-blue-800"
+                >
+                  Tentar novamente
+                </button>
+              </div>
+            ) : produtosFiltrados.length > 0 ? (
+              <div className="space-y-4">
+                {produtosFiltrados.map((produto) => (
+                  <div
+                    key={produto.id}
+                    className="bg-white border rounded p-4 shadow-sm"
+                  >
+                    <div className="flex items-center gap-3 mb-3">
+                      <img
+                        src={
+                          produto.imagemUrl ||
+                          "https://cdn-icons-png.flaticon.com/512/771/771543.png"
                         }
-                      `}
-                    >
-                      {v.numeracao} ({v.estoque})
-                    </button>
-                  ))}
-              </div>
+                        alt={produto.nome}
+                        className="w-10 h-10 object-cover rounded"
+                      />
+                      <div>
+                        <p className="font-medium text-blue-800">{produto.nome}</p>
+                        <p className="text-sm text-gray-600">
+                          Código: {produto.codigo || "N/A"}
+                        </p>
+                      </div>
+                    </div>
 
-          </div>
-        ))}
-      </div>
-    ) : (
-      <div className="bg-yellow-50 border border-yellow-300 p-4 rounded text-sm text-yellow-700">
-        <p className="mb-2">
-          Nenhum produto encontrado. Deseja adicionar um produto manualmente?
-        </p>
-        <div className="flex flex-col gap-2">
+                    <p className="text-sm text-gray-500 mb-1">
+                      Selecione uma numeração:
+                    </p>
+                    <div className="flex gap-2 flex-wrap">
+                      {produto.variacoes
+                        .slice()
+                        .sort((a, b) => a.numeracao - b.numeracao) // ordena do menor para o maior
+                        .map((v) => (
+                          <button
+                            key={v.id}
+                            disabled={v.estoque === 0}
+                            onClick={() =>
+                              adicionarAoCarrinho({
+                                produtoId: produto.id,
+                                variacaoId: v.id,
+                                nome: produto.nome,
+                                preco: produto.preco,
+                                numeracao: v.numeracao,
+                                qtd: 1,
+                                estoque: v.estoque,
+                              })
+                            }
+                            className={`rounded-lg border px-3 py-2 text-sm font-medium transition-all duration-150 shadow-sm
+                        ${v.estoque === 0
+                                ? "bg-gray-100 text-gray-400 border-gray-300 cursor-not-allowed"
+                                : "bg-blue-50 text-blue-700 border-blue-300 hover:bg-blue-100"
+                              }
+                      `}
+                          >
+                            {v.numeracao} ({v.estoque})
+                          </button>
+                        ))}
+                    </div>
+
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="bg-yellow-50 border border-yellow-300 p-4 rounded text-sm text-yellow-700">
+                <p className="mb-2">
+                  Nenhum produto encontrado. Deseja adicionar um produto manualmente?
+                </p>
+                <div className="flex flex-col gap-2">
                   <input
                     type="text"
                     placeholder="Nome do produto"
@@ -272,16 +273,39 @@ export default function Vendas() {
           )}
         </div>
 
-        <button
-          className="bg-green-600 text-white px-4 py-2 rounded w-full hover:bg-green-700 disabled:opacity-50"
-          onClick={() => setMostrarFinalizarModal(true)}
-          disabled={carrinho.length === 0}
-        >
-          Finalizar Venda
-        </button>
+        <div className="flex flex-col md:flex-row gap-2">
+          <button
+            className="bg-green-600 text-white px-4 py-2 rounded w-full hover:bg-green-700 disabled:opacity-50"
+            onClick={() => setMostrarFinalizarModal(true)}
+            disabled={carrinho.length === 0}
+          >
+            Finalizar Venda
+          </button>
+
+          <button
+            className="bg-blue-600 text-white px-4 py-2 rounded w-full hover:bg-blue-700 disabled:opacity-50"
+            onClick={() => setMostrarPedidoModal(true)}
+            disabled={carrinho.length === 0}
+          >
+            Criar Pedido
+          </button>
+        </div>
+
       </div>
 
-        {mostrarFinalizarModal && (
+      {mostrarPedidoModal && (
+        <NovoPedidoModal
+          carrinho={carrinho}
+          aoFechar={() => setMostrarPedidoModal(false)}
+          aoConfirmar={() => {
+            setMostrarPedidoModal(false);
+            limparCarrinho();
+            carregarProdutos();
+          }}
+        />
+      )}
+
+      {mostrarFinalizarModal && (
         <FinalizarVendaModal
           carrinho={carrinho}
           aoFechar={() => setMostrarFinalizarModal(false)}

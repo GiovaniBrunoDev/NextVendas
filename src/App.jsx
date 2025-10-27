@@ -10,6 +10,7 @@ import Clientes from "./pages/Clientes";
 import MobileHome from "./pages/MobileHome";
 import BuscarProdutos from "./pages/BuscarProdutos";
 import Metas from "./pages/Metas";
+import Pedidos from "./pages/Pedidos";
 
 // Toastify
 import { ToastContainer } from "react-toastify";
@@ -37,10 +38,12 @@ function AppWrapper() {
         return <Estoque />;
       case "clientes":
         return <Clientes />;
-      case "produtos": 
+      case "produtos":
         return <BuscarProdutos />;
-      case "metas": 
+      case "metas":
         return <Metas />;
+      case "pedidos":
+        return <Pedidos />;
       default:
         return <Dashboard />;
     }
