@@ -355,7 +355,7 @@ export default function Dashboard() {
 
           {/* Selector de período */}
           <div className="inline-flex bg-gray-100 rounded-xl p-1 gap-1 flex-wrap">
-            {["dia", "7dias", "mes", "Todo periodo"].map((p) => {
+            {["dia", "7dias", "mes", "Tudo"].map((p) => {
 
               const ativo = periodo === p;
               return (
@@ -375,6 +375,7 @@ export default function Dashboard() {
                       : p === "mes"
                         ? "Este mês"
                         : "Todo o período"}
+
 
                 </button>
               );
