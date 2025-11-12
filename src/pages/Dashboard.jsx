@@ -394,7 +394,7 @@ export default function Dashboard() {
           variacao={calcVariacao(vendasFiltradas.length, clientesAnterior)}
         />
         <Card
-          titulo="Total Faturado"
+          titulo="Total Faturados"
           valor={total}
           isCurrency
           variacao={calcVariacao(total, totalAnterior)}
