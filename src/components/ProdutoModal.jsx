@@ -61,7 +61,7 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
     toast.info(`Grade ${tipo} carregada. Ajuste conforme necessário.`);
   };
 
-  const API_KEY = "6371650aa50b8af82e574e8022553613"; // sua API Key do ImgBB
+  const API_KEY = "6371650aa50b8af82e574e8022553613"; // sua API Key do ImgBBs
 
   const fazerUploadImgBB = async () => {
     if (!imagemFile) return "";
@@ -121,27 +121,27 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
         return;
       }
 
-      let imagemUrl = ""; let videoUrl = ""; 
+      let imagemUrl = ""; let videoUrl = ""; let gifUrl = "";
       if (imagemFile) imagemUrl = await fazerUploadImgBB();
       if (videoFile) {
         const formData = new FormData();
         formData.append("video", videoFile);
         formData.append("nomeProduto", form.nome); // 👈 aqui
 
-        const res = await api.post("/upload-video", formData, {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        });
+        const res = await api.post("/upload-video", formData);
 
-        videoUrl = res.data.url;
-        gifUrl = res.data.gifUrl;
+        videoUrl = res.data.videoUrl; // ✅ CORRETO
+        gifUrl = res.data.gifUrl;     // ✅ CORRETO
+
+        if (!videoUrl || !gifUrl) {
+          throw new Error("Upload de vídeo não retornou videoUrl/gifUrl.");
+        }
       }
 
       console.log("ENVIANDO PRO BACKEND:", {
-  videoUrl,
-  gifUrl
-});
+        videoUrl,
+        gifUrl
+      });
 
       await api.post("/produtos", {
         ...form,
