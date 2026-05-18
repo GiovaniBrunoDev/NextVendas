@@ -28,6 +28,15 @@ export default function Estoque() {
   const [mostrarFormularioVariacao, setMostrarFormularioVariacao] = useState(false);
   const [mostrarBotaoFlutuante, setMostrarBotaoFlutuante] = useState(true);
   const [estoqueEditandoId, setEstoqueEditandoId] = useState(null);
+  const [editandoProduto, setEditandoProduto] = useState(false);
+  const [produtoEditado, setProdutoEditado] = useState({
+    nome: "",
+    preco: "",
+    custoUnitario: "",
+    outrosCustos: "",
+  });
+  const [salvandoProduto, setSalvandoProduto] = useState(false);
+  const [atualizandoVideo, setAtualizandoVideo] = useState(false);
 
   const inputImagemRef = useRef(null);
 
@@ -77,6 +86,18 @@ export default function Estoque() {
     carregarProdutos();
   }, []);
 
+  useEffect(() => {
+    if (!produtoSelecionado) return;
+
+    setProdutoEditado({
+      nome: produtoSelecionado.nome || "",
+      preco: produtoSelecionado.preco ?? "",
+      custoUnitario: produtoSelecionado.custoUnitario ?? "",
+      outrosCustos: produtoSelecionado.outrosCustos ?? "",
+    });
+    setEditandoProduto(false);
+  }, [produtoSelecionado?.id]);
+
   // esconde botão flutuante no scroll
   useEffect(() => {
     const handleScroll = () => {
@@ -107,6 +128,48 @@ export default function Estoque() {
       carregarProdutos();
     } catch (err) {
       toast.error("Erro ao atualizar estoque");
+    }
+  };
+
+  const atualizarProdutoNaTela = (produtoAtualizado) => {
+    setProdutoSelecionado(produtoAtualizado);
+    setProdutos((prev) =>
+      prev.map((produto) =>
+        produto.id === produtoAtualizado.id ? produtoAtualizado : produto
+      )
+    );
+  };
+
+  const salvarProduto = async () => {
+    if (!produtoSelecionado) return;
+
+    const nome = produtoEditado.nome.trim();
+    const preco = Number(produtoEditado.preco);
+    const custoUnitario = Number(produtoEditado.custoUnitario);
+    const outrosCustos = Number(produtoEditado.outrosCustos);
+
+    if (!nome || [preco, custoUnitario, outrosCustos].some((valor) => Number.isNaN(valor))) {
+      toast.error("Preencha nome, preço e custos corretamente.");
+      return;
+    }
+
+    try {
+      setSalvandoProduto(true);
+      const { data } = await api.put(`/produtos/${produtoSelecionado.id}`, {
+        nome,
+        preco,
+        custoUnitario,
+        outrosCustos,
+      });
+
+      atualizarProdutoNaTela(data);
+      setEditandoProduto(false);
+      toast.success("Produto atualizado com sucesso!");
+    } catch (err) {
+      console.error("Erro ao atualizar produto:", err);
+      toast.error("Erro ao atualizar produto.");
+    } finally {
+      setSalvandoProduto(false);
     }
   };
 
@@ -221,13 +284,12 @@ export default function Estoque() {
       if (!novaUrl) throw new Error("Falha ao obter URL da imagem");
 
       // Atualiza o produto com a nova URL
-      await api.put(`/produtos/${produtoSelecionado.id}`, {
-        ...produtoSelecionado,
+      const { data } = await api.put(`/produtos/${produtoSelecionado.id}`, {
         imagemUrl: novaUrl,
       });
 
+      atualizarProdutoNaTela(data);
       toast.success("Imagem atualizada com sucesso!");
-      carregarProdutos();
     } catch (err) {
       console.error("Erro ao atualizar imagem:", err);
       toast.error("Erro ao atualizar imagem.");
@@ -238,6 +300,48 @@ export default function Estoque() {
     const file = e.target.files[0];
     if (file && produtoSelecionado) {
       trocarImagemProduto(file);
+    }
+  };
+
+  const trocarVideoProduto = async (file) => {
+    if (!produtoSelecionado || !file) return;
+
+    try {
+      setAtualizandoVideo(true);
+
+      const formData = new FormData();
+      formData.append("video", file);
+      formData.append("nomeProduto", produtoSelecionado.nome);
+
+      const uploadRes = await api.post("/upload-video", formData);
+      const videoUrl = uploadRes.data.videoUrl || uploadRes.data.url;
+      const gifUrl = uploadRes.data.gifUrl;
+
+      if (!videoUrl || !gifUrl) {
+        console.error("Resposta inválida do upload de vídeo:", uploadRes.data);
+        throw new Error("Upload de vídeo não retornou videoUrl/gifUrl.");
+      }
+
+      const { data } = await api.put(`/produtos/${produtoSelecionado.id}`, {
+        videoUrl,
+        gifUrl,
+      });
+
+      atualizarProdutoNaTela(data);
+      toast.success("Vídeo atualizado com sucesso!");
+    } catch (err) {
+      console.error("Erro ao atualizar vídeo:", err);
+      toast.error("Erro ao atualizar vídeo.");
+    } finally {
+      setAtualizandoVideo(false);
+    }
+  };
+
+  const handleSelecionarNovoVideo = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      trocarVideoProduto(file);
+      e.target.value = "";
     }
   };
 
@@ -355,6 +459,9 @@ export default function Estoque() {
                   <div>
                     <p>{produto.nome}</p>
                     <p className="text-xs text-gray-500">R$ {produto.preco.toFixed(2)}</p>
+                    {produto.videoUrl && (
+                      <p className="text-xs text-green-600">Com vídeo</p>
+                    )}
                     <p className="text-xs text-gray-500">
                       Estoque total: {calcularEstoqueTotal(produto)}
                     </p>
@@ -405,13 +512,132 @@ export default function Estoque() {
                     className="hidden"
                   />
                 </div>
-                <div className="space-y-1">
-                  <p className="text-xl font-semibold text-gray-900">{produtoSelecionado.nome}</p>
-                  <p className="text-sm text-gray-600">
-                    Preço: <strong>R$ {produtoSelecionado.preco.toFixed(2)}</strong> &nbsp;|&nbsp;
-                    Custo: <strong>R$ {produtoSelecionado.custoUnitario.toFixed(2)}</strong> &nbsp;|&nbsp;
-                    Outros custos: <strong>R$ {produtoSelecionado.outrosCustos.toFixed(2)}</strong>
-                  </p>
+                <div className="space-y-3 flex-1">
+                  {editandoProduto ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pr-24">
+                      <input
+                        type="text"
+                        value={produtoEditado.nome}
+                        onChange={(e) =>
+                          setProdutoEditado((prev) => ({ ...prev, nome: e.target.value }))
+                        }
+                        className="sm:col-span-2 border border-gray-300 px-3 py-2 rounded text-sm"
+                      />
+                      <input
+                        type="number"
+                        step="0.01"
+                        placeholder="Preço"
+                        value={produtoEditado.preco}
+                        onChange={(e) =>
+                          setProdutoEditado((prev) => ({ ...prev, preco: e.target.value }))
+                        }
+                        className="border border-gray-300 px-3 py-2 rounded text-sm"
+                      />
+                      <input
+                        type="number"
+                        step="0.01"
+                        placeholder="Custo unitário"
+                        value={produtoEditado.custoUnitario}
+                        onChange={(e) =>
+                          setProdutoEditado((prev) => ({ ...prev, custoUnitario: e.target.value }))
+                        }
+                        className="border border-gray-300 px-3 py-2 rounded text-sm"
+                      />
+                      <input
+                        type="number"
+                        step="0.01"
+                        placeholder="Outros custos"
+                        value={produtoEditado.outrosCustos}
+                        onChange={(e) =>
+                          setProdutoEditado((prev) => ({ ...prev, outrosCustos: e.target.value }))
+                        }
+                        className="border border-gray-300 px-3 py-2 rounded text-sm"
+                      />
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={salvarProduto}
+                          disabled={salvandoProduto}
+                          className="bg-green-500 hover:bg-green-600 disabled:opacity-60 text-white px-3 py-2 rounded text-sm"
+                        >
+                          {salvandoProduto ? "Salvando..." : "Salvar"}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setProdutoEditado({
+                              nome: produtoSelecionado.nome || "",
+                              preco: produtoSelecionado.preco ?? "",
+                              custoUnitario: produtoSelecionado.custoUnitario ?? "",
+                              outrosCustos: produtoSelecionado.outrosCustos ?? "",
+                            });
+                            setEditandoProduto(false);
+                          }}
+                          className="border border-gray-300 px-3 py-2 rounded text-sm hover:bg-gray-50"
+                        >
+                          Cancelar
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <p className="text-xl font-semibold text-gray-900">{produtoSelecionado.nome}</p>
+                      <p className="text-sm text-gray-600">
+                        Preço: <strong>R$ {produtoSelecionado.preco.toFixed(2)}</strong> &nbsp;|&nbsp;
+                        Custo: <strong>R$ {produtoSelecionado.custoUnitario.toFixed(2)}</strong> &nbsp;|&nbsp;
+                        Outros custos: <strong>R$ {produtoSelecionado.outrosCustos.toFixed(2)}</strong>
+                      </p>
+                    </>
+                  )}
+
+                  <div className="flex flex-wrap gap-2 text-xs">
+                    <button
+                      type="button"
+                      onClick={() => setEditandoProduto((valor) => !valor)}
+                      className="border border-blue-300 text-blue-600 px-3 py-1.5 rounded hover:bg-blue-50"
+                    >
+                      {editandoProduto ? "Fechar edição" : "Editar valores"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => document.getElementById("uploadVideoCard")?.click()}
+                      disabled={atualizandoVideo}
+                      className="border border-gray-300 text-gray-700 px-3 py-1.5 rounded hover:bg-gray-50 disabled:opacity-60"
+                    >
+                      {atualizandoVideo
+                        ? "Processando vídeo..."
+                        : produtoSelecionado.videoUrl
+                          ? "Trocar vídeo"
+                          : "Adicionar vídeo"}
+                    </button>
+                    {produtoSelecionado.videoUrl && (
+                      <a
+                        href={produtoSelecionado.videoUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="border border-green-300 text-green-700 px-3 py-1.5 rounded hover:bg-green-50"
+                      >
+                        Ver vídeo
+                      </a>
+                    )}
+                    {produtoSelecionado.gifUrl && (
+                      <a
+                        href={produtoSelecionado.gifUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="border border-green-300 text-green-700 px-3 py-1.5 rounded hover:bg-green-50"
+                      >
+                        Ver GIF
+                      </a>
+                    )}
+                    <input
+                      type="file"
+                      accept="video/*"
+                      id="uploadVideoCard"
+                      onChange={handleSelecionarNovoVideo}
+                      className="hidden"
+                    />
+                  </div>
                 </div>
                 <button
                   onClick={() => {
