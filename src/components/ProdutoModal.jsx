@@ -121,7 +121,7 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
         return;
       }
 
-      let imagemUrl = ""; let videoUrl = "";
+      let imagemUrl = ""; let videoUrl = ""; 
       if (imagemFile) imagemUrl = await fazerUploadImgBB();
       if (videoFile) {
         const formData = new FormData();
@@ -137,6 +137,11 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
         videoUrl = res.data.url;
         gifUrl = res.data.gifUrl;
       }
+
+      console.log("ENVIANDO PRO BACKEND:", {
+  videoUrl,
+  gifUrl
+});
 
       await api.post("/produtos", {
         ...form,
