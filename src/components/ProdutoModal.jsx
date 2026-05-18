@@ -135,9 +135,9 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
         });
 
         videoUrl = res.data.url;
+        gifUrl = res.data.gifUrl;
       }
 
-console.log("VIDEO URL:", videoUrl);
       await api.post("/produtos", {
         ...form,
         preco,
@@ -145,6 +145,7 @@ console.log("VIDEO URL:", videoUrl);
         outrosCustos,
         imagemUrl,
         videoUrl,
+        gifUrl,
         variacoes: variacoesValidadas,
       });
 
