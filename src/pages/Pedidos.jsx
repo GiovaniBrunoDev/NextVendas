@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { motion } from "framer-motion";
 import { toast } from "react-toastify";
-import { FaCalendarAlt, FaCheck, FaTimes, FaClock, FaBox, FaEdit } from "react-icons/fa";
+import { FaCalendarAlt, FaCheck, FaTimes, FaClock, FaBox } from "react-icons/fa";
 
 export default function Pedidos() {
   const [pedidosHoje, setPedidosHoje] = useState([]);
@@ -61,61 +61,62 @@ export default function Pedidos() {
 
   const CardPedido = ({ pedido }) => (
     <motion.div
-      className="bg-[#1f1f1f] p-4 rounded-xl border border-gray-700 shadow-md"
+      className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
     >
-      <div className="flex justify-between items-center mb-2">
-        <h3 className="text-white font-semibold">Pedido #{pedido.id}</h3>
+      <div className="flex justify-between items-center mb-3">
+        <h3 className="text-gray-800 font-semibold text-lg">Pedido #{pedido.id}</h3>
         <span
-          className={`px-2 py-1 text-xs rounded-full ${
+          className={`px-2 py-1 text-xs rounded-full capitalize font-medium ${
             pedido.status === "agendado"
-              ? "bg-yellow-500/20 text-yellow-400"
+              ? "bg-yellow-100 text-yellow-700"
               : pedido.status === "reservado"
-              ? "bg-blue-500/20 text-blue-400"
+              ? "bg-blue-100 text-blue-700"
               : pedido.status === "cancelado"
-              ? "bg-red-500/20 text-red-400"
-              : "bg-green-500/20 text-green-400"
+              ? "bg-red-100 text-red-700"
+              : "bg-green-100 text-green-700"
           }`}
         >
           {pedido.status}
         </span>
       </div>
 
-      <p className="text-gray-400 text-sm mb-1">
-        Cliente: {pedido.cliente?.nome || "Não informado"}
+      <p className="text-gray-600 text-sm mb-1">
+        <strong>Cliente:</strong> {pedido.cliente?.nome || "Não informado"}
       </p>
-      <p className="text-gray-400 text-xs mb-3 flex items-center gap-1">
-        <FaCalendarAlt className="text-blue-400" />
+
+      <p className="text-gray-500 text-xs mb-3 flex items-center gap-2">
+        <FaCalendarAlt className="text-blue-500" />
         {pedido.dataEntrega
           ? new Date(pedido.dataEntrega).toLocaleDateString("pt-BR")
           : "Sem data definida"}
       </p>
 
-      <ul className="text-gray-300 text-sm mb-3">
+      <ul className="text-gray-700 text-sm mb-4 space-y-1">
         {pedido.itens.map((i) => (
           <li key={i.id}>
-            {i.variacaoProduto.produto.nome} ({i.variacaoProduto.numeracao}) × {i.quantidade}
+            {i.variacaoProduto.produto.nome} ({i.variacaoProduto.numeracao}) ×  {i.quantidade}
           </li>
         ))}
       </ul>
 
-      <p className="text-gray-300 font-semibold mb-2">
-        Total: R$ {pedido.total.toFixed(2)}
+      <p className="text-gray-800 font-semibold mb-4 text-right text-lg">
+        R$ {pedido.total.toFixed(2)}
       </p>
 
-      <div className="flex gap-2">
+      <div className="flex gap-2 justify-end">
         {pedido.status !== "cancelado" && (
           <>
             <button
               onClick={() => atualizarStatus(pedido.id, "confirmado")}
-              className="bg-blue-600 px-3 py-1 rounded text-white text-sm hover:bg-blue-700"
+              className="bg-blue-500 px-3 py-1.5 rounded-lg text-white text-sm hover:bg-blue-600 shadow-sm"
             >
               <FaCheck />
             </button>
             <button
               onClick={() => atualizarStatus(pedido.id, "cancelado")}
-              className="bg-red-600 px-3 py-1 rounded text-white text-sm hover:bg-red-700"
+              className="bg-red-500 px-3 py-1.5 rounded-lg text-white text-sm hover:bg-red-600 shadow-sm"
             >
               <FaTimes />
             </button>
@@ -136,20 +137,24 @@ export default function Pedidos() {
       </div>
     );
 
+  const sections = [
+    { title: "Hoje", data: pedidosHoje, icon: <FaBox className="text-green-500" /> },
+    { title: "Futuros", data: pedidosFuturos, icon: <FaCalendarAlt className="text-yellow-500" /> },
+    { title: "Sem Data", data: pedidosSemData, icon: <FaCalendarAlt className="text-red-500" /> },
+  ];
+
   return (
-    <div className="p-6 space-y-8">
-      <h2 className="text-2xl font-semibold text-white flex items-center gap-2">
-        <FaClock className="text-blue-400" /> Pedidos
+    <div className="p-6 space-y-8 bg-gray-50 min-h-screen">
+      <h2 className="text-3xl font-bold text-gray-800 flex items-center gap-2">
+        <FaClock className="text-blue-500" /> Pedidos
       </h2>
 
-      {[{ title: "Hoje", data: pedidosHoje, icon: <FaBox className="text-green-400" /> },
-        { title: "Futuros", data: pedidosFuturos, icon: <FaCalendarAlt className="text-yellow-400" /> },
-        { title: "Sem Data", data: pedidosSemData, icon: <FaCalendarAlt className="text-red-400" /> }
-      ].map((section) => (
+      {sections.map((section) => (
         <section key={section.title}>
-          <h3 className="text-xl text-white mb-3 flex items-center gap-2">
+          <h3 className="text-xl text-gray-700 mb-3 font-semibold flex items-center gap-2">
             {section.icon} Pedidos {section.title}
           </h3>
+
           {section.data.length === 0 ? (
             <p className="text-gray-500 text-sm">Nenhum pedido {section.title.toLowerCase()}.</p>
           ) : (

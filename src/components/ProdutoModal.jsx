@@ -16,6 +16,8 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
   const [imagemFile, setImagemFile] = useState(null);
   const [variacoes, setVariacoes] = useState([{ numeracao: "", estoque: "" }]);
   const [carregando, setCarregando] = useState(false);
+  const [videoFile, setVideoFile] = useState(null);
+  const [videoPreview, setVideoPreview] = useState(null);
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 640);
@@ -61,25 +63,32 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
 
   const API_KEY = "6371650aa50b8af82e574e8022553613"; // sua API Key do ImgBB
 
-const fazerUploadImgBB = async () => {
-  if (!imagemFile) return "";
+  const fazerUploadImgBB = async () => {
+    if (!imagemFile) return "";
 
-  const formData = new FormData();
-  formData.append("image", imagemFile); // ImgBB aceita o arquivo direto como "image"
+    const formData = new FormData();
+    formData.append("image", imagemFile); // ImgBB aceita o arquivo direto como "image"
 
-  try {
-    const res = await fetch(`https://api.imgbb.com/1/upload?key=${API_KEY}`, {
-      method: "POST",
-      body: formData,
-    });
-    const data = await res.json();
-    return data.data.url; // URL pública da imagem
-  } catch (err) {
-    console.error("Erro ao enviar para ImgBB:", err);
-    return "";
-  }
-};
+    try {
+      const res = await fetch(`https://api.imgbb.com/1/upload?key=${API_KEY}`, {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      return data.data.url; // URL pública da imagem
+    } catch (err) {
+      console.error("Erro ao enviar para ImgBB:", err);
+      return "";
+    }
+  };
 
+  const handleSelecionarVideo = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setVideoFile(file);
+      setVideoPreview(URL.createObjectURL(file));
+    }
+  };
 
   const handleSelecionarImagem = (e) => {
     const file = e.target.files[0];
@@ -89,7 +98,7 @@ const fazerUploadImgBB = async () => {
     }
   };
 
-  
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -112,8 +121,20 @@ const fazerUploadImgBB = async () => {
         return;
       }
 
-     let imagemUrl = "";
+      let imagemUrl = ""; let videoUrl = "";
       if (imagemFile) imagemUrl = await fazerUploadImgBB();
+      if (videoFile) {
+        const formData = new FormData();
+        formData.append("video", videoFile);
+
+        const res = await api.post("/upload-video", formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        });
+
+        videoUrl = res.data.url;
+      }
 
 
       await api.post("/produtos", {
@@ -122,6 +143,7 @@ const fazerUploadImgBB = async () => {
         custoUnitario,
         outrosCustos,
         imagemUrl,
+        videoUrl, 
         variacoes: variacoesValidadas,
       });
 
@@ -138,167 +160,182 @@ const fazerUploadImgBB = async () => {
   };
 
   return (
-  <div
-    className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center px-2 py-4 overflow-auto"
-    onClick={aoFechar}
-  >
     <div
-      className="bg-white w-full max-w-2xl rounded-2xl p-5 sm:p-6 shadow-xl relative animate-fadeIn"
-      onClick={(e) => e.stopPropagation()}
+      className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center px-2 py-4 overflow-auto"
+      onClick={aoFechar}
     >
-      <h2 className="text-xl sm:text-2xl font-semibold text-gray-800 mb-6 border-b pb-2">
-        🛍️ {isMobile && etapa === 2 ? "Grade de Variações" : "Cadastrar Produto"}
-      </h2>
+      <div
+        className="bg-white w-full max-w-2xl rounded-2xl p-5 sm:p-6 shadow-xl relative animate-fadeIn"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h2 className="text-xl sm:text-2xl font-semibold text-gray-800 mb-6 border-b pb-2">
+          🛍️ {isMobile && etapa === 2 ? "Grade de Variações" : "Cadastrar Produto"}
+        </h2>
 
-      <form onSubmit={handleSubmit} className="space-y-6 text-gray-700">
-        {(!isMobile || etapa === 1) && (
-          <>
-            <input
-              type="text"
-              name="nome"
-              placeholder="Nome do produto"
-              value={form.nome}
-              onChange={handleChange}
-              className="w-full border border-gray-300 p-3 rounded-md placeholder:text-sm text-base"
-              required
-            />
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <form onSubmit={handleSubmit} className="space-y-6 text-gray-700">
+          {(!isMobile || etapa === 1) && (
+            <>
               <input
-                type="number"
-                step="0.01"
-                name="preco"
-                placeholder="Preço (R$)"
-                value={form.preco}
+                type="text"
+                name="nome"
+                placeholder="Nome do produto"
+                value={form.nome}
                 onChange={handleChange}
                 className="w-full border border-gray-300 p-3 rounded-md placeholder:text-sm text-base"
+                required
               />
-              <input
-                type="number"
-                step="0.01"
-                name="custoUnitario"
-                placeholder="Custo Unitário"
-                value={form.custoUnitario}
-                onChange={handleChange}
-                className="w-full border border-gray-300 p-3 rounded-md placeholder:text-sm text-base"
-              />
-              <input
-                type="number"
-                step="0.01"
-                name="outrosCustos"
-                placeholder="Outros Custos"
-                value={form.outrosCustos}
-                onChange={handleChange}
-                className="w-full border border-gray-300 p-3 rounded-md placeholder:text-sm text-base"
-              />
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleSelecionarImagem}
-                className="w-full border border-gray-300 p-3 rounded-md placeholder:text-sm text-base"
-              />
-            </div>
 
-            {imagemPreview && (
-              <div className="flex justify-center">
-                <img
-                  src={imagemPreview}
-                  alt="Prévia"
-                  className="w-24 h-24 sm:w-28 sm:h-28 object-cover rounded-lg border shadow"
-                />
-              </div>
-            )}
-          </>
-        )}
-
-        {(!isMobile || etapa === 2) && (
-          <div>
-            <label className="block font-medium text-gray-700 mb-3">Grade de Variações</label>
-            {variacoes.map((v, index) => (
-              <div key={index} className="flex flex-wrap items-center gap-2 mb-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                 <input
-                  type="text"
-                  placeholder="Numeração"
-                  value={v.numeracao}
-                  onChange={(e) => handleVariacaoChange(index, "numeracao", e.target.value)}
-                  className="w-24 border p-2 rounded placeholder:text-sm text-base"
-                  required
+                  type="number"
+                  step="0.01"
+                  name="preco"
+                  placeholder="Preço (R$)"
+                  value={form.preco}
+                  onChange={handleChange}
+                  className="w-full border border-gray-300 p-3 rounded-md placeholder:text-sm text-base"
                 />
                 <input
                   type="number"
-                  placeholder="Estoque"
-                  value={v.estoque}
-                  onChange={(e) => handleVariacaoChange(index, "estoque", e.target.value)}
-                  className="w-24 border p-2 rounded placeholder:text-sm text-base"
-                  required
+                  step="0.01"
+                  name="custoUnitario"
+                  placeholder="Custo Unitário"
+                  value={form.custoUnitario}
+                  onChange={handleChange}
+                  className="w-full border border-gray-300 p-3 rounded-md placeholder:text-sm text-base"
                 />
-                <button
-                  type="button"
-                  onClick={() => removerVariacao(index)}
-                  className="text-red-500 hover:text-red-700 text-lg"
-                >
-                  ✖
-                </button>
+                <input
+                  type="number"
+                  step="0.01"
+                  name="outrosCustos"
+                  placeholder="Outros Custos"
+                  value={form.outrosCustos}
+                  onChange={handleChange}
+                  className="w-full border border-gray-300 p-3 rounded-md placeholder:text-sm text-base"
+                />
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleSelecionarImagem}
+                  className="w-full border border-gray-300 p-3 rounded-md placeholder:text-sm text-base"
+                />
+                <input
+                  type="file"
+                  accept="video/*"
+                  onChange={handleSelecionarVideo}
+                  className="w-full border border-gray-300 p-3 rounded-md placeholder:text-sm text-base"
+                />
               </div>
-            ))}
 
-            <div className="flex flex-wrap gap-4 mt-3 text-sm">
-              <button type="button" onClick={adicionarVariacao} className="text-blue-600 hover:underline">
-                + Adicionar Variação
-              </button>
-              <button type="button" onClick={() => adicionarGradeCompleta("baixa")} className="text-gray-600 hover:underline">
-                Grade Baixa (34–39)
-              </button>
-              <button type="button" onClick={() => adicionarGradeCompleta("alta")} className="text-gray-600 hover:underline">
-                Grade Alta (38–43)
-              </button>
-            </div>
-          </div>
-        )}
-
-        <div className="flex justify-between mt-8">
-          {isMobile && etapa === 2 ? (
-            <button
-              type="button"
-              onClick={() => setEtapa(1)}
-              className="px-4 py-2 rounded-md border border-gray-300 hover:bg-gray-100"
-            >
-              Voltar
-            </button>
-          ) : (
-            <div />
+              {imagemPreview && (
+                <div className="flex justify-center">
+                  <img
+                    src={imagemPreview}
+                    alt="Prévia"
+                    className="w-24 h-24 sm:w-28 sm:h-28 object-cover rounded-lg border shadow"
+                  />
+                </div>
+              )}
+              {videoPreview && (
+                <div className="flex justify-center">
+                  <video
+                    src={videoPreview}
+                    controls
+                    className="w-40 h-40 object-cover rounded-lg border shadow"
+                  />
+                </div>
+              )}
+            </>
           )}
 
-          <div className="flex gap-3">
-            <button
-              type="button"
-              onClick={aoFechar}
-              className="px-4 py-2 rounded-md border border-gray-300 hover:bg-gray-100"
-            >
-              Cancelar
-            </button>
-            {isMobile && etapa === 1 ? (
+          {(!isMobile || etapa === 2) && (
+            <div>
+              <label className="block font-medium text-gray-700 mb-3">Grade de Variações</label>
+              {variacoes.map((v, index) => (
+                <div key={index} className="flex flex-wrap items-center gap-2 mb-2">
+                  <input
+                    type="text"
+                    placeholder="Numeração"
+                    value={v.numeracao}
+                    onChange={(e) => handleVariacaoChange(index, "numeracao", e.target.value)}
+                    className="w-24 border p-2 rounded placeholder:text-sm text-base"
+                    required
+                  />
+                  <input
+                    type="number"
+                    placeholder="Estoque"
+                    value={v.estoque}
+                    onChange={(e) => handleVariacaoChange(index, "estoque", e.target.value)}
+                    className="w-24 border p-2 rounded placeholder:text-sm text-base"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removerVariacao(index)}
+                    className="text-red-500 hover:text-red-700 text-lg"
+                  >
+                    ✖
+                  </button>
+                </div>
+              ))}
+
+              <div className="flex flex-wrap gap-4 mt-3 text-sm">
+                <button type="button" onClick={adicionarVariacao} className="text-blue-600 hover:underline">
+                  + Adicionar Variação
+                </button>
+                <button type="button" onClick={() => adicionarGradeCompleta("baixa")} className="text-gray-600 hover:underline">
+                  Grade Baixa (34–39)
+                </button>
+                <button type="button" onClick={() => adicionarGradeCompleta("alta")} className="text-gray-600 hover:underline">
+                  Grade Alta (38–43)
+                </button>
+              </div>
+            </div>
+          )}
+
+          <div className="flex justify-between mt-8">
+            {isMobile && etapa === 2 ? (
               <button
                 type="button"
-                onClick={() => setEtapa(2)}
-                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                onClick={() => setEtapa(1)}
+                className="px-4 py-2 rounded-md border border-gray-300 hover:bg-gray-100"
               >
-                Próximo
+                Voltar
               </button>
             ) : (
-              <button
-                type="submit"
-                disabled={carregando}
-                className={`px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition ${carregando ? "opacity-50 cursor-not-allowed" : ""}`}
-              >
-                {carregando ? "Salvando..." : "Salvar Produto"}
-              </button>
+              <div />
             )}
+
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={aoFechar}
+                className="px-4 py-2 rounded-md border border-gray-300 hover:bg-gray-100"
+              >
+                Cancelar
+              </button>
+              {isMobile && etapa === 1 ? (
+                <button
+                  type="button"
+                  onClick={() => setEtapa(2)}
+                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                >
+                  Próximo
+                </button>
+              ) : (
+                <button
+                  type="submit"
+                  disabled={carregando}
+                  className={`px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition ${carregando ? "opacity-50 cursor-not-allowed" : ""}`}
+                >
+                  {carregando ? "Salvando..." : "Salvar Produto"}
+                </button>
+              )}
+            </div>
           </div>
-        </div>
-      </form>
+        </form>
+      </div>
     </div>
-  </div>
-);
+  );
 
 }
