@@ -130,10 +130,11 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
 
         const res = await api.post("/upload-video", formData);
 
-        videoUrl = res.data.videoUrl; // ✅ CORRETO
-        gifUrl = res.data.gifUrl;     // ✅ CORRETO
+        videoUrl = res.data.videoUrl || res.data.url;
+        gifUrl = res.data.gifUrl;
 
         if (!videoUrl || !gifUrl) {
+          console.error("Resposta inválida do upload de vídeo:", res.data);
           throw new Error("Upload de vídeo não retornou videoUrl/gifUrl.");
         }
       }
