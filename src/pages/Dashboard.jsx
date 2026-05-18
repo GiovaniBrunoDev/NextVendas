@@ -20,8 +20,14 @@ import {
   FaCreditCard,
   FaChartLine,
 } from "react-icons/fa";
-import { TrendingUp, TrendingDown, Minus } from 'react-feather'; // ou 'react-icons/fi'
+import { TrendingUp, TrendingDown, Minus } from "react-feather";
 
+const periodos = [
+  { value: "dia", label: "Hoje" },
+  { value: "7dias", label: "Últimos 7 dias" },
+  { value: "mes", label: "Este mês" },
+  { value: "tudo", label: "Todo o período" },
+];
 
 export default function Dashboard() {
   const [vendas, setVendas] = useState([]);
@@ -41,8 +47,8 @@ export default function Dashboard() {
   const [verMaisRanking, setVerMaisRanking] = useState(false);
   const [verMaisEstoque, setVerMaisEstoque] = useState(false);
 
-  // Valores do período anterior
   const [totalAnterior, setTotalAnterior] = useState(0);
+  const [vendasAnterior, setVendasAnterior] = useState(0);
   const [qtdProdutosAnterior, setQtdProdutosAnterior] = useState(0);
   const [ticketMedioAnterior, setTicketMedioAnterior] = useState(0);
   const [lucroAnterior, setLucroAnterior] = useState(0);
@@ -59,6 +65,8 @@ export default function Dashboard() {
 
   const calcVariacao = (atual, anterior) =>
     anterior ? ((atual - anterior) / anterior) * 100 : 0;
+
+  const periodoAtual = periodos.find((item) => item.value === periodo)?.label || "Período";
 
   useEffect(() => {
     async function carregarDados() {
@@ -106,14 +114,13 @@ export default function Dashboard() {
       if (periodo === "dia") return dataVendaStr === hojeStr;
       if (periodo === "7dias") return dataVenda >= inicio7Dias && dataVenda <= hoje;
       if (periodo === "mes") return dataVenda >= inicioMes && dataVenda <= hoje;
-      if (periodo === "tudo") return true; // ✅ novo filtro
+      if (periodo === "tudo") return true;
       return false;
     };
 
     const vendasPeriodo = vendas.filter(filtrarPorPeriodo);
     setVendasFiltradas(vendasPeriodo);
 
-    // Valores atuais
     const totalPeriodo = vendasPeriodo.reduce((acc, v) => acc + v.total, 0);
     const totalProdutos = vendasPeriodo.reduce(
       (acc, v) => acc + v.itens.reduce((soma, i) => soma + i.quantidade, 0),
@@ -134,7 +141,7 @@ export default function Dashboard() {
     });
 
     const clientes = new Set(vendasPeriodo.map((v) => v.clienteId).filter(Boolean));
-    const clientesAtendidos = clientes.size;
+    const clientesAtendidosPeriodo = clientes.size;
 
     const totalTaxasEntrega = vendasPeriodo.reduce(
       (acc, v) => acc + (v.taxaEntrega || 0),
@@ -163,9 +170,6 @@ export default function Dashboard() {
         return new Date(`${y1}-${m1}-${d1}`) - new Date(`${y2}-${m2}-${d2}`);
       });
 
-    // --------------------------
-    // Valores do período anterior
-    // --------------------------
     let vendasPeriodoAnterior = [];
 
     if (periodo === "dia") {
@@ -189,10 +193,6 @@ export default function Dashboard() {
         (v) => new Date(v.data) >= inicioMesAnterior && new Date(v.data) <= fimMesAnterior
       );
     }
-    if (periodo === "tudo") {
-      vendasPeriodoAnterior = [];
-    }
-
 
     const totalPeriodoAnterior = vendasPeriodoAnterior.reduce((acc, v) => acc + v.total, 0);
     const totalProdutosPeriodoAnterior = vendasPeriodoAnterior.reduce(
@@ -224,14 +224,11 @@ export default function Dashboard() {
       0
     );
 
-    // --------------------------
-    // Salvar estados
-    // --------------------------
     setTotal(totalPeriodo);
     setQtdProdutos(totalProdutos);
     setTicketMedio(ticket);
     setLucro(lucroTotal);
-    setClientesAtendidos(clientesAtendidos);
+    setClientesAtendidos(clientesAtendidosPeriodo);
     setTaxasEntrega(totalTaxasEntrega);
     setFormaPagamentoMaisUsada(maisUsado);
     setDadosGrafico(grafico);
@@ -254,6 +251,7 @@ export default function Dashboard() {
     );
 
     setTotalAnterior(totalPeriodoAnterior);
+    setVendasAnterior(vendasPeriodoAnterior.length);
     setQtdProdutosAnterior(totalProdutosPeriodoAnterior);
     setTicketMedioAnterior(ticketPeriodoAnterior);
     setLucroAnterior(lucroPeriodoAnterior);
@@ -261,202 +259,171 @@ export default function Dashboard() {
     setTaxasEntregaAnterior(taxasEntregaPeriodoAnterior);
   }, [vendas, periodo]);
 
-  // ===============================
-  // Tela de carregamento
-  // ===============================
-  if (carregando) {
-    return (
-      <div className="flex flex-col items-center justify-center h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-        <div className="relative w-16 h-16">
-          <div className="absolute inset-0 rounded-full border-4 border-slate-200"></div>
-          <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-slate-300 border-r-slate-400 animate-spin"></div>
-        </div>
-        <p className="mt-6 text-gray-700 font-medium text-lg animate-pulse">
-          Carregando seu dashboard...
-        </p>
-      </div>
-    );
-  }
-
-  // ===============================
-  // Card com variação
-  // ===============================
-  function Card({ titulo, valor, isCurrency = false, variacao }) {
-    const format = isCurrency
-      ? (v) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(v)
-      : (v) => Math.round(v);
-
-    const icons = {
-      Vendas: <FaShoppingCart className="text-gray-600 text-xl" />,
-      "Total Faturado": <FaMoneyBillWave className="text-green-500 text-xl" />,
-      "Produtos Vendidos": <FaBoxOpen className="text-gray-600 text-xl" />,
-      "Ticket Médio": <FaReceipt className="text-gray-600 text-xl" />,
-      "Lucro Estimado": <FaChartLine className="text-blue-500 text-xl" />,
-      "Clientes Atendidos": <FaSmile className="text-gray-600 text-xl" />,
-      "Taxas de Entrega": <FaTruck className="text-gray-600 text-xl" />,
-      "Pagamento Mais Usada": <FaCreditCard className="text-gray-600 text-xl" />,
-    };
-
-    const variacaoClasse =
-      variacao > 0
-        ? "bg-green-100 text-green-600"
-        : variacao < 0
-          ? "bg-red-100 text-red-600"
-          : "bg-gray-100 text-gray-500";
-
+  function MetricCard({ titulo, valor, isCurrency = false, variacao, icon }) {
+    const isNumeric = typeof valor === "number";
+    const format = isCurrency ? formatCurrency : (v) => Math.round(v);
 
     return (
-      <div className="relative bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 flex items-center gap-3">
-        {/* Badge de variação no canto superior direito */}
+      <div className="relative min-h-[96px] rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
         {variacao !== undefined && (
           <div
-            className={`absolute top-2 right-2 px-2 py-0.5 text-[10px] font-medium flex items-center gap-1
-      ${variacao > 0 ? "text-green-500" : variacao < 0 ? "text-red-500" : "text-gray-500"}`}
+            className={`absolute right-3 top-3 inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium ${
+              variacao > 0
+                ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                : variacao < 0
+                  ? "border-rose-200 bg-rose-50 text-rose-700"
+                  : "border-slate-200 bg-slate-50 text-slate-500"
+            }`}
           >
-            {/* Ícone de tendência */}
-            {variacao > 0 && <TrendingUp size={16} className="mr-1.5" />}
-            {variacao < 0 && <TrendingDown size={16} className="mr-1.5" />}
-            {variacao === 0 && <Minus size={16} className="mr-1.5" />}
-
-            {/* Valor percentual */}
+            {variacao > 0 && <TrendingUp size={13} />}
+            {variacao < 0 && <TrendingDown size={13} />}
+            {variacao === 0 && <Minus size={13} />}
             {Math.abs(variacao).toFixed(1)}%
           </div>
         )}
 
-
-
-
-        <div className="w-10 h-10 flex items-center justify-center bg-gray-50 rounded-full text-gray-400 text-lg">
-          {icons[titulo] || <FaChartLine />}
-        </div>
-
-        <div className="flex flex-col">
-          <span className="text-xs text-gray-400">{titulo}</span>
-          <span className="text-xl font-semibold text-gray-800 mt-0.5">
-            <AnimatedNumber value={valor} format={format} />
-          </span>
+        <div className="flex items-start gap-3 pr-16">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-lg text-slate-600">
+            {icon}
+          </div>
+          <div className="min-w-0">
+            <p className="text-xs font-medium uppercase tracking-wide text-slate-500">{titulo}</p>
+            <p className="mt-1 truncate text-xl font-semibold text-slate-950">
+              {isNumeric ? <AnimatedNumber value={valor} format={format} /> : valor}
+            </p>
+          </div>
         </div>
       </div>
     );
-
-
   }
 
-  // --------------------------
-  // Retorno JSX
-  // --------------------------
+  if (carregando) {
+    return (
+      <div className="flex h-screen flex-col items-center justify-center bg-slate-50">
+        <div className="relative h-14 w-14">
+          <div className="absolute inset-0 rounded-full border-4 border-slate-200"></div>
+          <div className="absolute inset-0 animate-spin rounded-full border-4 border-transparent border-r-slate-500 border-t-slate-700"></div>
+        </div>
+        <p className="mt-5 text-sm font-medium text-slate-600">Carregando dashboard...</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="p-4 sm:p-6 space-y-8 bg-gray-50 min-h-screen">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <h2 className="text-xl sm:text-2xl font-semibold text-gray-900 tracking-tight">Dashboard</h2>
-        <div className="flex flex-col items-start gap-2 text-sm font-medium text-gray-500">
-          {/* Botão Exportar */}
-          <button className="hover:text-gray-900 transition-colors">Exportar</button>
-
-          {/* Selector de período */}
-          <div className="inline-flex bg-gray-100 rounded-xl p-1 gap-1 flex-wrap">
-            {["dia", "7dias", "mes", "Tudo"].map((p) => {
-
-              const ativo = periodo === p;
-              return (
-                <button
-                  key={p}
-                  onClick={() => setPeriodo(p)}
-                  className={`relative px-3 sm:px-4 py-1 text-sm font-medium rounded-lg transition-all duration-200
-            ${ativo
-                      ? "bg-white text-gray-900 shadow-sm"
-                      : "text-gray-600 hover:text-gray-900 hover:bg-gray-200"
-                    }`}
-                >
-                  {p === "dia"
-                    ? "Hoje"
-                    : p === "7dias"
-                      ? "Últimos 7 dias"
-                      : p === "mes"
-                        ? "Este mês"
-                        : "Todo o período"}
-
-
-                </button>
-              );
-            })}
-          </div>
+    <div className="min-h-screen space-y-6 bg-slate-50 p-4 sm:p-6">
+      <div className="flex flex-col gap-4 rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h2 className="text-2xl font-semibold tracking-tight text-slate-950">Dashboard</h2>
+          <p className="mt-1 text-sm text-slate-500">
+            {vendasFiltradas.length} vendas analisadas em {periodoAtual.toLowerCase()}.
+          </p>
         </div>
 
-
+        <div className="inline-flex flex-wrap gap-1 rounded-lg border border-slate-200 bg-slate-100 p-1">
+          {periodos.map((item) => {
+            const ativo = periodo === item.value;
+            return (
+              <button
+                key={item.value}
+                onClick={() => setPeriodo(item.value)}
+                className={`rounded-md px-3 py-1.5 text-sm font-medium transition ${
+                  ativo
+                    ? "bg-white text-slate-950 shadow-sm"
+                    : "text-slate-600 hover:bg-slate-200 hover:text-slate-900"
+                }`}
+              >
+                {item.label}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
-      {/* Cards de Indicadores com comparação */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <MetricCard
           titulo="Vendas"
           valor={vendasFiltradas.length}
-          variacao={calcVariacao(vendasFiltradas.length, clientesAnterior)}
+          variacao={calcVariacao(vendasFiltradas.length, vendasAnterior)}
+          icon={<FaShoppingCart />}
         />
-        <Card
-          titulo="Total Faturados"
+        <MetricCard
+          titulo="Total Faturado"
           valor={total}
           isCurrency
           variacao={calcVariacao(total, totalAnterior)}
+          icon={<FaMoneyBillWave />}
         />
-        <Card
+        <MetricCard
           titulo="Produtos Vendidos"
           valor={qtdProdutos}
           variacao={calcVariacao(qtdProdutos, qtdProdutosAnterior)}
+          icon={<FaBoxOpen />}
         />
-        <Card
+        <MetricCard
           titulo="Ticket Médio"
           valor={ticketMedio}
           isCurrency
           variacao={calcVariacao(ticketMedio, ticketMedioAnterior)}
+          icon={<FaReceipt />}
         />
-        <Card
+        <MetricCard
           titulo="Lucro Estimado"
           valor={lucro}
           isCurrency
           variacao={calcVariacao(lucro, lucroAnterior)}
+          icon={<FaChartLine />}
         />
-        <Card
+        <MetricCard
           titulo="Clientes Atendidos"
           valor={clientesAtendidos}
           variacao={calcVariacao(clientesAtendidos, clientesAnterior)}
+          icon={<FaSmile />}
         />
-        <Card
+        <MetricCard
           titulo="Taxas de Entrega"
           valor={taxasEntrega}
           isCurrency
           variacao={calcVariacao(taxasEntrega, taxasEntregaAnterior)}
+          icon={<FaTruck />}
         />
-        <Card
-          titulo="Forma de Pagamento Mais Usada"
+        <MetricCard
+          titulo="Pagamento Mais Usado"
           valor={formaPagamentoMaisUsada}
+          icon={<FaCreditCard />}
         />
       </div>
 
-      {/* Gráfico de vendas */}
-      <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-6">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">
-          Evolução das Vendas (
-          {periodo === "dia"
-            ? "Hoje"
-            : periodo === "7dias"
-              ? "Últimos 7 dias"
-              : periodo === "mes"
-                ? "Este mês"
-                : "Todo o período"}
-          )
+      <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="mb-5 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h3 className="text-base font-semibold text-slate-950">Evolução das vendas</h3>
+            <p className="text-sm text-slate-500">{periodoAtual}</p>
+          </div>
+          <p className="text-sm font-medium text-slate-700">{formatCurrency(total)}</p>
+        </div>
 
-        </h3>
-        <ResponsiveContainer width="100%" height={220}>
+        <ResponsiveContainer width="100%" height={260}>
           <LineChart data={dadosGrafico}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-            <XAxis dataKey="dia" tick={{ fontSize: 12, fill: "#6b7280" }} />
-            <YAxis tick={{ fontSize: 12, fill: "#6b7280" }} />
+            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
+            <XAxis
+              dataKey="dia"
+              tick={{ fontSize: 12, fill: "#64748b" }}
+              tickLine={false}
+              axisLine={{ stroke: "#cbd5e1" }}
+            />
+            <YAxis
+              tick={{ fontSize: 12, fill: "#64748b" }}
+              tickLine={false}
+              axisLine={false}
+              tickFormatter={(value) => `R$ ${value}`}
+            />
             <Tooltip
               contentStyle={{
-                backgroundColor: "#1f2937",
+                backgroundColor: "#ffffff",
+                border: "1px solid #cbd5e1",
                 borderRadius: "8px",
-                color: "#fff",
+                boxShadow: "0 10px 30px rgba(15, 23, 42, 0.08)",
+                color: "#0f172a",
                 fontSize: "12px",
               }}
               formatter={(value) => formatCurrency(value)}
@@ -464,102 +431,112 @@ export default function Dashboard() {
             <Line
               type="monotone"
               dataKey="total"
-              stroke="#2563eb"
-              strokeWidth={2}
-              dot={{ r: 3 }}
-              activeDot={{ r: 5, stroke: "#2563eb", strokeWidth: 2, fill: "#fff" }}
+              stroke="#334155"
+              strokeWidth={2.5}
+              dot={{ r: 3, stroke: "#334155", strokeWidth: 2, fill: "#ffffff" }}
+              activeDot={{ r: 5, stroke: "#334155", strokeWidth: 2, fill: "#ffffff" }}
             />
           </LineChart>
         </ResponsiveContainer>
       </div>
 
-      {/* Estoque Baixo e Ranking */}
-      <div className="flex flex-col lg:flex-row gap-6">
-        {/* Estoque Baixo */}
-        <div className="flex-1 space-y-6">
-          <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">Estoque Baixo</h3>
-            {produtosCriticos.filter(p => {
-              const estoque = p.variacoes.reduce((acc, v) => acc + v.estoque, 0);
-              return estoque < Math.floor(12 * 0.5);
-            }).length === 0 ? (
-              <p className="text-sm text-gray-600">Nenhum produto com estoque crítico.</p>
-            ) : (
-              <>
-                <ul className="space-y-4">
-                  {produtosCriticos
-                    .filter(p => p.variacoes.reduce((acc, v) => acc + v.estoque, 0) < Math.floor(12 * 0.5))
-                    .slice(0, verMaisEstoque ? produtosCriticos.length : 5)
-                    .map(p => {
-                      const estoqueDisponivel = p.variacoes
-                        .filter(v => v.estoque > 0)
-                        .reduce((acc, v) => acc + v.estoque, 0);
-                      const porcentagem = Math.round((estoqueDisponivel / 12) * 100);
-                      return (
-                        <li key={p.id} className="space-y-1">
-                          <div className="flex justify-between text-sm font-medium text-gray-800">
-                            <span>{p.nome}</span>
-                            <span className="text-gray-500">{estoqueDisponivel} de 12 pares</span>
-                          </div>
-                          <div className="w-full bg-gray-200 h-2 rounded-full">
-                            <div
-                              className="bg-red-400 h-2 rounded-full transition-all"
-                              style={{ width: `${porcentagem}%` }}
-                            ></div>
-                          </div>
-                          <p className="text-xs text-right text-gray-500">{porcentagem}% disponível</p>
-                        </li>
-                      );
-                    })}
-                </ul>
-                {produtosCriticos.length > 5 && (
-                  <button
-                    onClick={() => setVerMaisEstoque(!verMaisEstoque)}
-                    className="mt-3 text-sm text-blue-600 hover:underline"
-                  >
-                    {verMaisEstoque ? "Ver menos" : "Ver mais"}
-                  </button>
-                )}
-              </>
-            )}
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+        <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="mb-4 flex items-center justify-between">
+            <div>
+              <h3 className="text-base font-semibold text-slate-950">Estoque baixo</h3>
+              <p className="text-sm text-slate-500">Produtos com atenção operacional</p>
+            </div>
           </div>
+
+          {produtosCriticos.filter((p) => {
+            const estoque = p.variacoes.reduce((acc, v) => acc + v.estoque, 0);
+            return estoque < Math.floor(12 * 0.5);
+          }).length === 0 ? (
+            <p className="rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
+              Nenhum produto com estoque crítico.
+            </p>
+          ) : (
+            <>
+              <ul className="space-y-4">
+                {produtosCriticos
+                  .filter((p) => p.variacoes.reduce((acc, v) => acc + v.estoque, 0) < Math.floor(12 * 0.5))
+                  .slice(0, verMaisEstoque ? produtosCriticos.length : 5)
+                  .map((p) => {
+                    const estoqueDisponivel = p.variacoes
+                      .filter((v) => v.estoque > 0)
+                      .reduce((acc, v) => acc + v.estoque, 0);
+                    const porcentagem = Math.round((estoqueDisponivel / 12) * 100);
+                    return (
+                      <li key={p.id} className="rounded-lg border border-slate-200 p-3">
+                        <div className="flex justify-between gap-4 text-sm font-medium text-slate-900">
+                          <span className="truncate">{p.nome}</span>
+                          <span className="shrink-0 text-slate-500">{estoqueDisponivel} de 12</span>
+                        </div>
+                        <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-slate-100">
+                          <div
+                            className="h-2 rounded-full bg-slate-700 transition-all"
+                            style={{ width: `${porcentagem}%` }}
+                          ></div>
+                        </div>
+                        <p className="mt-2 text-right text-xs text-slate-500">{porcentagem}% disponível</p>
+                      </li>
+                    );
+                  })}
+              </ul>
+              {produtosCriticos.length > 5 && (
+                <button
+                  onClick={() => setVerMaisEstoque(!verMaisEstoque)}
+                  className="mt-4 text-sm font-medium text-slate-700 hover:text-slate-950"
+                >
+                  {verMaisEstoque ? "Ver menos" : "Ver mais"}
+                </button>
+              )}
+            </>
+          )}
         </div>
 
-        {/* Ranking Produtos Mais Vendidos */}
-        <div className="flex-1">
-          <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-6 h-full">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">Produtos Mais Vendidos</h3>
-            {rankingProdutos.length === 0 ? (
-              <p className="text-sm text-gray-600">Nenhuma venda registrada neste período.</p>
-            ) : (
-              <>
-                <ul className="space-y-3">
-                  {rankingProdutos
-                    .slice(0, verMaisRanking ? rankingProdutos.length : 5)
-                    .map((produto, index) => (
-                      <li key={produto.id} className="flex justify-between items-center">
-                        <div className="flex items-center gap-3">
-                          <span className="text-sm text-gray-500 font-semibold w-5 text-right">{index + 1}.</span>
-                          <span className="text-sm text-gray-800">{produto.nome}</span>
-                        </div>
-                        <span className="text-sm text-gray-700 font-medium">{produto.quantidadeVendida} vendas</span>
-                      </li>
-                    ))}
-                </ul>
-                {rankingProdutos.length > 5 && (
-                  <button
-                    onClick={() => setVerMaisRanking(!verMaisRanking)}
-                    className="mt-3 text-sm text-blue-600 hover:underline"
-                  >
-                    {verMaisRanking ? "Ver menos" : "Ver mais"}
-                  </button>
-                )}
-              </>
-            )}
+        <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="mb-4">
+            <h3 className="text-base font-semibold text-slate-950">Produtos mais vendidos</h3>
+            <p className="text-sm text-slate-500">{periodoAtual}</p>
           </div>
+
+          {rankingProdutos.length === 0 ? (
+            <p className="rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
+              Nenhuma venda registrada neste período.
+            </p>
+          ) : (
+            <>
+              <ul className="divide-y divide-slate-100">
+                {rankingProdutos
+                  .slice(0, verMaisRanking ? rankingProdutos.length : 5)
+                  .map((produto, index) => (
+                    <li key={produto.id} className="flex items-center justify-between gap-4 py-3">
+                      <div className="flex min-w-0 items-center gap-3">
+                        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-slate-100 text-xs font-semibold text-slate-600">
+                          {index + 1}
+                        </span>
+                        <span className="truncate text-sm font-medium text-slate-900">{produto.nome}</span>
+                      </div>
+                      <span className="shrink-0 text-sm font-semibold text-slate-700">
+                        {produto.quantidadeVendida} vendas
+                      </span>
+                    </li>
+                  ))}
+              </ul>
+              {rankingProdutos.length > 5 && (
+                <button
+                  onClick={() => setVerMaisRanking(!verMaisRanking)}
+                  className="mt-4 text-sm font-medium text-slate-700 hover:text-slate-950"
+                >
+                  {verMaisRanking ? "Ver menos" : "Ver mais"}
+                </button>
+              )}
+            </>
+          )}
         </div>
       </div>
     </div>
   );
 }
-
