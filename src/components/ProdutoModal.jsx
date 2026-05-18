@@ -137,7 +137,7 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
         videoUrl = res.data.url;
       }
 
-
+console.log("VIDEO URL:", videoUrl);
       await api.post("/produtos", {
         ...form,
         preco,
