@@ -126,6 +126,7 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
       if (videoFile) {
         const formData = new FormData();
         formData.append("video", videoFile);
+        formData.append("nomeProduto", form.nome); // 👈 aqui
 
         const res = await api.post("/upload-video", formData, {
           headers: {
@@ -143,7 +144,7 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
         custoUnitario,
         outrosCustos,
         imagemUrl,
-        videoUrl, 
+        videoUrl,
         variacoes: variacoesValidadas,
       });
 
