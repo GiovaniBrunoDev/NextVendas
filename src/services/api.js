@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'https://nextpdv.onrender.com', // URL do seu backend
+  baseURL: process.env.REACT_APP_API_URL || 'https://nextpdv.onrender.com',
 });
 
 export default api;

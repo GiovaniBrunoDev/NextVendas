@@ -89,26 +89,13 @@ export default function NovoPedidoModal({ carrinho, aoFechar, aoConfirmar }) {
                 entregador: tipoEntrega === "entrega" ? entregador : null,
                 formaPagamento,
                 total: totalFinal,
-                status: "agendado",
                 itens: produtos,
             });
 
             toast.success("Pedido criado com sucesso!");
 
-            // Atualiza o status corretamente
             if (window.confirm("Deseja confirmar a venda agora?")) {
-                await api.put(`/pedidos/${resPedido.data.pedido.id}/status`, { status: "confirmado" });
-
-                await api.post("/vendas", {
-                    clienteId: clienteId || null,
-                    tipoEntrega,
-                    taxaEntrega: tipoEntrega === "entrega" ? Number(taxaEntrega) : 0,
-                    entregador: tipoEntrega === "entrega" ? entregador : null,
-                    formaPagamento,
-                    total: totalFinal,
-                    produtos,
-                });
-
+                await api.post(`/pedidos/${resPedido.data.pedido.id}/confirmar`);
                 toast.success("Venda confirmada com sucesso!");
             }
 
@@ -117,7 +104,7 @@ export default function NovoPedidoModal({ carrinho, aoFechar, aoConfirmar }) {
             aoFechar();
         } catch (err) {
             console.error(err);
-            toast.error(err.message || "Erro ao salvar pedido.");
+            toast.error(err.response?.data?.error || err.message || "Erro ao salvar pedido.");
         } finally {
             setCarregando(false);
         }
