@@ -1,7 +1,28 @@
 import { useEffect, useMemo, useState } from "react";
 import api from "../services/api";
 import { toast } from "react-toastify";
-import { FaBoxOpen, FaPlus, FaSearch } from "react-icons/fa";
+import { FaBoxOpen, FaPlus, FaSearch, FaTrashAlt } from "react-icons/fa";
+
+const gradesPadrao = {
+  baixa: [
+    { numeracao: "34", quantidade: 1 },
+    { numeracao: "35", quantidade: 2 },
+    { numeracao: "36", quantidade: 3 },
+    { numeracao: "37", quantidade: 3 },
+    { numeracao: "38", quantidade: 2 },
+    { numeracao: "39", quantidade: 1 },
+  ],
+  alta: [
+    { numeracao: "38", quantidade: 1 },
+    { numeracao: "39", quantidade: 2 },
+    { numeracao: "40", quantidade: 3 },
+    { numeracao: "41", quantidade: 3 },
+    { numeracao: "42", quantidade: 2 },
+    { numeracao: "43", quantidade: 1 },
+  ],
+};
+
+const gradeVazia = [{ numeracao: "", quantidade: "" }];
 
 const formatCurrency = (valor) =>
   new Intl.NumberFormat("pt-BR", {
@@ -18,14 +39,17 @@ const formatDate = (data) =>
     minute: "2-digit",
   });
 
+const ordenarGrade = (itens) =>
+  itens.slice().sort((a, b) => Number(a.numeracao || 0) - Number(b.numeracao || 0));
+
 export default function EntradaEstoque() {
   const [produtos, setProdutos] = useState([]);
   const [entradas, setEntradas] = useState([]);
   const [busca, setBusca] = useState("");
   const [produtoId, setProdutoId] = useState("");
-  const [variacaoId, setVariacaoId] = useState("");
+  const [grade, setGrade] = useState(gradesPadrao.baixa);
+  const [tipoGrade, setTipoGrade] = useState("baixa");
   const [form, setForm] = useState({
-    quantidade: "",
     custoUnitario: "",
     outrosCustos: "",
     fornecedor: "",
@@ -64,13 +88,13 @@ export default function EntradaEstoque() {
   }, [produtos, busca]);
 
   const produtoSelecionado = produtos.find((produto) => produto.id === Number(produtoId));
-  const variacoes = useMemo(
-    () =>
-      (produtoSelecionado?.variacoes || [])
-        .slice()
-        .sort((a, b) => Number(a.numeracao) - Number(b.numeracao)),
-    [produtoSelecionado]
-  );
+
+  const mapaVariacoes = useMemo(() => {
+    return (produtoSelecionado?.variacoes || []).reduce((acc, variacao) => {
+      acc[String(variacao.numeracao)] = variacao;
+      return acc;
+    }, {});
+  }, [produtoSelecionado]);
 
   const resumo = useMemo(() => {
     const quantidade = entradas.reduce((soma, entrada) => soma + entrada.quantidade, 0);
@@ -83,17 +107,70 @@ export default function EntradaEstoque() {
     return { quantidade, custoTotal, total: entradas.length };
   }, [entradas]);
 
+  const gradeValida = useMemo(() => {
+    return grade
+      .map((item) => ({
+        numeracao: String(item.numeracao || "").trim(),
+        quantidade: Number(item.quantidade || 0),
+        variacaoProdutoId: mapaVariacoes[String(item.numeracao || "").trim()]?.id || null,
+      }))
+      .filter((item) => item.numeracao && Number.isInteger(item.quantidade) && item.quantidade > 0);
+  }, [grade, mapaVariacoes]);
+
+  const totalGrade = gradeValida.reduce((soma, item) => soma + item.quantidade, 0);
+  const custoPrevisto =
+    totalGrade * (Number(form.custoUnitario || 0) + Number(form.outrosCustos || 0));
+
+  function selecionarProduto(produto) {
+    setProdutoId(produto.id);
+    setForm((prev) => ({
+      ...prev,
+      custoUnitario: produto.custoUnitario ?? "",
+      outrosCustos: produto.outrosCustos ?? "",
+    }));
+  }
+
+  function aplicarGrade(tipo) {
+    setTipoGrade(tipo);
+    setGrade(tipo === "manual" ? gradeVazia : gradesPadrao[tipo]);
+  }
+
+  function atualizarItemGrade(index, campo, valor) {
+    setGrade((prev) =>
+      prev.map((item, itemIndex) =>
+        itemIndex === index ? { ...item, [campo]: valor } : item
+      )
+    );
+  }
+
+  function adicionarLinhaManual() {
+    setTipoGrade("manual");
+    setGrade((prev) => [...prev, { numeracao: "", quantidade: "" }]);
+  }
+
+  function removerLinha(index) {
+    setGrade((prev) => {
+      const novaGrade = prev.filter((_, itemIndex) => itemIndex !== index);
+      return novaGrade.length ? novaGrade : gradeVazia;
+    });
+  }
+
   async function salvarEntrada() {
-    if (!variacaoId || !form.quantidade) {
-      toast.error("Selecione produto, numeração e quantidade.");
+    if (!produtoSelecionado) {
+      toast.error("Selecione um produto.");
+      return;
+    }
+
+    if (gradeValida.length === 0) {
+      toast.error("Informe ao menos uma numeração com quantidade.");
       return;
     }
 
     try {
       setSalvando(true);
-      await api.post("/estoque/entradas", {
-        variacaoProdutoId: Number(variacaoId),
-        quantidade: Number(form.quantidade),
+      await api.post("/estoque/entradas/grade", {
+        produtoId: produtoSelecionado.id,
+        itens: gradeValida,
         custoUnitario: form.custoUnitario,
         outrosCustos: form.outrosCustos,
         fornecedor: form.fornecedor,
@@ -101,16 +178,12 @@ export default function EntradaEstoque() {
         atualizarCustosProduto: form.atualizarCustosProduto,
       });
 
-      toast.success("Entrada de estoque registrada!");
-      setForm({
-        quantidade: "",
-        custoUnitario: "",
-        outrosCustos: "",
+      toast.success("Entrada por grade registrada!");
+      setForm((prev) => ({
+        ...prev,
         fornecedor: "",
         observacao: "",
-        atualizarCustosProduto: true,
-      });
-      setVariacaoId("");
+      }));
       await carregarDados();
     } catch (error) {
       console.error("Erro ao salvar entrada:", error);
@@ -139,7 +212,7 @@ export default function EntradaEstoque() {
           <div>
             <h1 className="text-2xl font-semibold tracking-tight text-slate-950">Entrada de estoque</h1>
             <p className="mt-1 text-sm text-slate-500">
-              Registre reposições por numeração e mantenha um histórico de compra.
+              Registre reposições por grade, ajuste manualmente as numerações e mantenha histórico.
             </p>
           </div>
           <div className="grid grid-cols-3 gap-2 text-sm">
@@ -150,7 +223,7 @@ export default function EntradaEstoque() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 xl:grid-cols-[420px_minmax(0,1fr)]">
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-[390px_minmax(0,1fr)]">
         <section className="rounded-lg border border-slate-200 bg-white shadow-sm">
           <div className="border-b border-slate-200 p-4">
             <h2 className="text-base font-semibold text-slate-950">Produto</h2>
@@ -166,7 +239,7 @@ export default function EntradaEstoque() {
             </div>
           </div>
 
-          <ul className="max-h-[620px] divide-y divide-slate-100 overflow-auto">
+          <ul className="max-h-[680px] divide-y divide-slate-100 overflow-auto">
             {produtosFiltrados.map((produto) => {
               const selecionado = produto.id === Number(produtoId);
               const estoqueTotal = (produto.variacoes || []).reduce((soma, variacao) => soma + variacao.estoque, 0);
@@ -175,15 +248,7 @@ export default function EntradaEstoque() {
                 <li key={produto.id}>
                   <button
                     type="button"
-                    onClick={() => {
-                      setProdutoId(produto.id);
-                      setVariacaoId("");
-                      setForm((prev) => ({
-                        ...prev,
-                        custoUnitario: produto.custoUnitario ?? "",
-                        outrosCustos: produto.outrosCustos ?? "",
-                      }));
-                    }}
+                    onClick={() => selecionarProduto(produto)}
                     className={`flex w-full items-center gap-3 p-3 text-left transition ${
                       selecionado ? "bg-slate-100" : "hover:bg-slate-50"
                     }`}
@@ -205,59 +270,168 @@ export default function EntradaEstoque() {
         </section>
 
         <section className="space-y-6">
-          <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-            <h2 className="text-base font-semibold text-slate-950">Nova entrada</h2>
-            <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-3">
-              <label>
-                <span className="text-xs font-medium uppercase tracking-wide text-slate-500">Numeração</span>
-                <select
-                  value={variacaoId}
-                  onChange={(e) => setVariacaoId(e.target.value)}
-                  disabled={!produtoSelecionado}
-                  className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-slate-400 disabled:bg-slate-100"
-                >
-                  <option value="">Selecione</option>
-                  {variacoes.map((variacao) => (
-                    <option key={variacao.id} value={variacao.id}>
-                      {variacao.numeracao} - estoque atual {variacao.estoque}
-                    </option>
-                  ))}
-                </select>
-              </label>
+          <div className="rounded-lg border border-slate-200 bg-white shadow-sm">
+            <div className="border-b border-slate-200 p-5">
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                <div>
+                  <h2 className="text-base font-semibold text-slate-950">Nova entrada por grade</h2>
+                  <p className="mt-1 text-sm text-slate-500">
+                    {produtoSelecionado
+                      ? produtoSelecionado.nome
+                      : "Selecione um produto para lançar reposição."}
+                  </p>
+                </div>
+                <div className="grid grid-cols-2 gap-2 text-sm sm:grid-cols-4">
+                  <ResumoPill label="Linhas" value={gradeValida.length} />
+                  <ResumoPill label="Pares" value={totalGrade} />
+                  <ResumoPill label="Custo prev." value={formatCurrency(custoPrevisto)} />
+                  <ResumoPill label="Grade" value={tipoGrade === "baixa" ? "Baixa" : tipoGrade === "alta" ? "Alta" : "Manual"} />
+                </div>
+              </div>
 
-              <Campo label="Quantidade" type="number" value={form.quantidade} onChange={(value) => setForm((prev) => ({ ...prev, quantidade: value }))} />
-              <Campo label="Fornecedor" value={form.fornecedor} onChange={(value) => setForm((prev) => ({ ...prev, fornecedor: value }))} />
-              <Campo label="Custo unitário" type="number" step="0.01" value={form.custoUnitario} onChange={(value) => setForm((prev) => ({ ...prev, custoUnitario: value }))} />
-              <Campo label="Outros custos" type="number" step="0.01" value={form.outrosCustos} onChange={(value) => setForm((prev) => ({ ...prev, outrosCustos: value }))} />
-              <label className="md:col-span-3">
-                <span className="text-xs font-medium uppercase tracking-wide text-slate-500">Observação</span>
-                <textarea
-                  rows={3}
-                  value={form.observacao}
-                  onChange={(e) => setForm((prev) => ({ ...prev, observacao: e.target.value }))}
-                  className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-slate-400"
-                />
-              </label>
+              <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-3">
+                {[
+                  { key: "baixa", label: "Grade baixa", detail: "34 ao 39 · 12 pares" },
+                  { key: "alta", label: "Grade alta", detail: "38 ao 43 · 12 pares" },
+                  { key: "manual", label: "Manual", detail: "Monte livremente" },
+                ].map((opcao) => (
+                  <button
+                    key={opcao.key}
+                    type="button"
+                    onClick={() => aplicarGrade(opcao.key)}
+                    className={`rounded-lg border p-3 text-left transition ${
+                      tipoGrade === opcao.key
+                        ? "border-slate-900 bg-slate-900 text-white"
+                        : "border-slate-200 text-slate-700 hover:bg-slate-50"
+                    }`}
+                  >
+                    <p className="text-sm font-semibold">{opcao.label}</p>
+                    <p className={`mt-1 text-xs ${tipoGrade === opcao.key ? "text-slate-300" : "text-slate-500"}`}>
+                      {opcao.detail}
+                    </p>
+                  </button>
+                ))}
+              </div>
             </div>
 
-            <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <label className="inline-flex items-center gap-2 text-sm text-slate-700">
-                <input
-                  type="checkbox"
-                  checked={form.atualizarCustosProduto}
-                  onChange={(e) => setForm((prev) => ({ ...prev, atualizarCustosProduto: e.target.checked }))}
-                  className="h-4 w-4 rounded border-slate-300"
-                />
-                Atualizar custo do produto com esta entrada
-              </label>
-              <button
-                type="button"
-                onClick={salvarEntrada}
-                disabled={salvando}
-                className="inline-flex items-center justify-center gap-2 rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-slate-700 disabled:opacity-60"
-              >
-                <FaPlus className="text-xs" /> {salvando ? "Salvando..." : "Registrar entrada"}
-              </button>
+            <div className="grid grid-cols-1 gap-5 p-5 xl:grid-cols-[minmax(0,1.3fr)_320px]">
+              <div>
+                <div className="mb-3 flex items-center justify-between gap-3">
+                  <h3 className="text-sm font-semibold text-slate-950">Numerações da entrada</h3>
+                  <button
+                    type="button"
+                    onClick={adicionarLinhaManual}
+                    className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                  >
+                    <FaPlus className="text-xs" /> Adicionar número
+                  </button>
+                </div>
+
+                <div className="overflow-hidden rounded-lg border border-slate-200">
+                  <table className="w-full text-sm">
+                    <thead className="border-b border-slate-200 bg-slate-50 text-left text-xs font-medium uppercase tracking-wide text-slate-500">
+                      <tr>
+                        <th className="px-3 py-3">Numeração</th>
+                        <th className="px-3 py-3">Qtd. entrada</th>
+                        <th className="px-3 py-3">Estoque atual</th>
+                        <th className="px-3 py-3">Após entrada</th>
+                        <th className="w-12 px-3 py-3"></th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {ordenarGrade(grade).map((item, indexOriginal) => {
+                        const index = grade.findIndex((linha) => linha === item);
+                        const numeracao = String(item.numeracao || "").trim();
+                        const variacao = mapaVariacoes[numeracao];
+                        const estoqueAtual = Number(variacao?.estoque || 0);
+                        const quantidade = Number(item.quantidade || 0);
+
+                        return (
+                          <tr key={`${numeracao || "novo"}-${indexOriginal}`}>
+                            <td className="px-3 py-2">
+                              <input
+                                value={item.numeracao}
+                                onChange={(e) => {
+                                  setTipoGrade("manual");
+                                  atualizarItemGrade(index, "numeracao", e.target.value);
+                                }}
+                                className="w-24 rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-slate-400"
+                              />
+                            </td>
+                            <td className="px-3 py-2">
+                              <input
+                                type="number"
+                                min="0"
+                                value={item.quantidade}
+                                onChange={(e) => {
+                                  setTipoGrade("manual");
+                                  atualizarItemGrade(index, "quantidade", e.target.value);
+                                }}
+                                className="w-28 rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-slate-400"
+                              />
+                            </td>
+                            <td className="px-3 py-2 text-slate-600">{estoqueAtual}</td>
+                            <td className="px-3 py-2 font-semibold text-slate-950">
+                              {estoqueAtual + (Number.isNaN(quantidade) ? 0 : quantidade)}
+                              {!variacao && numeracao && (
+                                <span className="ml-2 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-700">
+                                  novo
+                                </span>
+                              )}
+                            </td>
+                            <td className="px-3 py-2 text-right">
+                              <button
+                                type="button"
+                                onClick={() => removerLinha(index)}
+                                className="rounded-md border border-rose-200 p-2 text-rose-700 hover:bg-rose-50"
+                                title="Remover linha"
+                              >
+                                <FaTrashAlt size={12} />
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <aside className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+                <h3 className="text-sm font-semibold text-slate-950">Dados da compra</h3>
+                <div className="mt-4 space-y-3">
+                  <Campo label="Fornecedor" value={form.fornecedor} onChange={(value) => setForm((prev) => ({ ...prev, fornecedor: value }))} />
+                  <Campo label="Custo unitário" type="number" step="0.01" value={form.custoUnitario} onChange={(value) => setForm((prev) => ({ ...prev, custoUnitario: value }))} />
+                  <Campo label="Outros custos" type="number" step="0.01" value={form.outrosCustos} onChange={(value) => setForm((prev) => ({ ...prev, outrosCustos: value }))} />
+                  <label>
+                    <span className="text-xs font-medium uppercase tracking-wide text-slate-500">Observação</span>
+                    <textarea
+                      rows={3}
+                      value={form.observacao}
+                      onChange={(e) => setForm((prev) => ({ ...prev, observacao: e.target.value }))}
+                      className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-slate-400"
+                    />
+                  </label>
+                  <label className="inline-flex items-start gap-2 text-sm text-slate-700">
+                    <input
+                      type="checkbox"
+                      checked={form.atualizarCustosProduto}
+                      onChange={(e) => setForm((prev) => ({ ...prev, atualizarCustosProduto: e.target.checked }))}
+                      className="mt-0.5 h-4 w-4 rounded border-slate-300"
+                    />
+                    <span>Atualizar custo do produto com esta entrada</span>
+                  </label>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={salvarEntrada}
+                  disabled={salvando || !produtoSelecionado}
+                  className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-slate-700 disabled:opacity-60"
+                >
+                  <FaPlus className="text-xs" /> {salvando ? "Salvando..." : "Registrar grade"}
+                </button>
+              </aside>
             </div>
           </div>
 
