@@ -1,26 +1,41 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import api from "../services/api";
-import { Search, CreditCard } from "lucide-react";
-import { Dialog } from "@headlessui/react";
+import { CreditCard, Search } from "lucide-react";
 import { toast } from "react-toastify";
 import VendaDetalhesModal from "../components/VendaDetalhesModal";
 import TrocaModal from "../components/TrocaModal";
-import { motion } from "framer-motion"; // 👈 precisa do framer-motion instalado
 
+const formatCurrency = (valor) =>
+  new Intl.NumberFormat("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  }).format(Number(valor || 0));
+
+const formatarData = (data) =>
+  new Date(data).toLocaleString("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 
 export default function VendasListadas() {
   const [mostrarTrocaModal, setMostrarTrocaModal] = useState(false);
   const [vendas, setVendas] = useState([]);
   const [busca, setBusca] = useState("");
   const [vendaSelecionada, setVendaSelecionada] = useState(null);
-  const [carregando, setCarregando] = useState(true); // 👈 novo state
+  const [carregando, setCarregando] = useState(true);
 
-
-    async function carregarVendas() {
+  async function carregarVendas() {
     try {
       setCarregando(true);
       const res = await api.get("/vendas");
       setVendas(res.data);
+      setVendaSelecionada((selecionada) => {
+        if (!selecionada) return null;
+        return res.data.find((venda) => venda.id === selecionada.id) || null;
+      });
     } catch (err) {
       toast.error("Erro ao carregar vendas");
     } finally {
@@ -32,17 +47,59 @@ export default function VendasListadas() {
     carregarVendas();
   }, []);
 
+  const vendasFiltradas = useMemo(() => {
+    const termo = busca.trim().toLowerCase();
+    if (!termo) return vendas;
+
+    return vendas.filter((venda) => {
+      const cliente = venda.cliente?.nome.toLowerCase() || "";
+      const pagamento = venda.formaPagamento?.toLowerCase() || "";
+      const id = String(venda.id);
+      const itens = venda.itens
+        .map((item) => item.variacaoProduto.produto.nome.toLowerCase())
+        .join(" ");
+
+      return cliente.includes(termo) || pagamento.includes(termo) || itens.includes(termo) || id.includes(termo);
+    });
+  }, [vendas, busca]);
+
+  const resumo = useMemo(() => {
+    const total = vendasFiltradas.reduce((soma, venda) => soma + venda.total, 0);
+    const itens = vendasFiltradas.reduce(
+      (soma, venda) => soma + venda.itens.reduce((sub, item) => sub + item.quantidade, 0),
+      0
+    );
+    const ticket = vendasFiltradas.length ? total / vendasFiltradas.length : 0;
+
+    return { total, itens, ticket, quantidade: vendasFiltradas.length };
+  }, [vendasFiltradas]);
+
   const deletarVenda = async (id) => {
     if (!window.confirm("Deseja realmente excluir esta venda? Esta ação não pode ser desfeita.")) return;
 
     try {
       await api.delete(`/vendas/${id}`);
       toast.success("Venda excluída com sucesso!");
-      fecharModal();
+      setVendaSelecionada(null);
       carregarVendas();
     } catch (error) {
       console.error(error);
       toast.error("Erro ao excluir a venda.");
+    }
+  };
+
+  const atualizarVenda = async (dados) => {
+    if (!vendaSelecionada) return;
+
+    try {
+      const { data } = await api.put(`/vendas/${vendaSelecionada.id}`, dados);
+      setVendaSelecionada(data);
+      setVendas((prev) => prev.map((venda) => (venda.id === data.id ? data : venda)));
+      toast.success("Venda atualizada com sucesso!");
+    } catch (error) {
+      console.error(error);
+      toast.error("Erro ao atualizar a venda.");
+      throw error;
     }
   };
 
@@ -60,222 +117,168 @@ export default function VendasListadas() {
     }
   };
 
-  const vendasFiltradas = vendas.filter((venda) => {
-    const termo = busca.toLowerCase();
-    const cliente = venda.cliente?.nome.toLowerCase() || "";
-    const pagamento = venda.formaPagamento?.toLowerCase() || "";
-    const itens = venda.itens.map((item) => item.variacaoProduto.produto.nome.toLowerCase()).join(" ");
-    return cliente.includes(termo) || pagamento.includes(termo) || itens.includes(termo);
-  });
-
-  const formatarData = (data) => new Date(data).toLocaleString("pt-BR");
-
-  const corPagamento = (forma) => {
-    if (!forma) return "bg-gray-300 text-gray-800";
-    if (forma.toLowerCase().includes("pix")) return "bg-green-100 text-green-700";
-    if (forma.toLowerCase().includes("credito")) return "bg-blue-100 text-blue-700";
-    if (forma.toLowerCase().includes("debito")) return "bg-yellow-100 text-yellow-700";
-    return "bg-gray-100 text-gray-700";
-  };
-
   const abrirModal = (venda) => setVendaSelecionada(venda);
   const fecharModal = () => setVendaSelecionada(null);
 
-   // 🔥 Tela de carregamento
   if (carregando) {
     return (
-      <div className="flex flex-col items-center justify-center h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-      {/* Spinner moderno com gradiente neutro/azulado */}
-        <div className="relative w-16 h-16">
-          {/* Fundo do spinner */}
+      <div className="flex h-screen flex-col items-center justify-center bg-slate-50">
+        <div className="relative h-14 w-14">
           <div className="absolute inset-0 rounded-full border-4 border-slate-200"></div>
-
-          {/* Parte animada */}
-          <div className="absolute inset-0 rounded-full border-4 border-transparent 
-                  border-t-slate-300 border-r-slate-400 animate-spin"></div>
+          <div className="absolute inset-0 animate-spin rounded-full border-4 border-transparent border-r-slate-500 border-t-slate-700"></div>
         </div>
-
-      {/* Texto animado */}
-      <p className="mt-6 text-gray-700 font-medium text-lg animate-pulse">
-        Carregando suas vendas...
-      </p>
-
-      {/* Neutro com leve azul acinzentado */}
-        <div className="mt-4 w-48 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-          <div className="h-full bg-gradient-to-r from-slate-300 to-slate-400 animate-[progress_1.5s_ease-in-out_infinite]"></div>
-        </div>
-
-      {/* Keyframes para a barra */}
-      <style jsx>{`
-        @keyframes progress {
-          0% {
-            transform: translateX(-100%);
-          }
-          50% {
-            transform: translateX(0);
-          }
-          100% {
-            transform: translateX(100%);
-          }
-        }
-      `}</style>
-    </div>
-  );
-}
+        <p className="mt-5 text-sm font-medium text-slate-600">Carregando vendas...</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="p-4 sm:p-6 max-w-7xl mx-auto">
-  <h1 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6 text-gray-800">Histórico de Vendas</h1>
+    <div className="min-h-screen bg-slate-50 p-4 sm:p-6">
+      <div className="mb-6 flex flex-col gap-4 rounded-lg border border-slate-200 bg-white p-4 shadow-sm lg:flex-row lg:items-center lg:justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight text-slate-950">Histórico de vendas</h1>
+          <p className="mt-1 text-sm text-slate-500">
+            Consulte vendas, edite dados operacionais, realize trocas e exclua registros.
+          </p>
+        </div>
+        <div className="relative w-full lg:max-w-md">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <input
+            type="text"
+            placeholder="Buscar por ID, cliente, produto ou pagamento"
+            className="w-full rounded-lg border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-3 text-sm outline-none transition placeholder:text-slate-400 focus:border-slate-400 focus:bg-white"
+            value={busca}
+            onChange={(e) => setBusca(e.target.value)}
+          />
+        </div>
+      </div>
 
-  {/* Filtro de busca */}
-  <div className="mb-6 relative z-20">
-    <div className="relative">
-      <Search className="absolute left-3 top-3 text-gray-400 w-5 h-5" />
-      <input
-        type="text"
-        placeholder="Buscar por cliente, produto ou pagamento..."
-        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 outline-none"
-        value={busca}
-        onChange={(e) => setBusca(e.target.value)}
-      />
-    </div>
-  </div>
+      <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
+        {[
+          { label: "Vendas", value: resumo.quantidade },
+          { label: "Faturamento", value: formatCurrency(resumo.total) },
+          { label: "Itens vendidos", value: resumo.itens },
+          { label: "Ticket médio", value: formatCurrency(resumo.ticket) },
+        ].map((item) => (
+          <div key={item.label} className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+            <p className="text-xs font-medium uppercase tracking-wide text-slate-500">{item.label}</p>
+            <p className="mt-1 text-lg font-semibold text-slate-950">{item.value}</p>
+          </div>
+        ))}
+      </div>
 
-  {/* Desktop: Tabela */}
-  <div className="hidden sm:block overflow-x-auto rounded-lg shadow">
-    <table className="w-full bg-white text-sm">
-      <thead className="bg-gray-100 text-gray-600 text-left">
-        <tr>
-          <th className="p-3">ID</th>
-          <th className="p-3">Data</th>
-          <th className="p-3">Cliente</th>
-          <th className="p-3">Total</th>
-          <th className="p-3">Pagamento</th>
-          <th className="p-3">Itens</th>
-        </tr>
-      </thead>
-      <tbody>
+      <div className="hidden overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm md:block">
+        <table className="w-full text-sm">
+          <thead className="border-b border-slate-200 bg-slate-50 text-left text-xs font-medium uppercase tracking-wide text-slate-500">
+            <tr>
+              <th className="px-4 py-3">Venda</th>
+              <th className="px-4 py-3">Data</th>
+              <th className="px-4 py-3">Cliente</th>
+              <th className="px-4 py-3">Total</th>
+              <th className="px-4 py-3">Pagamento</th>
+              <th className="px-4 py-3">Itens</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-100">
+            {vendasFiltradas.length > 0 ? (
+              vendasFiltradas.map((venda) => (
+                <tr
+                  key={venda.id}
+                  className="cursor-pointer transition hover:bg-slate-50"
+                  onClick={() => abrirModal(venda)}
+                >
+                  <td className="px-4 py-3 font-semibold text-slate-950">#{venda.id}</td>
+                  <td className="px-4 py-3 text-slate-500">{formatarData(venda.data)}</td>
+                  <td className="px-4 py-3">
+                    {venda.cliente ? (
+                      <>
+                        <div className="font-medium text-slate-900">{venda.cliente.nome}</div>
+                        <div className="text-xs text-slate-500">{venda.cliente.telefone || "Sem telefone"}</div>
+                      </>
+                    ) : (
+                      <span className="text-slate-400">Sem cliente</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3 font-semibold text-slate-950">{formatCurrency(venda.total)}</td>
+                  <td className="px-4 py-3">
+                    <span className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-2 py-1 text-xs font-medium text-slate-700">
+                      <CreditCard className="h-3 w-3" />
+                      {venda.formaPagamento || "N/A"}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-slate-600">
+                    <div className="max-w-xs truncate">
+                      {venda.itens
+                        .map((item) => `${item.variacaoProduto.produto.nome} ${item.variacaoProduto.numeracao} (${item.quantidade}x)`)
+                        .join(", ")}
+                    </div>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="6" className="px-4 py-10 text-center text-slate-500">
+                  Nenhuma venda encontrada.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="space-y-3 md:hidden">
         {vendasFiltradas.length > 0 ? (
           vendasFiltradas.map((venda) => (
-            <tr
+            <button
+              type="button"
               key={venda.id}
-              className="border-t hover:bg-gray-50 transition-colors cursor-pointer"
+              className="w-full rounded-lg border border-slate-200 bg-white p-4 text-left shadow-sm"
               onClick={() => abrirModal(venda)}
             >
-              <td className="p-3 font-semibold text-gray-800">{venda.id}</td>
-              <td className="p-3 text-gray-500">{formatarData(venda.data)}</td>
-              <td className="p-3">
-                {venda.cliente ? (
-                  <>
-                    <div className="font-medium text-gray-900">{venda.cliente.nome}</div>
-                    <div className="text-xs text-gray-500">{venda.cliente.telefone}</div>
-                  </>
-                ) : (
-                  <span className="italic text-gray-400">Sem cliente</span>
-                )}
-              </td>
-              <td className="p-3 text-green-600 font-bold">R$ {venda.total.toFixed(2)}</td>
-              <td className="p-3">
-                <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${corPagamento(venda.formaPagamento)}`}>
-                  <CreditCard className="w-3 h-3 mr-1" />
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="font-semibold text-slate-950">Venda #{venda.id}</p>
+                  <p className="mt-1 text-xs text-slate-500">{formatarData(venda.data)}</p>
+                </div>
+                <p className="font-semibold text-slate-950">{formatCurrency(venda.total)}</p>
+              </div>
+              <p className="mt-3 text-sm text-slate-700">
+                {venda.cliente?.nome || "Sem cliente"}
+              </p>
+              <div className="mt-3 flex flex-wrap gap-2 text-xs">
+                <span className="rounded-full border border-slate-200 bg-slate-50 px-2 py-1 font-medium text-slate-700">
                   {venda.formaPagamento || "N/A"}
                 </span>
-              </td>
-              <td className="p-3">
-                <ul className="list-disc pl-5 text-gray-700 space-y-1">
-                  {venda.itens.map((item) => (
-                    <li key={item.id}>
-                      {item.variacaoProduto.produto.nome} - {item.variacaoProduto.numeracao} ({item.quantidade}x)
-                    </li>
-                  ))}
-                </ul>
-              </td>
-            </tr>
+                <span className="rounded-full border border-slate-200 bg-slate-50 px-2 py-1 font-medium text-slate-700">
+                  {venda.itens.length} itens
+                </span>
+              </div>
+            </button>
           ))
         ) : (
-          <tr>
-            <td colSpan="6" className="text-center p-6 text-gray-500">
-              Nenhuma venda encontrada.
-            </td>
-          </tr>
+          <div className="rounded-lg border border-slate-200 bg-white p-8 text-center text-slate-500">
+            Nenhuma venda encontrada.
+          </div>
         )}
-      </tbody>
-    </table>
-  </div>
-
-  {/* Mobile: Cards */}
-  <div className="sm:hidden space-y-4">
-    {vendasFiltradas.length > 0 ? (
-      vendasFiltradas.map((venda) => (
-        <div
-          key={venda.id}
-          className="border border-gray-200 rounded-xl p-4 shadow-sm bg-white hover:shadow-md transition cursor-pointer"
-          onClick={() => abrirModal(venda)}
-        >
-          <div className="flex justify-between items-center mb-2">
-            <span className="text-sm font-semibold text-gray-700">ID: {venda.id}</span>
-            <span className="text-xs text-gray-500">{formatarData(venda.data)}</span>
-          </div>
-
-          <div className="text-sm text-gray-800 mb-2">
-            <strong>Cliente:</strong>{" "}
-            {venda.cliente ? (
-              <span>{venda.cliente.nome} ({venda.cliente.telefone})</span>
-            ) : (
-              <span className="italic text-gray-400">Sem cliente</span>
-            )}
-          </div>
-
-          <div className="text-sm text-gray-800 mb-2">
-            <strong>Total:</strong> <span className="text-green-600 font-semibold">R$ {venda.total.toFixed(2)}</span>
-          </div>
-
-          <div className="text-sm text-gray-800 mb-2">
-            <strong>Pagamento:</strong>{" "}
-            <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${corPagamento(venda.formaPagamento)}`}>
-              <CreditCard className="w-3 h-3 mr-1" />
-              {venda.formaPagamento || "N/A"}
-            </span>
-          </div>
-
-          <div className="text-sm text-gray-800">
-            <strong>Itens:</strong>
-            <ul className="list-disc pl-5 text-gray-600 mt-1 space-y-1 text-xs">
-              {venda.itens.map((item) => (
-                <li key={item.id}>
-                  {item.variacaoProduto.produto.nome} - {item.variacaoProduto.numeracao} ({item.quantidade}x)
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-      ))
-    ) : (
-      <div className="text-center text-gray-500 py-10">
-        Nenhuma venda encontrada.
       </div>
-    )}
-  </div>
 
-  {/* Modais */}
-  <VendaDetalhesModal
-    venda={vendaSelecionada}
-    aberto={!!vendaSelecionada}
-    aoFechar={fecharModal}
-    aoExcluir={deletarVenda}
-    aoTroca={(venda) => {
-      setVendaSelecionada(venda);
-      setMostrarTrocaModal(true);
-    }}
-  />
-  <TrocaModal
-    aberto={mostrarTrocaModal}
-    venda={vendaSelecionada}
-    aoFechar={() => setMostrarTrocaModal(false)}
-    aoConfirmarTroca={confirmarTroca}
-  />
-</div>
-
-
+      <VendaDetalhesModal
+        venda={vendaSelecionada}
+        aberto={!!vendaSelecionada}
+        aoFechar={fecharModal}
+        aoExcluir={deletarVenda}
+        aoAtualizar={atualizarVenda}
+        aoTroca={(venda) => {
+          setVendaSelecionada(venda);
+          setMostrarTrocaModal(true);
+        }}
+      />
+      <TrocaModal
+        aberto={mostrarTrocaModal}
+        venda={vendaSelecionada}
+        aoFechar={() => setMostrarTrocaModal(false)}
+        aoConfirmarTroca={confirmarTroca}
+      />
+    </div>
   );
 }

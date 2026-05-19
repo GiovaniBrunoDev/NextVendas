@@ -1,12 +1,12 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Dialog } from "@headlessui/react";
 import api from "../services/api";
-import { X } from "lucide-react";
+import { RefreshCcw, X } from "lucide-react";
 
 export default function TrocaModal({ aberto, venda, aoFechar, aoConfirmarTroca }) {
   const [produtos, setProdutos] = useState([]);
   const [itemSelecionado, setItemSelecionado] = useState(null);
-  const [modoTroca, setModoTroca] = useState("mesmo"); // 'mesmo' ou 'outro'
+  const [modoTroca, setModoTroca] = useState("mesmo");
   const [novoProduto, setNovoProduto] = useState(null);
   const [novaVariacao, setNovaVariacao] = useState(null);
 
@@ -20,10 +20,29 @@ export default function TrocaModal({ aberto, venda, aoFechar, aoConfirmarTroca }
     }
   }, [aberto]);
 
+  const variacoesMesmoProduto = useMemo(() => {
+    const produtoOriginal = produtos.find(
+      (p) => p.id === itemSelecionado?.variacaoProduto.produto.id
+    );
+    if (!produtoOriginal || !itemSelecionado) return [];
+
+    return produtoOriginal.variacoes
+      .filter((v) => v.id !== itemSelecionado.variacaoProduto.id && v.estoque > 0)
+      .sort((a, b) => Number(a.numeracao) - Number(b.numeracao));
+  }, [produtos, itemSelecionado]);
+
+  const variacoesOutroProduto = useMemo(() => {
+    if (!novoProduto) return [];
+    return novoProduto.variacoes
+      .filter((v) => v.estoque > 0)
+      .sort((a, b) => Number(a.numeracao) - Number(b.numeracao));
+  }, [novoProduto]);
+
   if (!venda) return null;
 
   const confirmar = () => {
     if (!itemSelecionado || !novaVariacao) return;
+
     aoConfirmarTroca({
       vendaId: venda.id,
       itemId: itemSelecionado.id,
@@ -33,178 +52,176 @@ export default function TrocaModal({ aberto, venda, aoFechar, aoConfirmarTroca }
     });
   };
 
-  const variacoesDisponiveisMesmoProduto = () => {
-    const produtoOriginal = produtos.find(
-      (p) => p.id === itemSelecionado?.variacaoProduto.produto.id
-    );
-    if (!produtoOriginal) return [];
-    return produtoOriginal.variacoes.filter(
-      (v) =>
-        v.id !== itemSelecionado.variacaoProduto.id &&
-        v.estoque > 0
-    );
-  };
-
-  const variacoesOutroProduto = () => {
-    if (!novoProduto) return [];
-    return novoProduto.variacoes.filter((v) => v.estoque > 0);
-  };
-
   return (
     <Dialog open={aberto} onClose={aoFechar} className="relative z-50">
-      <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
-      <div className="fixed inset-0 flex items-center justify-center p-4">
-        <Dialog.Panel className="bg-white rounded-lg shadow-xl max-w-2xl w-full p-6 relative">
-          <button
-            className="absolute top-3 right-3 text-gray-400 hover:text-gray-700"
-            onClick={aoFechar}
-          >
-            <X size={20} />
-          </button>
-
-          <Dialog.Title className="text-lg font-bold mb-4">
-            Troca de Produto - Venda #{venda.id}
-          </Dialog.Title>
-
-          {/* Passo 1: escolher item */}
-          <div className="mb-6">
-            <h2 className="font-semibold mb-2">Selecione o item a trocar</h2>
-            <ul className="space-y-2">
-              {venda.itens.map((item) => (
-                <li
-                  key={item.id}
-                  className={`p-3 border rounded cursor-pointer ${
-                    itemSelecionado?.id === item.id
-                      ? "bg-blue-100 border-blue-400"
-                      : "hover:bg-gray-50"
-                  }`}
-                  onClick={() => setItemSelecionado(item)}
-                >
-                  {item.variacaoProduto.produto.nome} - {item.variacaoProduto.numeracao} ({item.quantidade}x)
-                </li>
-              ))}
-            </ul>
+      <div className="fixed inset-0 bg-slate-950/50 backdrop-blur-sm" aria-hidden="true" />
+      <div className="fixed inset-0 flex items-center justify-center overflow-y-auto p-3 sm:p-4">
+        <Dialog.Panel className="w-full max-w-3xl overflow-hidden rounded-xl border border-slate-200 bg-white shadow-2xl">
+          <div className="flex items-start justify-between gap-4 border-b border-slate-200 p-5">
+            <div>
+              <Dialog.Title className="flex items-center gap-2 text-xl font-semibold tracking-tight text-slate-950">
+                <RefreshCcw size={20} /> Troca da venda #{venda.id}
+              </Dialog.Title>
+              <p className="mt-1 text-sm text-slate-500">
+                Selecione o item vendido e a nova variação que entrará no lugar.
+              </p>
+            </div>
+            <button
+              className="rounded-lg border border-slate-200 p-2 text-slate-500 hover:bg-slate-50 hover:text-slate-900"
+              onClick={aoFechar}
+            >
+              <X size={18} />
+            </button>
           </div>
 
-          {itemSelecionado && (
-            <>
-              {/* Passo 2: modo troca */}
-              <div className="mb-6">
-                <h2 className="font-semibold mb-2">Tipo de troca</h2>
-                <div className="flex gap-4">
-                  <label>
-                    <input
-                      type="radio"
-                      checked={modoTroca === "mesmo"}
-                      onChange={() => {
+          <div className="max-h-[75vh] overflow-y-auto p-5">
+            <section>
+              <h2 className="text-sm font-semibold text-slate-950">Item a trocar</h2>
+              <div className="mt-3 grid grid-cols-1 gap-2">
+                {venda.itens.map((item) => {
+                  const ativo = itemSelecionado?.id === item.id;
+
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      className={`rounded-lg border p-3 text-left transition ${
+                        ativo
+                          ? "border-slate-900 bg-slate-900 text-white"
+                          : "border-slate-200 text-slate-800 hover:bg-slate-50"
+                      }`}
+                      onClick={() => {
+                        setItemSelecionado(item);
+                        setNovaVariacao(null);
+                        setNovoProduto(null);
                         setModoTroca("mesmo");
+                      }}
+                    >
+                      <p className="text-sm font-semibold">{item.variacaoProduto.produto.nome}</p>
+                      <p className={`mt-1 text-xs ${ativo ? "text-slate-200" : "text-slate-500"}`}>
+                        Numeração {item.variacaoProduto.numeracao} • Quantidade {item.quantidade}
+                      </p>
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
+
+            {itemSelecionado && (
+              <section className="mt-5 rounded-lg border border-slate-200 bg-slate-50 p-4">
+                <h2 className="text-sm font-semibold text-slate-950">Tipo de troca</h2>
+                <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  {[
+                    { value: "mesmo", label: "Mesma peça", detail: "Trocar apenas a numeração" },
+                    { value: "outro", label: "Outro produto", detail: "Escolher produto e numeração" },
+                  ].map((opcao) => (
+                    <button
+                      key={opcao.value}
+                      type="button"
+                      onClick={() => {
+                        setModoTroca(opcao.value);
                         setNovoProduto(null);
                         setNovaVariacao(null);
                       }}
-                    />{" "}
-                    Mesma peça (trocar numeração)
-                  </label>
-                  <label>
-                    <input
-                      type="radio"
-                      checked={modoTroca === "outro"}
-                      onChange={() => {
-                        setModoTroca("outro");
-                        setNovaVariacao(null);
-                      }}
-                    />{" "}
-                    Outro produto
-                  </label>
-                </div>
-              </div>
-
-              {/* Passo 3: selecionar nova variação */}
-              {modoTroca === "mesmo" ? (
-                <div className="mb-6">
-                  <h2 className="font-semibold mb-2">Selecione nova numeração</h2>
-                  <select
-                    className="w-full border p-2 rounded"
-                    value={novaVariacao?.id || ""}
-                    onChange={(e) =>
-                      setNovaVariacao(
-                        variacoesDisponiveisMesmoProduto().find(
-                          (v) => v.id === parseInt(e.target.value)
-                        )
-                      )
-                    }
-                  >
-                    <option value="">Selecione...</option>
-                    {variacoesDisponiveisMesmoProduto().map((v) => (
-                      <option key={v.id} value={v.id}>
-                        {v.numeracao} - Estoque: {v.estoque}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              ) : (
-                <>
-                  <div className="mb-4">
-                    <h2 className="font-semibold mb-2">Selecione outro produto</h2>
-                    <select
-                      className="w-full border p-2 rounded"
-                      value={novoProduto?.id || ""}
-                      onChange={(e) => {
-                        const prod = produtos.find(
-                          (p) => p.id === parseInt(e.target.value)
-                        );
-                        setNovoProduto(prod);
-                        setNovaVariacao(null);
-                      }}
+                      className={`rounded-lg border p-3 text-left transition ${
+                        modoTroca === opcao.value
+                          ? "border-slate-900 bg-white text-slate-950 shadow-sm"
+                          : "border-slate-200 bg-slate-50 text-slate-700 hover:bg-white"
+                      }`}
                     >
-                      <option value="">Selecione...</option>
-                      {produtos.map((p) => (
-                        <option key={p.id} value={p.id}>
-                          {p.nome}
+                      <p className="text-sm font-semibold">{opcao.label}</p>
+                      <p className="mt-1 text-xs text-slate-500">{opcao.detail}</p>
+                    </button>
+                  ))}
+                </div>
+
+                {modoTroca === "mesmo" ? (
+                  <div className="mt-4">
+                    <label className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                      Nova numeração
+                    </label>
+                    <select
+                      className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-slate-400"
+                      value={novaVariacao?.id || ""}
+                      onChange={(e) =>
+                        setNovaVariacao(
+                          variacoesMesmoProduto.find((v) => v.id === parseInt(e.target.value))
+                        )
+                      }
+                    >
+                      <option value="">Selecione</option>
+                      {variacoesMesmoProduto.map((v) => (
+                        <option key={v.id} value={v.id}>
+                          {v.numeracao} - Estoque: {v.estoque}
                         </option>
                       ))}
                     </select>
                   </div>
-                  {novoProduto && (
-                    <div className="mb-6">
-                      <h2 className="font-semibold mb-2">Selecione variação</h2>
+                ) : (
+                  <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <label>
+                      <span className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                        Produto
+                      </span>
                       <select
-                        className="w-full border p-2 rounded"
+                        className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-slate-400"
+                        value={novoProduto?.id || ""}
+                        onChange={(e) => {
+                          const prod = produtos.find((p) => p.id === parseInt(e.target.value));
+                          setNovoProduto(prod);
+                          setNovaVariacao(null);
+                        }}
+                      >
+                        <option value="">Selecione</option>
+                        {produtos.map((p) => (
+                          <option key={p.id} value={p.id}>
+                            {p.nome}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+
+                    <label>
+                      <span className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                        Numeração
+                      </span>
+                      <select
+                        className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-slate-400"
                         value={novaVariacao?.id || ""}
+                        disabled={!novoProduto}
                         onChange={(e) =>
                           setNovaVariacao(
-                            variacoesOutroProduto().find(
-                              (v) => v.id === parseInt(e.target.value)
-                            )
+                            variacoesOutroProduto.find((v) => v.id === parseInt(e.target.value))
                           )
                         }
                       >
-                        <option value="">Selecione...</option>
-                        {variacoesOutroProduto().map((v) => (
+                        <option value="">Selecione</option>
+                        {variacoesOutroProduto.map((v) => (
                           <option key={v.id} value={v.id}>
                             {v.numeracao} - Estoque: {v.estoque}
                           </option>
                         ))}
                       </select>
-                    </div>
-                  )}
-                </>
-              )}
-            </>
-          )}
+                    </label>
+                  </div>
+                )}
+              </section>
+            )}
+          </div>
 
-          <div className="flex justify-end gap-2 mt-4">
+          <div className="flex flex-col-reverse gap-3 border-t border-slate-200 bg-white p-5 sm:flex-row sm:justify-end">
             <button
-              className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+              className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
               onClick={aoFechar}
             >
               Cancelar
             </button>
             <button
-              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+              className="rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-slate-700 disabled:opacity-50"
               disabled={!novaVariacao}
               onClick={confirmar}
             >
-              Confirmar Troca
+              Confirmar troca
             </button>
           </div>
         </Dialog.Panel>
