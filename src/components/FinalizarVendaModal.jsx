@@ -1,9 +1,27 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import api from "../services/api";
 import { toast } from "react-toastify";
-import { FaMoneyBillAlt, FaCreditCard, FaPercentage } from "react-icons/fa";
+import { FaCreditCard, FaMoneyBillAlt, FaPercentage, FaTimes } from "react-icons/fa";
 import { SiPix } from "react-icons/si";
 import Select from "react-select";
+
+const formatCurrency = (valor) =>
+  new Intl.NumberFormat("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  }).format(Number(valor || 0));
+
+const selectStyles = {
+  control: (base, state) => ({
+    ...base,
+    minHeight: 42,
+    borderRadius: 8,
+    borderColor: state.isFocused ? "#94a3b8" : "#e2e8f0",
+    boxShadow: "none",
+    "&:hover": { borderColor: "#94a3b8" },
+  }),
+  menu: (base) => ({ ...base, zIndex: 60 }),
+};
 
 export default function FinalizarVendaModal({ carrinho, aoFechar, aoFinalizar }) {
   const [formaPagamento, setFormaPagamento] = useState("dinheiro");
@@ -21,10 +39,14 @@ export default function FinalizarVendaModal({ carrinho, aoFechar, aoFinalizar })
   const [carregando, setCarregando] = useState(false);
 
   const totalProdutos = carrinho.reduce((s, item) => s + item.qtd * item.preco, 0);
-  const totalComEntrega = tipoEntrega === "entrega" ? totalProdutos + Number(taxaEntrega || 0) : totalProdutos;
-  const totalFinal = totalComEntrega - Number(desconto || 0);
+  const valorEntrega = tipoEntrega === "entrega" ? Number(taxaEntrega || 0) : 0;
+  const valorDesconto = Number(desconto || 0);
+  const totalFinal = Math.max(totalProdutos + valorEntrega - valorDesconto, 0);
 
-  const opcoes = clientes.map((c) => ({ value: c.id, label: `${c.nome} (${c.telefone})` }));
+  const opcoes = useMemo(
+    () => clientes.map((c) => ({ value: c.id, label: `${c.nome} (${c.telefone || "sem telefone"})` })),
+    [clientes]
+  );
 
   useEffect(() => {
     carregarClientes();
@@ -33,7 +55,6 @@ export default function FinalizarVendaModal({ carrinho, aoFechar, aoFinalizar })
 
     const listener = (e) => {
       if (e.key === "Escape") aoFechar();
-      if (e.key === "Enter") handleFinalizar();
     };
     window.addEventListener("keydown", listener);
     return () => window.removeEventListener("keydown", listener);
@@ -68,7 +89,9 @@ export default function FinalizarVendaModal({ carrinho, aoFechar, aoFinalizar })
       }
 
       const produtos = carrinho.map((item) => {
-        if (!item.variacaoId) throw new Error(`Produto "${item.nome}" não possui variação selecionada.`);
+        if (!item.variacaoId || String(item.variacaoId).startsWith("manual-")) {
+          throw new Error(`Produto "${item.nome}" não possui variação cadastrada.`);
+        }
         return { variacaoProdutoId: item.variacaoId, quantidade: item.qtd };
       });
 
@@ -77,7 +100,7 @@ export default function FinalizarVendaModal({ carrinho, aoFechar, aoFinalizar })
         total: totalFinal,
         formaPagamento,
         tipoEntrega,
-        taxaEntrega: tipoEntrega === "entrega" ? Number(taxaEntrega) : null,
+        taxaEntrega: tipoEntrega === "entrega" ? Number(taxaEntrega || 0) : null,
         entregador: tipoEntrega === "entrega" ? entregador : null,
         clienteId: clienteId || null,
       });
@@ -94,206 +117,274 @@ export default function FinalizarVendaModal({ carrinho, aoFechar, aoFinalizar })
   }
 
   function formatTelefone(value) {
-    return value.replace(/\D/g, "").replace(/(\d{2})(\d)/, "($1)$2").replace(/(\d{5})(\d{4})$/, "$1-$2").substring(0, 14);
+    return value
+      .replace(/\D/g, "")
+      .replace(/(\d{2})(\d)/, "($1)$2")
+      .replace(/(\d{5})(\d{4})$/, "$1-$2")
+      .substring(0, 14);
   }
 
   const tocarSomVenda = () => {
-  const audio = new Audio('/kaching.mp3');
-  audio.play().catch(err => {
-    console.warn('Falha ao reproduzir som:', err);
-  });
-};
+    const audio = new Audio("/kaching.mp3");
+    audio.play().catch((err) => {
+      console.warn("Falha ao reproduzir som:", err);
+    });
+  };
+
+  const vendaRapida = () => {
+    setFormaPagamento("dinheiro");
+    setTipoEntrega("retirada");
+    setTaxaEntrega("");
+    setEntregador("");
+    setClienteSelecionado("");
+    setClienteNome("");
+    setClienteTelefone("");
+    setEndereco("");
+    setDesconto("");
+  };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black bg-opacity-40 flex items-center justify-center px-2 backdrop-blur-sm">
-      <div id="finalizar-venda-modal" className="relative bg-white p-4 sm:p-6 rounded-2xl w-full max-w-md sm:max-w-lg shadow-xl border border-gray-200 animate-fadeIn overflow-y-auto max-h-[95vh]">
-        <button onClick={aoFechar} className="absolute top-3 right-3 text-gray-500 hover:text-gray-700 text-xl">×</button>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 px-3 py-4 backdrop-blur-sm">
+      <div
+        id="finalizar-venda-modal"
+        className="relative flex max-h-[95vh] w-full max-w-3xl flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-2xl"
+      >
+        <div className="flex items-start justify-between gap-4 border-b border-slate-200 p-5">
+          <div>
+            <h2 className="text-xl font-semibold tracking-tight text-slate-950">Finalizar venda</h2>
+            <p className="mt-1 text-sm text-slate-500">
+              Confira cliente, entrega, pagamento e resumo antes de confirmar.
+            </p>
+          </div>
+          <button
+            onClick={aoFechar}
+            className="rounded-lg border border-slate-200 p-2 text-slate-500 hover:bg-slate-50 hover:text-slate-900"
+            aria-label="Fechar"
+          >
+            <FaTimes />
+          </button>
+        </div>
 
-        <h2 className="text-xl sm:text-2xl font-bold text-blue-700 mb-4 sm:mb-6 border-b pb-2">🧾 Finalizar Venda</h2>
+        <div className="overflow-y-auto p-5">
+          <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_280px]">
+            <div className="space-y-5">
+              <section className="rounded-lg border border-slate-200 p-4">
+                <div className="mb-3 flex items-center justify-between gap-3">
+                  <div>
+                    <h3 className="text-sm font-semibold text-slate-950">Cliente</h3>
+                    <p className="text-sm text-slate-500">Opcional para vendas rápidas.</p>
+                  </div>
+                  <button
+                    onClick={vendaRapida}
+                    className="rounded-lg border border-slate-300 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50"
+                  >
+                    Venda rápida
+                  </button>
+                </div>
 
-        <p className="text-sm text-gray-600 mb-4">Preencha os dados abaixo para concluir a venda com sucesso.</p>
+                {clienteSelecionado ? (
+                  <div className="space-y-3">
+                    <Select
+                      options={opcoes}
+                      styles={selectStyles}
+                      value={opcoes.find((opt) => opt.value === clienteSelecionado)}
+                      onChange={(e) => setClienteSelecionado(e?.value || "")}
+                      placeholder="Buscar ou selecionar cliente"
+                      isClearable
+                    />
+                    <button
+                      onClick={() => {
+                        setClienteSelecionado("");
+                        setClienteNome("");
+                        setClienteTelefone("");
+                      }}
+                      className="text-sm font-medium text-slate-700 hover:text-slate-950"
+                    >
+                      Cadastrar novo cliente
+                    </button>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 gap-3">
+                    {clientes.length > 0 && (
+                      <Select
+                        options={opcoes}
+                        styles={selectStyles}
+                        onChange={(e) => {
+                          const id = e?.value || "";
+                          setClienteSelecionado(id);
+                          if (id) {
+                            const cliente = clientes.find((c) => c.id === id);
+                            if (cliente) setEndereco(cliente.endereco || "");
+                          } else {
+                            setEndereco("");
+                          }
+                        }}
+                        placeholder="Selecionar cliente existente"
+                        isClearable
+                      />
+                    )}
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                      <input
+                        type="text"
+                        placeholder="Nome do novo cliente"
+                        value={clienteNome}
+                        onChange={(e) => setClienteNome(e.target.value)}
+                        className="rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-slate-400"
+                      />
+                      <input
+                        type="text"
+                        placeholder="Telefone"
+                        value={clienteTelefone}
+                        onChange={(e) => setClienteTelefone(formatTelefone(e.target.value))}
+                        className="rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-slate-400"
+                      />
+                    </div>
+                  </div>
+                )}
+              </section>
 
-        <button
-          onClick={() => {
-            setFormaPagamento("dinheiro");
-            setTipoEntrega("retirada");
-            setClienteSelecionado("");
-            setClienteNome("");
-            setClienteTelefone("");
-            setEndereco("");
-          }}
-          className="text-xs text-blue-500 hover:underline mb-4"
-        >
-          💨 Venda rápida (sem cliente, sem entrega)
-        </button>
+              <section className="rounded-lg border border-slate-200 p-4">
+                <h3 className="text-sm font-semibold text-slate-950">Entrega</h3>
+                <div className="mt-3 grid grid-cols-2 gap-2">
+                  {[
+                    { label: "Retirada", value: "retirada" },
+                    { label: "Entrega", value: "entrega" },
+                  ].map((opcao) => (
+                    <button
+                      key={opcao.value}
+                      onClick={() => setTipoEntrega(opcao.value)}
+                      className={`rounded-lg border px-4 py-3 text-sm font-medium transition ${
+                        tipoEntrega === opcao.value
+                          ? "border-slate-900 bg-slate-900 text-white"
+                          : "border-slate-200 text-slate-700 hover:bg-slate-50"
+                      }`}
+                    >
+                      {opcao.label}
+                    </button>
+                  ))}
+                </div>
 
-        {/* Cliente */}
-        <div className="mb-5">
-          <h3 className="font-semibold text-gray-700 mb-2">👤 Cliente</h3>
-          {clienteSelecionado ? (
-            <>
-              <Select
-                options={opcoes}
-                value={opcoes.find((opt) => opt.value === clienteSelecionado)}
-                onChange={(e) => setClienteSelecionado(e?.value || "")}
-                placeholder="Buscar ou selecionar cliente..."
-                isClearable
-              />
-              <p className="text-sm text-gray-500 mt-1">Cliente selecionado. Deseja cadastrar um novo?</p>
-              <button
-                onClick={() => {
-                  setClienteSelecionado("");
-                  setClienteNome("");
-                  setClienteTelefone("");
-                }}
-                className="text-blue-600 hover:underline text-sm mt-1"
-              >
-                ➕ Cadastrar novo cliente
-              </button>
-            </>
-          ) : (
-            <div className="grid grid-cols-1 gap-2">
-              <input
-                type="text"
-                placeholder="Nome do novo cliente"
-                value={clienteNome}
-                onChange={(e) => setClienteNome(e.target.value)}
-                className="w-full border border-gray-300 p-2 rounded-md placeholder:text-sm"
-              />
-              <input
-                type="text"
-                placeholder="Telefone (ex: (99)99999-9999)"
-                value={clienteTelefone}
-                onChange={(e) => setClienteTelefone(formatTelefone(e.target.value))}
-                className="w-full border border-gray-300 p-2 rounded-md placeholder:text-sm"
-              />
-              {clientes.length > 0 && (
-                <Select
-                  options={opcoes}
-                  onChange={(e) => {
-                    const id = e?.value || "";
-                    setClienteSelecionado(id);
-                    if (id) {
-                      const cliente = clientes.find((c) => c.id === id);
-                      if (cliente) setEndereco(cliente.endereco || "");
-                    } else {
-                      setEndereco("");
-                    }
-                  }}
-                  placeholder="Selecionar cliente existente..."
-                  isClearable
+                {tipoEntrega === "entrega" && (
+                  <div className="mt-4 grid grid-cols-1 gap-3">
+                    <textarea
+                      rows={2}
+                      value={endereco}
+                      onChange={(e) => setEndereco(e.target.value)}
+                      placeholder="Endereço de entrega"
+                      className="rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-slate-400"
+                    />
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                      <input
+                        type="number"
+                        placeholder="Taxa de entrega"
+                        value={taxaEntrega}
+                        onChange={(e) => setTaxaEntrega(e.target.value)}
+                        className="rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-slate-400"
+                      />
+                      <input
+                        type="text"
+                        placeholder="Nome do entregador"
+                        value={entregador}
+                        onChange={(e) => setEntregador(e.target.value)}
+                        className="rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-slate-400"
+                      />
+                    </div>
+                  </div>
+                )}
+              </section>
+
+              <section className="rounded-lg border border-slate-200 p-4">
+                <h3 className="text-sm font-semibold text-slate-950">Pagamento</h3>
+                <div className="mt-3 grid grid-cols-3 gap-2">
+                  {[
+                    { value: "pix", label: "Pix", icon: <SiPix /> },
+                    { value: "dinheiro", label: "Dinheiro", icon: <FaMoneyBillAlt /> },
+                    { value: "cartao", label: "Cartão", icon: <FaCreditCard /> },
+                  ].map((opcao) => (
+                    <button
+                      key={opcao.value}
+                      onClick={() => setFormaPagamento(opcao.value)}
+                      className={`flex flex-col items-center justify-center gap-1 rounded-lg border px-2 py-3 text-xs font-medium transition ${
+                        formaPagamento === opcao.value
+                          ? "border-slate-900 bg-slate-900 text-white"
+                          : "border-slate-200 text-slate-700 hover:bg-slate-50"
+                      }`}
+                    >
+                      <span className="text-lg">{opcao.icon}</span>
+                      {opcao.label}
+                    </button>
+                  ))}
+                </div>
+              </section>
+
+              <section className="rounded-lg border border-slate-200 p-4">
+                <label className="flex items-center gap-2 text-sm font-semibold text-slate-950">
+                  <FaPercentage /> Desconto
+                </label>
+                <input
+                  type="number"
+                  placeholder="Ex: 5.00"
+                  value={desconto}
+                  onChange={(e) => setDesconto(e.target.value)}
+                  className="mt-3 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-slate-400"
                 />
-              )}
+              </section>
             </div>
-          )}
-        </div>
 
-        {/* Entrega */}
-        <div className="mb-5">
-          <h3 className="font-semibold text-gray-700 mb-2">🚚 Tipo de Entrega</h3>
-          <div className="flex gap-3 flex-col sm:flex-row">
-            {[{ label: "🏪 Retirada", value: "retirada" }, { label: "🏍️ Entrega", value: "entrega" }].map((opcao) => (
-              <button
-                key={opcao.value}
-                onClick={() => setTipoEntrega(opcao.value)}
-                className={`flex-1 py-3 px-4 rounded-lg border font-medium text-sm text-center transition ${
-                  tipoEntrega === opcao.value
-                    ? "bg-blue-600 text-white border-blue-600 shadow-md"
-                    : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
-                }`}
-              >
-                {opcao.label}
-              </button>
-            ))}
-          </div>
+            <aside className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+              <h3 className="text-sm font-semibold text-slate-950">Resumo</h3>
+              <div className="mt-4 max-h-56 space-y-3 overflow-auto">
+                {carrinho.map((item, index) => (
+                  <div key={`${item.produtoId}-${item.variacaoId}-${index}`} className="text-sm">
+                    <div className="flex justify-between gap-3">
+                      <span className="min-w-0 truncate text-slate-700">
+                        {item.nome} {item.numeracao ? `(Tam. ${item.numeracao})` : ""}
+                      </span>
+                      <span className="shrink-0 font-medium text-slate-900">
+                        {formatCurrency(item.preco * item.qtd)}
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-500">Qtd. {item.qtd}</p>
+                  </div>
+                ))}
+              </div>
 
-          {tipoEntrega === "entrega" && (
-            <div className="mt-4 space-y-4 animate-fadeIn">
-              <textarea
-                rows={2}
-                value={endereco}
-                onChange={(e) => setEndereco(e.target.value)}
-                placeholder="📍 Endereço de entrega"
-                className="w-full border border-gray-300 p-2 rounded-md text-sm"
-              />
-              <input
-                type="number"
-                placeholder="💰 Taxa de entrega (R$)"
-                value={taxaEntrega}
-                onChange={(e) => setTaxaEntrega(e.target.value)}
-                className="w-full border border-gray-300 p-2 rounded-md placeholder:text-sm"
-              />
-              <input
-                type="text"
-                placeholder="👤 Nome do entregador"
-                value={entregador}
-                onChange={(e) => setEntregador(e.target.value)}
-                className="w-full border border-gray-300 p-2 rounded-md placeholder:text-sm"
-              />
-            </div>
-          )}
-        </div>
-
-        {/* Pagamento */}
-        <div className="mb-5">
-          <h3 className="font-semibold text-gray-700 mb-2">💰 Forma de Pagamento</h3>
-          <div className="grid grid-cols-3 sm:grid-cols-3 gap-2">
-            {[
-              { value: "pix", label: "Pix", icon: <SiPix /> },
-              { value: "dinheiro", label: "Dinheiro", icon: <FaMoneyBillAlt /> },
-              { value: "cartao", label: "Cartão", icon: <FaCreditCard /> },
-            ].map((opcao) => (
-              <button
-                key={opcao.value}
-                onClick={() => setFormaPagamento(opcao.value)}
-                className={`flex flex-col items-center justify-center py-3 px-2 rounded-lg border text-xs font-medium transition-all ${
-                  formaPagamento === opcao.value
-                    ? "bg-blue-100 border-blue-600 text-blue-800"
-                    : "bg-white border-gray-300 text-gray-600 hover:bg-gray-100"
-                }`}
-              >
-                <div className="text-lg">{opcao.icon}</div>
-                {opcao.label}
-              </button>
-            ))}
+              <div className="mt-5 space-y-2 border-t border-slate-200 pt-4 text-sm">
+                <div className="flex justify-between text-slate-600">
+                  <span>Produtos</span>
+                  <span>{formatCurrency(totalProdutos)}</span>
+                </div>
+                <div className="flex justify-between text-slate-600">
+                  <span>Entrega</span>
+                  <span>{formatCurrency(valorEntrega)}</span>
+                </div>
+                <div className="flex justify-between text-slate-600">
+                  <span>Desconto</span>
+                  <span>- {formatCurrency(valorDesconto)}</span>
+                </div>
+                <div className="flex justify-between border-t border-slate-200 pt-3 text-lg font-semibold text-slate-950">
+                  <span>Total</span>
+                  <span>{formatCurrency(totalFinal)}</span>
+                </div>
+              </div>
+            </aside>
           </div>
         </div>
 
-        {/* Desconto */}
-        <div className="mb-5">
-          <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-            <FaPercentage /> Desconto (R$)
-          </label>
-          <input
-            type="number"
-            placeholder="Ex: 5.00"
-            value={desconto}
-            onChange={(e) => setDesconto(e.target.value)}
-            className="w-full border border-gray-300 p-2 rounded-md placeholder:text-sm mt-1"
-          />
-        </div>
-
-        {/* Total + Ações */}
-        <div className="sticky bottom-0 bg-white pt-3 pb-5 mt-5 border-t">
-          <div className="flex justify-between items-center text-lg font-bold mb-3">
-            <span>Total:</span>
-            <span className="text-green-600">R$ {totalFinal.toFixed(2)}</span>
-          </div>
-          <div className="flex flex-col sm:flex-row justify-end gap-3">
-            <button
-              onClick={aoFechar}
-              className="w-full sm:w-auto px-4 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-100 transition"
-            >
-              Cancelar
-            </button>
-            <button
-              onClick={handleFinalizar}
-              disabled={carregando}
-              className="w-full sm:w-auto px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 shadow transition active:scale-95"
-            >
-              {carregando ? "Processando..." : "Confirmar Venda"}
-            </button>
-          </div>
+        <div className="flex flex-col-reverse gap-3 border-t border-slate-200 bg-white p-5 sm:flex-row sm:justify-end">
+          <button
+            onClick={aoFechar}
+            className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={handleFinalizar}
+            disabled={carregando}
+            className="rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-slate-700 disabled:opacity-60"
+          >
+            {carregando ? "Processando..." : "Confirmar venda"}
+          </button>
         </div>
       </div>
     </div>
