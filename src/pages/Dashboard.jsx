@@ -29,6 +29,25 @@ const periodos = [
   { value: "tudo", label: "Todo o período" },
 ];
 
+const calcularLucroVenda = (venda) => {
+  const desconto = Number(venda.desconto || 0);
+  const subtotalItens = venda.itens.reduce((soma, item) => {
+    const produto = item.variacaoProduto?.produto;
+    const preco = Number(item.precoUnitario ?? produto?.preco ?? 0);
+    return soma + preco * item.quantidade;
+  }, 0);
+  const subtotalProdutos = Number(venda.subtotalProdutos ?? subtotalItens);
+  const receitaProdutos = Math.max(subtotalProdutos - desconto, 0);
+  const custoProdutos = venda.itens.reduce((soma, item) => {
+    const produto = item.variacaoProduto?.produto;
+    const custoUnitario = Number(item.custoUnitario ?? produto?.custoUnitario ?? 0);
+    const outrosCustos = Number(item.outrosCustos ?? produto?.outrosCustos ?? 0);
+    return soma + (custoUnitario + outrosCustos) * item.quantidade;
+  }, 0);
+
+  return receitaProdutos - custoProdutos;
+};
+
 export default function Dashboard() {
   const [vendas, setVendas] = useState([]);
   const [produtosCriticos, setProdutosCriticos] = useState([]);
@@ -128,17 +147,10 @@ export default function Dashboard() {
     );
     const ticket = vendasPeriodo.length ? totalPeriodo / vendasPeriodo.length : 0;
 
-    let lucroTotal = 0;
-    vendasPeriodo.forEach((venda) => {
-      venda.itens.forEach((item) => {
-        const produto = item.variacaoProduto?.produto;
-        if (produto) {
-          const lucroUnitario =
-            produto.preco - produto.custoUnitario - produto.outrosCustos;
-          lucroTotal += lucroUnitario * item.quantidade;
-        }
-      });
-    });
+    const lucroTotal = vendasPeriodo.reduce(
+      (soma, venda) => soma + calcularLucroVenda(venda),
+      0
+    );
 
     const clientes = new Set(vendasPeriodo.map((v) => v.clienteId).filter(Boolean));
     const clientesAtendidosPeriodo = clientes.size;
@@ -203,17 +215,10 @@ export default function Dashboard() {
       ? totalPeriodoAnterior / vendasPeriodoAnterior.length
       : 0;
 
-    let lucroPeriodoAnterior = 0;
-    vendasPeriodoAnterior.forEach((venda) => {
-      venda.itens.forEach((item) => {
-        const produto = item.variacaoProduto?.produto;
-        if (produto) {
-          const lucroUnitario =
-            produto.preco - produto.custoUnitario - produto.outrosCustos;
-          lucroPeriodoAnterior += lucroUnitario * item.quantidade;
-        }
-      });
-    });
+    const lucroPeriodoAnterior = vendasPeriodoAnterior.reduce(
+      (soma, venda) => soma + calcularLucroVenda(venda),
+      0
+    );
 
     const clientesPeriodoAnterior = new Set(
       vendasPeriodoAnterior.map((v) => v.clienteId).filter(Boolean)
@@ -367,7 +372,7 @@ export default function Dashboard() {
           icon={<FaReceipt />}
         />
         <MetricCard
-          titulo="Lucro Estimado"
+          titulo="Lucro Real"
           valor={lucro}
           isCurrency
           variacao={calcVariacao(lucro, lucroAnterior)}

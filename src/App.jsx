@@ -11,6 +11,8 @@ import MobileHome from "./pages/MobileHome";
 import BuscarProdutos from "./pages/BuscarProdutos";
 import Metas from "./pages/Metas";
 import Pedidos from "./pages/Pedidos";
+import RelatorioLucro from "./pages/RelatorioLucro";
+import EntradaEstoque from "./pages/EntradaEstoque";
 
 // Toastify
 import { ToastContainer } from "react-toastify";
@@ -44,6 +46,10 @@ function AppWrapper() {
         return <Metas />;
       case "pedidos":
         return <Pedidos />;
+      case "lucro":
+        return <RelatorioLucro />;
+      case "entradas":
+        return <EntradaEstoque />;
       default:
         return <Dashboard />;
     }

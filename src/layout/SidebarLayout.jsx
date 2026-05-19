@@ -7,6 +7,8 @@ import {
   FaUsers,
   FaSearch,
   FaBox,
+  FaChartLine,
+  FaPlusSquare,
 } from "react-icons/fa";
 
 export default function SidebarLayout({ children, setTela }) {
@@ -30,6 +32,8 @@ export default function SidebarLayout({ children, setTela }) {
     { key: "vendas", label: "Nova Venda", icon: FaCashRegister },
     { key: "estoque", label: "Estoque", icon: FaBoxOpen },
     { key: "historico", label: "Vendas", icon: FaClipboardList },
+    { key: "lucro", label: "Lucro", icon: FaChartLine },
+    { key: "entradas", label: "Entradas", icon: FaPlusSquare },
     { key: "clientes", label: "Clientes", icon: FaUsers, desktopOnly: true },
     { key: "produtos", label: "Consultar", icon: FaSearch },
     { key: "pedidos", label: "Pedidos", icon: FaBox }

@@ -98,10 +98,13 @@ export default function FinalizarVendaModal({ carrinho, aoFechar, aoFinalizar })
       await api.post("/vendas", {
         produtos,
         total: totalFinal,
+        subtotalProdutos: totalProdutos,
+        desconto: valorDesconto,
         formaPagamento,
         tipoEntrega,
         taxaEntrega: tipoEntrega === "entrega" ? Number(taxaEntrega || 0) : null,
         entregador: tipoEntrega === "entrega" ? entregador : null,
+        endereco: tipoEntrega === "entrega" ? endereco.trim() || null : null,
         clienteId: clienteId || null,
       });
 
