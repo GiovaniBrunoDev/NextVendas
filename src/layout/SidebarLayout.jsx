@@ -151,7 +151,7 @@ export default function SidebarLayout({ children, setTela }) {
 
   const renderBottomNav = () => (
     <>
-      <div className="fixed bottom-4 left-0 right-0 z-50 mx-3 flex justify-around rounded-lg border border-white/10 bg-[#181F24] py-1.5 text-white shadow-xl">
+      <div className="fixed inset-x-3 bottom-4 z-50 flex max-w-[calc(100vw-1.5rem)] justify-around rounded-lg border border-white/10 bg-[#181F24] py-1.5 text-white shadow-xl">
         {itensMobile.map(({ key, label, icon: Icon }) => (
             <button
             key={key}
@@ -170,7 +170,7 @@ export default function SidebarLayout({ children, setTela }) {
   );
 
   return (
-    <div className="lojia-shell flex min-h-screen flex-col pb-20 md:flex-row md:pb-0">
+    <div className="lojia-shell flex min-h-screen w-full min-w-0 flex-col overflow-x-hidden pb-20 md:flex-row md:pb-0">
       {!isMobile && (
         <aside className="lojia-gradient flex w-72 shrink-0 flex-col overflow-hidden p-4 text-white shadow-[18px_0_42px_rgba(36,48,43,0.12)] md:sticky md:top-0 md:h-screen">
           <div className="mb-4 shrink-0 px-1">
@@ -205,7 +205,7 @@ export default function SidebarLayout({ children, setTela }) {
         </aside>
       )}
 
-      <main className="flex-1 overflow-y-auto bg-transparent p-4 md:p-6">{children}</main>
+      <main className="min-w-0 flex-1 overflow-x-hidden overflow-y-auto bg-transparent p-3 sm:p-4 md:p-6">{children}</main>
       {isMobile && renderBottomNav()}
     </div>
   );

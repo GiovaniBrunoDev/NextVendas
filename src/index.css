@@ -21,12 +21,28 @@
 }
 
 @layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
   html {
     background: var(--lojia-cream);
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+    overscroll-behavior-x: none;
   }
 
   body {
     margin: 0;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    min-height: 100dvh;
+    overflow-x: hidden;
+    overscroll-behavior-x: none;
     background:
       radial-gradient(circle at 16% 4%, rgba(22, 163, 107, 0.08), transparent 26%),
       linear-gradient(180deg, #fffefa 0%, var(--lojia-cream) 64%);
@@ -40,6 +56,20 @@
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+  }
+
+  #root {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  img,
+  svg,
+  video,
+  canvas {
+    max-width: 100%;
   }
 
   h1,
@@ -89,9 +119,21 @@
   }
 }
 
+@supports (overflow: clip) {
+  html,
+  body,
+  #root {
+    overflow-x: clip;
+  }
+}
+
 @layer components {
   .lojia-shell {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
     min-height: 100vh;
+    overflow-x: hidden;
     background:
       radial-gradient(circle at top left, rgba(22, 163, 107, 0.09), transparent 28rem),
       linear-gradient(180deg, #fffefa 0%, var(--lojia-cream) 72%);
@@ -210,6 +252,7 @@
   }
 
   .lojia-table-surface {
+    max-width: 100%;
     overflow: hidden;
     border: 1px solid #e2e8f0;
     border-radius: 8px;
@@ -217,7 +260,11 @@
   }
 
   .lojia-page {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
     min-height: 100vh;
+    overflow-x: hidden;
     background:
       radial-gradient(circle at 12% 0%, rgba(22, 163, 107, 0.09), transparent 24rem),
       radial-gradient(circle at 96% 8%, rgba(15, 93, 99, 0.08), transparent 22rem),
