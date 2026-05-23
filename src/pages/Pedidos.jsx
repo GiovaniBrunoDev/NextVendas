@@ -5,17 +5,20 @@ import { toast } from "react-toastify";
 import {
   AlertTriangle,
   CalendarDays,
-  Check,
+  CheckCircle2,
   Clock3,
   MapPin,
   PackageCheck,
+  PackageX,
+  ReceiptText,
+  RefreshCw,
   Search,
   ShoppingBag,
   Timer,
-  Trash2,
   Truck,
   UserRound,
 } from "lucide-react";
+import ReciboModal from "../components/ReciboModal";
 
 function moeda(valor) {
   return Number(valor || 0).toLocaleString("pt-BR", {
@@ -45,15 +48,26 @@ function formatarData(value) {
   });
 }
 
-function statusVisual(status) {
+function statusInfo(status) {
   const map = {
-    agendado: "border-amber-200 bg-amber-50 text-amber-700",
-    reservado: "border-cyan-200 bg-cyan-50 text-cyan-700",
-    confirmado: "border-emerald-200 bg-emerald-50 text-emerald-700",
-    cancelado: "border-rose-200 bg-rose-50 text-rose-700",
+    agendado: { label: "Agendado", dotClass: "bg-amber-500" },
+    reservado: { label: "Reservado", dotClass: "bg-emerald-500" },
+    confirmado: { label: "Confirmado", dotClass: "bg-slate-500" },
+    cancelado: { label: "Cancelado", dotClass: "bg-rose-500" },
   };
 
-  return map[status] || "border-emerald-200 bg-emerald-50 text-emerald-700";
+  return map[status] || map.reservado;
+}
+
+function grupoInfo(grupo) {
+  const map = {
+    hoje: { label: "Hoje", icon: Timer },
+    atrasados: { label: "Atrasado", icon: AlertTriangle },
+    futuros: { label: "Futuro", icon: CalendarDays },
+    semData: { label: "Sem data", icon: Clock3 },
+  };
+
+  return map[grupo] || map.semData;
 }
 
 export default function Pedidos() {
@@ -62,6 +76,7 @@ export default function Pedidos() {
   const [pedidoProcessando, setPedidoProcessando] = useState(null);
   const [filtro, setFiltro] = useState("todos");
   const [busca, setBusca] = useState("");
+  const [recibo, setRecibo] = useState(null);
 
   const carregarPedidos = async () => {
     try {
@@ -78,9 +93,10 @@ export default function Pedidos() {
   const confirmarPedido = async (id) => {
     try {
       setPedidoProcessando(id);
-      await api.post(`/pedidos/${id}/confirmar`);
+      const { data } = await api.post(`/pedidos/${id}/confirmar`);
       toast.success(`Pedido #${id} lancado como venda.`);
       await carregarPedidos();
+      if (data?.venda) setRecibo({ tipo: "venda", registro: data.venda });
     } catch (err) {
       console.error(err);
       toast.error(err.response?.data?.error || "Erro ao confirmar pedido.");
@@ -127,14 +143,15 @@ export default function Pedidos() {
   );
 
   const resumo = useMemo(() => {
-    const total = pedidosComGrupo.reduce((soma, pedido) => soma + Number(pedido.total || 0), 0);
-    const entregas = pedidosComGrupo.filter((pedido) => pedido.tipoEntrega === "entrega").length;
+    const ativos = pedidosComGrupo.filter((pedido) => pedido.status !== "cancelado");
+    const valorReservado = ativos.reduce((soma, pedido) => soma + Number(pedido.total || 0), 0);
+    const entregas = ativos.filter((pedido) => pedido.tipoEntrega === "entrega").length;
 
     return {
-      totalPedidos: pedidosComGrupo.length,
-      valorReservado: total,
-      hoje: pedidosComGrupo.filter((pedido) => pedido.grupo === "hoje").length,
-      atrasados: pedidosComGrupo.filter((pedido) => pedido.grupo === "atrasados").length,
+      totalPedidos: ativos.length,
+      valorReservado,
+      hoje: ativos.filter((pedido) => pedido.grupo === "hoje").length,
+      atrasados: ativos.filter((pedido) => pedido.grupo === "atrasados").length,
       entregas,
     };
   }, [pedidosComGrupo]);
@@ -146,13 +163,13 @@ export default function Pedidos() {
     {
       id: "futuros",
       label: "Futuros",
-      count: pedidosComGrupo.filter((pedido) => pedido.grupo === "futuros").length,
+      count: pedidosComGrupo.filter((pedido) => pedido.status !== "cancelado" && pedido.grupo === "futuros").length,
       icon: CalendarDays,
     },
     {
       id: "semData",
       label: "Sem data",
-      count: pedidosComGrupo.filter((pedido) => pedido.grupo === "semData").length,
+      count: pedidosComGrupo.filter((pedido) => pedido.status !== "cancelado" && pedido.grupo === "semData").length,
       icon: Clock3,
     },
   ];
@@ -161,6 +178,8 @@ export default function Pedidos() {
     const texto = busca.trim().toLowerCase();
 
     return pedidosComGrupo.filter((pedido) => {
+      if (pedido.status === "cancelado" && filtro !== "todos") return false;
+
       const bateFiltro = filtro === "todos" || pedido.grupo === filtro;
       const itensTexto = pedido.itens
         ?.map((item) => `${item.variacaoProduto?.produto?.nome || ""} ${item.variacaoProduto?.numeracao || ""}`)
@@ -170,6 +189,7 @@ export default function Pedidos() {
         !texto ||
         String(pedido.id).includes(texto) ||
         pedido.cliente?.nome?.toLowerCase().includes(texto) ||
+        pedido.cliente?.telefone?.toLowerCase().includes(texto) ||
         itensTexto?.includes(texto);
 
       return bateFiltro && bateBusca;
@@ -178,96 +198,121 @@ export default function Pedidos() {
 
   const CardPedido = ({ pedido }) => {
     const processando = pedidoProcessando === pedido.id;
-    const podeFinalizar = ["reservado", "agendado", "confirmado"].includes(pedido.status);
+    const cancelado = pedido.status === "cancelado";
+    const podeFinalizar = !cancelado && ["reservado", "agendado", "confirmado"].includes(pedido.status);
     const itens = pedido.itens || [];
     const quantidadeItens = itens.reduce((soma, item) => soma + Number(item.quantidade || 0), 0);
-    const primeiroItem = itens[0];
-    const demaisItens = Math.max(itens.length - 1, 0);
+    const status = statusInfo(pedido.status);
+    const grupo = grupoInfo(pedido.grupo);
+    const GrupoIcon = grupo.icon;
 
     return (
       <motion.article
-        className="rounded-lg border border-zinc-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
-        initial={{ opacity: 0, y: 14 }}
+        className="lojia-surface overflow-hidden transition hover:-translate-y-0.5 hover:shadow-[0_18px_38px_rgba(36,48,43,0.1)]"
+        initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
       >
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <p className="text-xs font-semibold uppercase text-zinc-400">Pedido</p>
-            <h3 className="text-xl font-black text-zinc-900">#{pedido.id}</h3>
+        <div className="border-b border-slate-200 p-4">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-xs font-medium uppercase text-slate-500">Pedido #{pedido.id}</p>
+              <h3 className="mt-1 truncate text-lg font-semibold text-slate-950">
+                {pedido.cliente?.nome || "Cliente nao informado"}
+              </h3>
+              {pedido.cliente?.telefone && (
+                <p className="mt-1 text-xs text-slate-500">{pedido.cliente.telefone}</p>
+              )}
+            </div>
+
+            <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-600">
+              <span className={`h-1.5 w-1.5 rounded-full ${status.dotClass}`} />
+              {status.label}
+            </span>
           </div>
-          <span
-            className={`rounded-full border px-2.5 py-1 text-xs font-bold capitalize ${statusVisual(
-              pedido.status
-            )}`}
-          >
-            {pedido.status}
-          </span>
         </div>
 
-        <div className="mt-4 space-y-2 text-sm text-zinc-700">
-          <p className="flex items-center gap-2">
-            <UserRound size={16} className="text-emerald-600" />
-            <span className="font-semibold text-zinc-900">
-              {pedido.cliente?.nome || "Cliente nao informado"}
-            </span>
-          </p>
-          <p className="flex items-center gap-2">
-            <CalendarDays size={16} className="text-amber-600" />
-            <span>
-              {formatarData(pedido.dataEntrega)}
-              {pedido.horarioEntrega ? `, ${pedido.horarioEntrega}` : ""}
-            </span>
-          </p>
-          <p className="flex items-center gap-2">
-            {pedido.tipoEntrega === "entrega" ? (
-              <Truck size={16} className="text-cyan-700" />
-            ) : (
-              <MapPin size={16} className="text-zinc-500" />
-            )}
-            <span className="capitalize">{pedido.tipoEntrega || "retirada"}</span>
-          </p>
+        <div className="p-4">
+          <div className="grid gap-3 text-sm sm:grid-cols-2">
+            <div>
+              <p className="flex items-center gap-2 text-xs font-medium uppercase text-slate-500">
+                <CalendarDays size={14} /> Agenda
+              </p>
+              <p className="mt-1 font-medium text-slate-950">
+                {formatarData(pedido.dataEntrega)}
+                {pedido.horarioEntrega ? `, ${pedido.horarioEntrega}` : ""}
+              </p>
+            </div>
+
+            <div>
+              <p className="flex items-center gap-2 text-xs font-medium uppercase text-slate-500">
+                <GrupoIcon size={14} /> {grupo.label}
+              </p>
+              <p className="mt-1 flex items-center gap-2 font-medium capitalize text-slate-950">
+                {pedido.tipoEntrega === "entrega" ? <Truck size={15} /> : <MapPin size={15} />}
+                {pedido.tipoEntrega || "retirada"}
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-4 rounded-lg border border-slate-200">
+            <div className="flex items-center justify-between border-b border-slate-200 px-3 py-2">
+              <p className="text-xs font-medium uppercase text-slate-500">Itens reservados</p>
+              <span className="text-xs font-medium text-slate-500">{quantidadeItens} un.</span>
+            </div>
+            <div className="divide-y divide-slate-100">
+              {itens.slice(0, 3).map((item) => (
+                <div key={item.id || `${pedido.id}-${item.variacaoProdutoId}`} className="px-3 py-2.5">
+                  <p className="truncate text-sm font-medium text-slate-950">
+                    {item.variacaoProduto?.produto?.nome || "Produto"}
+                  </p>
+                  <p className="mt-0.5 text-xs text-slate-500">
+                    Tam. {item.variacaoProduto?.numeracao || "-"} x {item.quantidade} | {moeda(item.precoUnitario)}
+                  </p>
+                </div>
+              ))}
+              {itens.length > 3 && (
+                <p className="px-3 py-2 text-xs font-medium text-slate-500">+{itens.length - 3} item(ns)</p>
+              )}
+              {itens.length === 0 && <p className="px-3 py-3 text-sm text-slate-500">Sem itens vinculados.</p>}
+            </div>
+          </div>
+
+          {pedido.observacoes && (
+            <p className="mt-3 line-clamp-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-600">
+              {pedido.observacoes}
+            </p>
+          )}
         </div>
 
-        <div className="mt-4 rounded-md bg-zinc-50 px-3 py-3">
-          <p className="text-sm font-semibold text-zinc-900">
-            {primeiroItem
-              ? `${primeiroItem.variacaoProduto?.produto?.nome || "Produto"} tam. ${
-                  primeiroItem.variacaoProduto?.numeracao || "-"
-                }`
-              : "Sem itens"}
-          </p>
-          <p className="mt-1 text-xs text-zinc-500">
-            {quantidadeItens} un.
-            {demaisItens > 0 ? ` | +${demaisItens} item(ns)` : ""}
-          </p>
-        </div>
-
-        {pedido.observacoes && (
-          <p className="mt-3 line-clamp-2 text-sm text-zinc-500">{pedido.observacoes}</p>
-        )}
-
-        <div className="mt-5 flex items-center justify-between gap-3">
+        <div className="flex flex-col gap-3 border-t border-slate-200 p-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-xs font-semibold uppercase text-zinc-400">Total</p>
-            <p className="text-lg font-black text-emerald-700">{moeda(pedido.total)}</p>
+            <p className="text-xs font-medium uppercase text-slate-500">Total</p>
+            <p className="text-xl font-semibold text-slate-950">{moeda(pedido.total)}</p>
           </div>
 
           <div className="flex gap-2">
             <button
+              onClick={() => setRecibo({ tipo: "pedido", registro: pedido })}
+              title="Gerar recibo"
+              className="lojia-ghost-action inline-flex items-center justify-center px-3 py-2 text-slate-600"
+            >
+              <ReceiptText size={16} />
+            </button>
+            <button
               onClick={() => confirmarPedido(pedido.id)}
               disabled={processando || !podeFinalizar}
-              title="Confirmar e lancar como venda"
-              className="inline-flex h-10 w-10 items-center justify-center rounded-md bg-emerald-600 text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
+              className="lojia-primary-action inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-50"
             >
-              <Check size={18} />
+              <CheckCircle2 size={16} />
+              Confirmar venda
             </button>
             <button
               onClick={() => cancelarPedido(pedido.id)}
-              disabled={processando}
+              disabled={processando || cancelado}
               title="Cancelar pedido"
-              className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-rose-200 bg-rose-50 text-rose-700 transition hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-60"
+              className="lojia-ghost-action inline-flex items-center justify-center px-3 py-2 text-slate-600 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              <Trash2 size={18} />
+              <PackageX size={16} />
             </button>
           </div>
         </div>
@@ -277,99 +322,109 @@ export default function Pedidos() {
 
   if (loading) {
     return (
-      <div className="flex h-[70vh] items-center justify-center bg-stone-50">
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ repeat: Infinity, duration: 1 }}
-          className="h-12 w-12 rounded-full border-4 border-zinc-200 border-t-emerald-600"
-        />
+      <div className="flex h-screen flex-col items-center justify-center bg-slate-50">
+        <div className="relative h-14 w-14">
+          <div className="absolute inset-0 rounded-full border-4 border-slate-200"></div>
+          <div className="absolute inset-0 animate-spin rounded-full border-4 border-transparent border-r-slate-500 border-t-slate-700"></div>
+        </div>
+        <p className="mt-5 text-sm font-medium text-slate-600">Carregando pedidos...</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-stone-50 px-4 py-6 text-zinc-900 sm:px-6">
-      <header className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+    <div className="lojia-page min-h-screen p-4 sm:p-6">
+      <div className="lojia-hero-panel mb-6 flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-bold uppercase text-emerald-700">
-            <PackageCheck size={14} /> Reservas de estoque
-          </div>
-          <h2 className="text-3xl font-black text-zinc-950">Pedidos</h2>
+          <p className="text-xs font-medium uppercase text-white/62">Operacao</p>
+          <h1 className="mt-1 text-2xl font-semibold text-white">Pedidos</h1>
+          <p className="mt-1 text-sm text-white/68">
+            Acompanhe reservas de estoque, entregas e pedidos prontos para virar venda.
+          </p>
         </div>
-
-        <div className="grid gap-3 sm:grid-cols-3 lg:min-w-[520px]">
-          <div className="rounded-lg border border-zinc-200 bg-white px-4 py-3">
-            <p className="text-xs font-semibold uppercase text-zinc-400">Abertos</p>
-            <p className="text-2xl font-black">{resumo.totalPedidos}</p>
-          </div>
-          <div className="rounded-lg border border-zinc-200 bg-white px-4 py-3">
-            <p className="text-xs font-semibold uppercase text-zinc-400">Reservado</p>
-            <p className="text-2xl font-black text-emerald-700">{moeda(resumo.valorReservado)}</p>
-          </div>
-          <div className="rounded-lg border border-zinc-200 bg-white px-4 py-3">
-            <p className="text-xs font-semibold uppercase text-zinc-400">Entregas</p>
-            <p className="text-2xl font-black text-cyan-700">{resumo.entregas}</p>
-          </div>
-        </div>
-      </header>
-
-      <div className="mb-5 grid gap-3 lg:grid-cols-[1fr_320px]">
-        <div className="flex gap-2 overflow-x-auto pb-1">
-          {filtros.map((item) => {
-            const Icon = item.icon;
-            const ativo = filtro === item.id;
-
-            return (
-              <button
-                key={item.id}
-                onClick={() => setFiltro(item.id)}
-                className={`flex min-w-max items-center gap-2 rounded-md border px-3 py-2 text-sm font-bold transition ${
-                  ativo
-                    ? "border-zinc-900 bg-zinc-900 text-white"
-                    : "border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-100"
-                }`}
-              >
-                <Icon size={16} />
-                {item.label}
-                <span
-                  className={`rounded-full px-2 py-0.5 text-xs ${
-                    ativo ? "bg-white/15 text-white" : "bg-zinc-100 text-zinc-500"
-                  }`}
-                >
-                  {item.count}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-
-        <label className="relative block">
-          <Search
-            size={17}
-            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400"
-          />
-          <input
-            value={busca}
-            onChange={(e) => setBusca(e.target.value)}
-            placeholder="Buscar pedido, cliente ou produto"
-            className="h-10 w-full rounded-md border border-zinc-200 bg-white pl-9 pr-3 text-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
-          />
-        </label>
+        <button
+          onClick={carregarPedidos}
+          className="inline-flex items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/[0.08] px-3 py-2 text-sm font-medium text-white hover:bg-white/[0.14]"
+        >
+          <RefreshCw size={16} />
+          Atualizar
+        </button>
       </div>
 
-      {pedidosFiltrados.length === 0 ? (
-        <div className="flex min-h-[280px] flex-col items-center justify-center rounded-lg border border-dashed border-zinc-300 bg-white px-6 text-center">
-          <ShoppingBag size={34} className="mb-3 text-zinc-300" />
-          <p className="text-lg font-bold text-zinc-800">Nenhum pedido encontrado</p>
-          <p className="mt-1 text-sm text-zinc-500">Ajuste o filtro ou a busca.</p>
+      <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-5">
+        {[
+          { label: "Ativos", value: resumo.totalPedidos },
+          { label: "Reservado", value: moeda(resumo.valorReservado) },
+          { label: "Hoje", value: resumo.hoje },
+          { label: "Atrasados", value: resumo.atrasados },
+          { label: "Entregas", value: resumo.entregas },
+        ].map((item) => (
+          <div key={item.label} className="lojia-surface p-4">
+            <p className="text-xs font-medium uppercase text-slate-500">{item.label}</p>
+            <p className="mt-1 text-lg font-semibold text-slate-950">{item.value}</p>
+          </div>
+        ))}
+      </div>
+
+      <section className="lojia-surface mb-6 overflow-hidden">
+        <div className="grid gap-3 border-b border-slate-200 p-4 lg:grid-cols-[1fr_360px]">
+          <div className="flex gap-2 overflow-x-auto pb-1">
+            {filtros.map((item) => {
+              const Icon = item.icon;
+              const ativo = filtro === item.id;
+
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => setFiltro(item.id)}
+                  className={`flex min-w-max items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition ${
+                    ativo
+                      ? "border-[#16A36B] bg-[#16A36B] text-white"
+                      : "border-[#E5DED2] bg-white text-slate-700 hover:border-[#16A36B]/40 hover:bg-[#16A36B]/5"
+                  }`}
+                >
+                  <Icon size={16} />
+                  {item.label}
+                  <span className={ativo ? "text-white/70" : "text-slate-400"}>{item.count}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          <label className="relative block">
+            <Search size={17} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input
+              value={busca}
+              onChange={(e) => setBusca(e.target.value)}
+              placeholder="Buscar pedido, cliente ou produto"
+              className="w-full rounded-lg border border-[#E5DED2] bg-[#FFFEFA] py-2.5 pl-10 pr-3 text-sm outline-none transition placeholder:text-slate-400 focus:border-[#16A36B] focus:bg-white"
+            />
+          </label>
         </div>
-      ) : (
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {pedidosFiltrados.map((pedido) => (
-            <CardPedido key={pedido.id} pedido={pedido} />
-          ))}
+
+        <div className="p-4">
+          {pedidosFiltrados.length === 0 ? (
+            <div className="flex min-h-[280px] flex-col items-center justify-center rounded-lg border border-dashed border-slate-200 bg-slate-50 px-6 text-center">
+              <ShoppingBag size={30} className="mb-3 text-slate-400" />
+              <p className="text-sm font-medium text-slate-900">Nenhum pedido encontrado</p>
+              <p className="mt-1 text-sm text-slate-500">Ajuste o filtro ou a busca.</p>
+            </div>
+          ) : (
+            <div className="grid gap-4 xl:grid-cols-2 2xl:grid-cols-3">
+              {pedidosFiltrados.map((pedido) => (
+                <CardPedido key={pedido.id} pedido={pedido} />
+              ))}
+            </div>
+          )}
         </div>
-      )}
+      </section>
+
+      <ReciboModal
+        aberto={!!recibo}
+        tipo={recibo?.tipo}
+        registro={recibo?.registro}
+        aoFechar={() => setRecibo(null)}
+      />
     </div>
   );
 }

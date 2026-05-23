@@ -169,18 +169,18 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center px-2 py-4 overflow-auto"
+      className="fixed inset-0 z-50 flex items-center justify-center overflow-auto bg-slate-950/50 px-2 py-4 backdrop-blur-sm"
       onClick={aoFechar}
     >
       <div
-        className="bg-white w-full max-w-2xl rounded-2xl p-5 sm:p-6 shadow-xl relative animate-fadeIn"
+        className="relative w-full max-w-2xl animate-fadeIn rounded-xl border border-slate-200 bg-white p-5 shadow-2xl sm:p-6"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="text-xl sm:text-2xl font-semibold text-gray-800 mb-6 border-b pb-2">
+        <h2 className="mb-6 border-b border-slate-200 pb-2 text-xl font-semibold text-slate-950 sm:text-2xl">
           🛍️ {isMobile && etapa === 2 ? "Grade de Variações" : "Cadastrar Produto"}
         </h2>
 
-        <form onSubmit={handleSubmit} className="space-y-6 text-gray-700">
+        <form onSubmit={handleSubmit} className="space-y-6 text-slate-700">
           {(!isMobile || etapa === 1) && (
             <>
               <input
@@ -189,7 +189,7 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
                 placeholder="Nome do produto"
                 value={form.nome}
                 onChange={handleChange}
-                className="w-full border border-gray-300 p-3 rounded-md placeholder:text-sm text-base"
+                className="w-full rounded-lg border border-slate-200 bg-slate-50 p-3 text-base outline-none transition placeholder:text-sm placeholder:text-slate-400 focus:border-slate-400 focus:bg-white"
                 required
               />
 
@@ -201,7 +201,7 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
                   placeholder="Preço (R$)"
                   value={form.preco}
                   onChange={handleChange}
-                  className="w-full border border-gray-300 p-3 rounded-md placeholder:text-sm text-base"
+                  className="w-full rounded-lg border border-slate-200 bg-slate-50 p-3 text-base outline-none transition placeholder:text-sm placeholder:text-slate-400 focus:border-slate-400 focus:bg-white"
                 />
                 <input
                   type="number"
@@ -210,7 +210,7 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
                   placeholder="Custo Unitário"
                   value={form.custoUnitario}
                   onChange={handleChange}
-                  className="w-full border border-gray-300 p-3 rounded-md placeholder:text-sm text-base"
+                  className="w-full rounded-lg border border-slate-200 bg-slate-50 p-3 text-base outline-none transition placeholder:text-sm placeholder:text-slate-400 focus:border-slate-400 focus:bg-white"
                 />
                 <input
                   type="number"
@@ -219,19 +219,19 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
                   placeholder="Outros Custos"
                   value={form.outrosCustos}
                   onChange={handleChange}
-                  className="w-full border border-gray-300 p-3 rounded-md placeholder:text-sm text-base"
+                  className="w-full rounded-lg border border-slate-200 bg-slate-50 p-3 text-base outline-none transition placeholder:text-sm placeholder:text-slate-400 focus:border-slate-400 focus:bg-white"
                 />
                 <input
                   type="file"
                   accept="image/*"
                   onChange={handleSelecionarImagem}
-                  className="w-full border border-gray-300 p-3 rounded-md placeholder:text-sm text-base"
+                  className="w-full rounded-lg border border-slate-200 bg-slate-50 p-3 text-base outline-none transition placeholder:text-sm placeholder:text-slate-400 focus:border-slate-400 focus:bg-white"
                 />
                 <input
                   type="file"
                   accept="video/*"
                   onChange={handleSelecionarVideo}
-                  className="w-full border border-gray-300 p-3 rounded-md placeholder:text-sm text-base"
+                  className="w-full rounded-lg border border-slate-200 bg-slate-50 p-3 text-base outline-none transition placeholder:text-sm placeholder:text-slate-400 focus:border-slate-400 focus:bg-white"
                 />
               </div>
 
@@ -240,7 +240,7 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
                   <img
                     src={imagemPreview}
                     alt="Prévia"
-                    className="w-24 h-24 sm:w-28 sm:h-28 object-cover rounded-lg border shadow"
+                    className="h-24 w-24 rounded-lg border border-slate-200 object-cover shadow-sm sm:h-28 sm:w-28"
                   />
                 </div>
               )}
@@ -249,7 +249,7 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
                   <video
                     src={videoPreview}
                     controls
-                    className="w-40 h-40 object-cover rounded-lg border shadow"
+                    className="h-40 w-40 rounded-lg border border-slate-200 object-cover shadow-sm"
                   />
                 </div>
               )}

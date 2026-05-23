@@ -95,7 +95,7 @@ export default function FinalizarVendaModal({ carrinho, aoFechar, aoFinalizar })
         return { variacaoProdutoId: item.variacaoId, quantidade: item.qtd };
       });
 
-      await api.post("/vendas", {
+      const { data } = await api.post("/vendas", {
         produtos,
         total: totalFinal,
         subtotalProdutos: totalProdutos,
@@ -110,7 +110,7 @@ export default function FinalizarVendaModal({ carrinho, aoFechar, aoFinalizar })
 
       toast.success("Venda finalizada com sucesso!");
       tocarSomVenda();
-      aoFinalizar();
+      aoFinalizar(data.venda);
     } catch (err) {
       console.error(err);
       toast.error(err.message || "Erro ao finalizar venda.");

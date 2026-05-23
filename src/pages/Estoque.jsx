@@ -315,6 +315,7 @@ export default function Estoque() {
       const formData = new FormData();
       formData.append("video", file);
       formData.append("nomeProduto", produtoSelecionado.nome);
+      formData.append("produtoId", produtoSelecionado.id);
 
       const uploadRes = await api.post("/upload-video", formData);
       const videoUrl = uploadRes.data.videoUrl || uploadRes.data.url;

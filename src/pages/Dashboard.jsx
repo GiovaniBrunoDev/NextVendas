@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import api from "../services/api";
 import {
   LineChart,
@@ -11,23 +11,29 @@ import {
 } from "recharts";
 import { AnimatedNumber } from "../components/AnimatedNumber";
 import {
-  FaShoppingCart,
-  FaMoneyBillWave,
   FaBoxOpen,
+  FaChartLine,
+  FaClipboardList,
+  FaCreditCard,
+  FaMoneyBillWave,
   FaReceipt,
+  FaShoppingCart,
   FaSmile,
   FaTruck,
-  FaCreditCard,
-  FaChartLine,
 } from "react-icons/fa";
-import { TrendingUp, TrendingDown, Minus } from "react-feather";
 
 const periodos = [
   { value: "dia", label: "Hoje" },
-  { value: "7dias", label: "Últimos 7 dias" },
-  { value: "mes", label: "Este mês" },
-  { value: "tudo", label: "Todo o período" },
+  { value: "7dias", label: "Ultimos 7 dias" },
+  { value: "mes", label: "Este mes" },
+  { value: "tudo", label: "Todo periodo" },
 ];
+
+const formatCurrency = (valor) =>
+  new Intl.NumberFormat("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  }).format(Number(valor || 0));
 
 const calcularLucroVenda = (venda) => {
   const desconto = Number(venda.desconto || 0);
@@ -48,9 +54,55 @@ const calcularLucroVenda = (venda) => {
   return receitaProdutos - custoProdutos;
 };
 
+function MetricCard({ titulo, valor, isCurrency = false, icon }) {
+  const isNumeric = typeof valor === "number";
+  const format = isCurrency ? formatCurrency : (v) => Math.round(v);
+
+  return (
+    <div className="lojia-surface p-3.5 transition hover:-translate-y-0.5 hover:shadow-[0_18px_38px_rgba(36,48,43,0.1)]">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="truncate text-xs font-medium uppercase text-slate-500">{titulo}</p>
+          <p className="mt-1.5 truncate text-xl font-semibold text-slate-950">
+            {isNumeric ? <AnimatedNumber value={valor} format={format} /> : valor}
+          </p>
+        </div>
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#16A36B]/10 text-sm text-[#11875A]">
+          {icon}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function FeaturedMetricCard({ titulo, valor }) {
+  return (
+    <div className="lojia-hero-panel p-5">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p className="text-sm font-medium text-white/70">{titulo}</p>
+          <p className="mt-1.5 text-3xl font-semibold text-white sm:text-4xl">
+            <AnimatedNumber value={valor} format={formatCurrency} />
+          </p>
+        </div>
+
+        <div className="flex items-center gap-3 rounded-lg border border-white/10 bg-white/[0.08] px-3 py-2.5">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/10 text-[#71E2A9]">
+            <FaMoneyBillWave />
+          </div>
+          <div>
+            <p className="text-xs text-white/62">Periodo</p>
+            <p className="mt-0.5 text-sm font-medium text-white/85">Selecionado acima</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function Dashboard() {
   const [vendas, setVendas] = useState([]);
-  const [produtosCriticos, setProdutosCriticos] = useState([]);
+  const [pedidos, setPedidos] = useState([]);
   const [dadosGrafico, setDadosGrafico] = useState([]);
   const [rankingProdutos, setRankingProdutos] = useState([]);
   const [vendasFiltradas, setVendasFiltradas] = useState([]);
@@ -64,49 +116,27 @@ export default function Dashboard() {
   const [taxasEntrega, setTaxasEntrega] = useState(0);
   const [formaPagamentoMaisUsada, setFormaPagamentoMaisUsada] = useState("N/A");
   const [verMaisRanking, setVerMaisRanking] = useState(false);
-  const [verMaisEstoque, setVerMaisEstoque] = useState(false);
-
-  const [totalAnterior, setTotalAnterior] = useState(0);
-  const [vendasAnterior, setVendasAnterior] = useState(0);
-  const [qtdProdutosAnterior, setQtdProdutosAnterior] = useState(0);
-  const [ticketMedioAnterior, setTicketMedioAnterior] = useState(0);
-  const [lucroAnterior, setLucroAnterior] = useState(0);
-  const [clientesAnterior, setClientesAnterior] = useState(0);
-  const [taxasEntregaAnterior, setTaxasEntregaAnterior] = useState(0);
 
   const [carregando, setCarregando] = useState(true);
 
-  const formatCurrency = (valor) =>
-    new Intl.NumberFormat("pt-BR", {
-      style: "currency",
-      currency: "BRL",
-    }).format(valor);
-
-  const calcVariacao = (atual, anterior) =>
-    anterior ? ((atual - anterior) / anterior) * 100 : 0;
-
-  const periodoAtual = periodos.find((item) => item.value === periodo)?.label || "Período";
+  const periodoAtual = useMemo(
+    () => periodos.find((item) => item.value === periodo)?.label || "Periodo",
+    [periodo]
+  );
 
   useEffect(() => {
     async function carregarDados() {
       try {
         setCarregando(true);
-        const [resVendas, resProdutos] = await Promise.all([
+        const [resVendas, resPedidos] = await Promise.all([
           api.get("/vendas"),
-          api.get("/produtos"),
+          api.get("/pedidos"),
         ]);
 
-        const vendasData = resVendas.data;
-        const produtos = resProdutos.data;
+        const vendasData = Array.isArray(resVendas.data) ? resVendas.data : [];
+        const pedidosData = Array.isArray(resPedidos.data) ? resPedidos.data : [];
         setVendas(vendasData);
-
-        const criticos = produtos.filter((p) => {
-          const totalVar = p.variacoes.length;
-          if (totalVar === 0) return false;
-          const zerados = p.variacoes.filter((v) => v.estoque === 0).length;
-          return zerados / totalVar >= 0.5;
-        });
-        setProdutosCriticos(criticos);
+        setPedidos(pedidosData);
       } catch (err) {
         console.error("Erro ao carregar dados", err);
       } finally {
@@ -118,8 +148,6 @@ export default function Dashboard() {
   }, []);
 
   useEffect(() => {
-    if (!vendas.length) return;
-
     const hoje = new Date();
     const inicio7Dias = new Date(hoje);
     inicio7Dias.setDate(hoje.getDate() - 6);
@@ -140,9 +168,11 @@ export default function Dashboard() {
     const vendasPeriodo = vendas.filter(filtrarPorPeriodo);
     setVendasFiltradas(vendasPeriodo);
 
-    const totalPeriodo = vendasPeriodo.reduce((acc, v) => acc + v.total, 0);
+    const totalPeriodo = vendasPeriodo.reduce((acc, venda) => acc + Number(venda.total || 0), 0);
     const totalProdutos = vendasPeriodo.reduce(
-      (acc, v) => acc + v.itens.reduce((soma, i) => soma + i.quantidade, 0),
+      (acc, venda) =>
+        acc +
+        venda.itens.reduce((soma, item) => soma + Number(item.quantidade || 0), 0),
       0
     );
     const ticket = vendasPeriodo.length ? totalPeriodo / vendasPeriodo.length : 0;
@@ -152,82 +182,35 @@ export default function Dashboard() {
       0
     );
 
-    const clientes = new Set(vendasPeriodo.map((v) => v.clienteId).filter(Boolean));
+    const clientes = new Set(vendasPeriodo.map((venda) => venda.clienteId).filter(Boolean));
     const clientesAtendidosPeriodo = clientes.size;
 
     const totalTaxasEntrega = vendasPeriodo.reduce(
-      (acc, v) => acc + (v.taxaEntrega || 0),
+      (acc, venda) => acc + Number(venda.taxaEntrega || 0),
       0
     );
 
     const pagamentos = {};
-    vendasPeriodo.forEach((v) => {
-      const metodo = v.formaPagamento || "Indefinido";
+    vendasPeriodo.forEach((venda) => {
+      const metodo = venda.formaPagamento || "Indefinido";
       pagamentos[metodo] = (pagamentos[metodo] || 0) + 1;
     });
     const maisUsado =
       Object.entries(pagamentos).sort((a, b) => b[1] - a[1])[0]?.[0] || "N/A";
 
     const mapa = {};
-    vendasPeriodo.forEach((v) => {
-      const dia = new Date(v.data).toLocaleDateString("pt-BR");
-      mapa[dia] = (mapa[dia] || 0) + v.total;
+    vendasPeriodo.forEach((venda) => {
+      const dia = new Date(venda.data).toLocaleDateString("pt-BR");
+      mapa[dia] = (mapa[dia] || 0) + Number(venda.total || 0);
     });
 
     const grafico = Object.entries(mapa)
-      .map(([dia, total]) => ({ dia, total }))
+      .map(([dia, totalDia]) => ({ dia, total: totalDia }))
       .sort((a, b) => {
         const [d1, m1, y1] = a.dia.split("/");
         const [d2, m2, y2] = b.dia.split("/");
         return new Date(`${y1}-${m1}-${d1}`) - new Date(`${y2}-${m2}-${d2}`);
       });
-
-    let vendasPeriodoAnterior = [];
-
-    if (periodo === "dia") {
-      const ontem = new Date(hoje);
-      ontem.setDate(hoje.getDate() - 1);
-      vendasPeriodoAnterior = vendas.filter(
-        (v) => new Date(v.data).toDateString() === ontem.toDateString()
-      );
-    }
-    if (periodo === "7dias") {
-      const inicio7DiasPassados = new Date(inicio7Dias);
-      inicio7DiasPassados.setDate(inicio7Dias.getDate() - 7);
-      vendasPeriodoAnterior = vendas.filter(
-        (v) => new Date(v.data) >= inicio7DiasPassados && new Date(v.data) < inicio7Dias
-      );
-    }
-    if (periodo === "mes") {
-      const inicioMesAnterior = new Date(hoje.getFullYear(), hoje.getMonth() - 1, 1);
-      const fimMesAnterior = new Date(hoje.getFullYear(), hoje.getMonth(), 0);
-      vendasPeriodoAnterior = vendas.filter(
-        (v) => new Date(v.data) >= inicioMesAnterior && new Date(v.data) <= fimMesAnterior
-      );
-    }
-
-    const totalPeriodoAnterior = vendasPeriodoAnterior.reduce((acc, v) => acc + v.total, 0);
-    const totalProdutosPeriodoAnterior = vendasPeriodoAnterior.reduce(
-      (acc, v) => acc + v.itens.reduce((soma, i) => soma + i.quantidade, 0),
-      0
-    );
-    const ticketPeriodoAnterior = vendasPeriodoAnterior.length
-      ? totalPeriodoAnterior / vendasPeriodoAnterior.length
-      : 0;
-
-    const lucroPeriodoAnterior = vendasPeriodoAnterior.reduce(
-      (soma, venda) => soma + calcularLucroVenda(venda),
-      0
-    );
-
-    const clientesPeriodoAnterior = new Set(
-      vendasPeriodoAnterior.map((v) => v.clienteId).filter(Boolean)
-    ).size;
-
-    const taxasEntregaPeriodoAnterior = vendasPeriodoAnterior.reduce(
-      (acc, v) => acc + (v.taxaEntrega || 0),
-      0
-    );
 
     setTotal(totalPeriodo);
     setQtdProdutos(totalProdutos);
@@ -242,7 +225,7 @@ export default function Dashboard() {
         vendasPeriodo.reduce((acc, venda) => {
           venda.itens.forEach((item) => {
             const produto = item.variacaoProduto?.produto;
-            if (produto) acc[produto.nome] = (acc[produto.nome] || 0) + item.quantidade;
+            if (produto) acc[produto.nome] = (acc[produto.nome] || 0) + Number(item.quantidade || 0);
           });
           return acc;
         }, {})
@@ -255,59 +238,32 @@ export default function Dashboard() {
         .sort((a, b) => b.quantidadeVendida - a.quantidadeVendida)
     );
 
-    setTotalAnterior(totalPeriodoAnterior);
-    setVendasAnterior(vendasPeriodoAnterior.length);
-    setQtdProdutosAnterior(totalProdutosPeriodoAnterior);
-    setTicketMedioAnterior(ticketPeriodoAnterior);
-    setLucroAnterior(lucroPeriodoAnterior);
-    setClientesAnterior(clientesPeriodoAnterior);
-    setTaxasEntregaAnterior(taxasEntregaPeriodoAnterior);
   }, [vendas, periodo]);
 
-  function MetricCard({ titulo, valor, isCurrency = false, variacao, icon }) {
-    const isNumeric = typeof valor === "number";
-    const format = isCurrency ? formatCurrency : (v) => Math.round(v);
+  const pedidosOrdenados = useMemo(
+    () =>
+      [...pedidos].sort((a, b) => {
+        const dataA = a.dataEntrega ? new Date(a.dataEntrega).getTime() : new Date(a.dataCriacao).getTime();
+        const dataB = b.dataEntrega ? new Date(b.dataEntrega).getTime() : new Date(b.dataCriacao).getTime();
+        return dataA - dataB;
+      }),
+    [pedidos]
+  );
 
-    return (
-      <div className="relative min-h-[96px] rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-        {variacao !== undefined && (
-          <div
-            className={`absolute right-3 top-3 inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium ${
-              variacao > 0
-                ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-                : variacao < 0
-                  ? "border-rose-200 bg-rose-50 text-rose-700"
-                  : "border-slate-200 bg-slate-50 text-slate-500"
-            }`}
-          >
-            {variacao > 0 && <TrendingUp size={13} />}
-            {variacao < 0 && <TrendingDown size={13} />}
-            {variacao === 0 && <Minus size={13} />}
-            {Math.abs(variacao).toFixed(1)}%
-          </div>
-        )}
+  const totalPedidosAbertos = pedidos.reduce((acc, pedido) => acc + Number(pedido.total || 0), 0);
 
-        <div className="flex items-start gap-3 pr-16">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-lg text-slate-600">
-            {icon}
-          </div>
-          <div className="min-w-0">
-            <p className="text-xs font-medium uppercase tracking-wide text-slate-500">{titulo}</p>
-            <p className="mt-1 truncate text-xl font-semibold text-slate-950">
-              {isNumeric ? <AnimatedNumber value={valor} format={format} /> : valor}
-            </p>
-          </div>
-        </div>
-      </div>
-    );
+  function formatPedidoDate(pedido) {
+    if (!pedido.dataEntrega) return "Sem entrega definida";
+    const data = new Date(pedido.dataEntrega).toLocaleDateString("pt-BR");
+    return pedido.horarioEntrega ? `${data} as ${pedido.horarioEntrega}` : data;
   }
 
   if (carregando) {
     return (
       <div className="flex h-screen flex-col items-center justify-center bg-slate-50">
         <div className="relative h-14 w-14">
-          <div className="absolute inset-0 rounded-full border-4 border-slate-200"></div>
-          <div className="absolute inset-0 animate-spin rounded-full border-4 border-transparent border-r-slate-500 border-t-slate-700"></div>
+          <div className="absolute inset-0 rounded-full border-4 border-slate-200" />
+          <div className="absolute inset-0 animate-spin rounded-full border-4 border-transparent border-r-slate-500 border-t-slate-700" />
         </div>
         <p className="mt-5 text-sm font-medium text-slate-600">Carregando dashboard...</p>
       </div>
@@ -315,201 +271,199 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen space-y-6 bg-slate-50 p-4 sm:p-6">
-      <div className="flex flex-col gap-4 rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h2 className="text-2xl font-semibold tracking-tight text-slate-950">Dashboard</h2>
-          <p className="mt-1 text-sm text-slate-500">
-            {vendasFiltradas.length} vendas analisadas em {periodoAtual.toLowerCase()}.
-          </p>
-        </div>
+    <div className="lojia-page min-h-screen space-y-4 p-4 sm:p-6">
+      <div className="lojia-surface p-4">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <p className="text-xs font-medium uppercase text-slate-500">Visao geral</p>
+            <h2 className="mt-1 text-2xl font-semibold text-slate-950">Dashboard</h2>
+            <p className="mt-1 text-sm text-slate-500">
+              {vendasFiltradas.length} vendas analisadas em {periodoAtual.toLowerCase()}.
+            </p>
+          </div>
 
-        <div className="inline-flex flex-wrap gap-1 rounded-lg border border-slate-200 bg-slate-100 p-1">
-          {periodos.map((item) => {
-            const ativo = periodo === item.value;
-            return (
-              <button
-                key={item.value}
-                onClick={() => setPeriodo(item.value)}
-                className={`rounded-md px-3 py-1.5 text-sm font-medium transition ${
-                  ativo
-                    ? "bg-white text-slate-950 shadow-sm"
-                    : "text-slate-600 hover:bg-slate-200 hover:text-slate-900"
-                }`}
-              >
-                {item.label}
-              </button>
-            );
-          })}
+          <div className="inline-flex w-full flex-wrap gap-1 rounded-lg border border-[#E5DED2] bg-[#F7F5EF] p-1 sm:w-auto">
+            {periodos.map((item) => {
+              const ativo = periodo === item.value;
+              return (
+                <button
+                  key={item.value}
+                  onClick={() => setPeriodo(item.value)}
+                  className={`min-h-9 flex-1 rounded-md px-3 text-sm font-medium transition sm:flex-none ${
+                    ativo
+                      ? "bg-white text-[#181F24] shadow-sm"
+                      : "text-slate-600 hover:bg-white/70 hover:text-slate-900"
+                  }`}
+                >
+                  {item.label}
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
+
+      <FeaturedMetricCard
+        titulo="Faturamento"
+        valor={total}
+      />
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <MetricCard
           titulo="Vendas"
           valor={vendasFiltradas.length}
-          variacao={calcVariacao(vendasFiltradas.length, vendasAnterior)}
           icon={<FaShoppingCart />}
         />
         <MetricCard
-          titulo="Total Faturado"
-          valor={total}
-          isCurrency
-          variacao={calcVariacao(total, totalAnterior)}
-          icon={<FaMoneyBillWave />}
-        />
-        <MetricCard
-          titulo="Produtos Vendidos"
+          titulo="Produtos"
           valor={qtdProdutos}
-          variacao={calcVariacao(qtdProdutos, qtdProdutosAnterior)}
           icon={<FaBoxOpen />}
         />
         <MetricCard
-          titulo="Ticket Médio"
+          titulo="Ticket medio"
           valor={ticketMedio}
           isCurrency
-          variacao={calcVariacao(ticketMedio, ticketMedioAnterior)}
           icon={<FaReceipt />}
         />
         <MetricCard
-          titulo="Lucro Real"
+          titulo="Lucro real"
           valor={lucro}
           isCurrency
-          variacao={calcVariacao(lucro, lucroAnterior)}
           icon={<FaChartLine />}
         />
         <MetricCard
-          titulo="Clientes Atendidos"
+          titulo="Clientes"
           valor={clientesAtendidos}
-          variacao={calcVariacao(clientesAtendidos, clientesAnterior)}
           icon={<FaSmile />}
         />
         <MetricCard
-          titulo="Taxas de Entrega"
+          titulo="Entregas"
           valor={taxasEntrega}
           isCurrency
-          variacao={calcVariacao(taxasEntrega, taxasEntregaAnterior)}
           icon={<FaTruck />}
         />
         <MetricCard
-          titulo="Pagamento Mais Usado"
+          titulo="Pedidos"
+          valor={pedidos.length}
+          icon={<FaClipboardList />}
+        />
+        <MetricCard
+          titulo="Pagamento"
           valor={formaPagamentoMaisUsada}
           icon={<FaCreditCard />}
         />
       </div>
 
-      <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-        <div className="mb-5 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+      <div className="lojia-surface p-4">
+        <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h3 className="text-base font-semibold text-slate-950">Evolução das vendas</h3>
+            <h3 className="text-base font-semibold text-slate-950">Evolucao das vendas</h3>
             <p className="text-sm text-slate-500">{periodoAtual}</p>
           </div>
           <p className="text-sm font-medium text-slate-700">{formatCurrency(total)}</p>
         </div>
 
-        <ResponsiveContainer width="100%" height={260}>
-          <LineChart data={dadosGrafico}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
-            <XAxis
-              dataKey="dia"
-              tick={{ fontSize: 12, fill: "#64748b" }}
-              tickLine={false}
-              axisLine={{ stroke: "#cbd5e1" }}
-            />
-            <YAxis
-              tick={{ fontSize: 12, fill: "#64748b" }}
-              tickLine={false}
-              axisLine={false}
-              tickFormatter={(value) => `R$ ${value}`}
-            />
-            <Tooltip
-              contentStyle={{
-                backgroundColor: "#ffffff",
-                border: "1px solid #cbd5e1",
-                borderRadius: "8px",
-                boxShadow: "0 10px 30px rgba(15, 23, 42, 0.08)",
-                color: "#0f172a",
-                fontSize: "12px",
-              }}
-              formatter={(value) => formatCurrency(value)}
-            />
-            <Line
-              type="monotone"
-              dataKey="total"
-              stroke="#334155"
-              strokeWidth={2.5}
-              dot={{ r: 3, stroke: "#334155", strokeWidth: 2, fill: "#ffffff" }}
-              activeDot={{ r: 5, stroke: "#334155", strokeWidth: 2, fill: "#ffffff" }}
-            />
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
-
-      <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
-        <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-          <div className="mb-4 flex items-center justify-between">
+        {dadosGrafico.length === 0 ? (
+          <div className="flex h-[260px] items-center justify-center rounded-lg border border-dashed border-slate-200 bg-slate-50 text-center">
             <div>
-              <h3 className="text-base font-semibold text-slate-950">Estoque baixo</h3>
-              <p className="text-sm text-slate-500">Produtos com atenção operacional</p>
+              <p className="text-sm font-medium text-slate-700">Nenhuma venda no periodo</p>
+              <p className="mt-1 text-xs text-slate-500">O grafico aparece quando houver vendas.</p>
             </div>
           </div>
+        ) : (
+          <ResponsiveContainer width="100%" height={240}>
+            <LineChart data={dadosGrafico}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
+              <XAxis
+                dataKey="dia"
+                tick={{ fontSize: 12, fill: "#64748b" }}
+                tickLine={false}
+                axisLine={{ stroke: "#cbd5e1" }}
+              />
+              <YAxis
+                tick={{ fontSize: 12, fill: "#64748b" }}
+                tickLine={false}
+                axisLine={false}
+                tickFormatter={(value) => `R$ ${value}`}
+              />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: "#ffffff",
+                  border: "1px solid #cbd5e1",
+                  borderRadius: "8px",
+                  boxShadow: "0 10px 30px rgba(15, 23, 42, 0.08)",
+                  color: "#0f172a",
+                  fontSize: "12px",
+                }}
+                formatter={(value) => formatCurrency(value)}
+              />
+              <Line
+                type="monotone"
+                dataKey="total"
+                stroke="#16A36B"
+                strokeWidth={2.4}
+                dot={{ r: 3, stroke: "#16A36B", strokeWidth: 2, fill: "#ffffff" }}
+                activeDot={{ r: 5, stroke: "#16A36B", strokeWidth: 2, fill: "#ffffff" }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        )}
+      </div>
 
-          {produtosCriticos.filter((p) => {
-            const estoque = p.variacoes.reduce((acc, v) => acc + v.estoque, 0);
-            return estoque < Math.floor(12 * 0.5);
-          }).length === 0 ? (
+      <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
+        <div className="lojia-surface p-4">
+          <div className="mb-4 flex items-start justify-between gap-3">
+            <div>
+              <h3 className="text-base font-semibold text-slate-950">Pedidos em aberto</h3>
+              <p className="text-sm text-slate-500">{formatCurrency(totalPedidosAbertos)} em pedidos pendentes.</p>
+            </div>
+            <span className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-600">
+              {pedidos.length}
+            </span>
+          </div>
+
+          {pedidosOrdenados.length === 0 ? (
             <p className="rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
-              Nenhum produto com estoque crítico.
+              Nenhum pedido em aberto no momento.
             </p>
           ) : (
-            <>
-              <ul className="space-y-4">
-                {produtosCriticos
-                  .filter((p) => p.variacoes.reduce((acc, v) => acc + v.estoque, 0) < Math.floor(12 * 0.5))
-                  .slice(0, verMaisEstoque ? produtosCriticos.length : 5)
-                  .map((p) => {
-                    const estoqueDisponivel = p.variacoes
-                      .filter((v) => v.estoque > 0)
-                      .reduce((acc, v) => acc + v.estoque, 0);
-                    const porcentagem = Math.round((estoqueDisponivel / 12) * 100);
-                    return (
-                      <li key={p.id} className="rounded-lg border border-slate-200 p-3">
-                        <div className="flex justify-between gap-4 text-sm font-medium text-slate-900">
-                          <span className="truncate">{p.nome}</span>
-                          <span className="shrink-0 text-slate-500">{estoqueDisponivel} de 12</span>
-                        </div>
-                        <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-slate-100">
-                          <div
-                            className="h-2 rounded-full bg-slate-700 transition-all"
-                            style={{ width: `${porcentagem}%` }}
-                          ></div>
-                        </div>
-                        <p className="mt-2 text-right text-xs text-slate-500">{porcentagem}% disponível</p>
-                      </li>
-                    );
-                  })}
-              </ul>
-              {produtosCriticos.length > 5 && (
-                <button
-                  onClick={() => setVerMaisEstoque(!verMaisEstoque)}
-                  className="mt-4 text-sm font-medium text-slate-700 hover:text-slate-950"
-                >
-                  {verMaisEstoque ? "Ver menos" : "Ver mais"}
-                </button>
-              )}
-            </>
+            <ul className="divide-y divide-slate-100">
+              {pedidosOrdenados.slice(0, 6).map((pedido) => (
+                <li key={pedido.id} className="flex items-center justify-between gap-4 py-3">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="truncate text-sm font-medium text-slate-900">
+                        {pedido.cliente?.nome || "Cliente nao informado"}
+                      </span>
+                      <span className="shrink-0 rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[11px] font-medium capitalize text-slate-600">
+                        {pedido.status}
+                      </span>
+                    </div>
+                    <p className="mt-1 truncate text-xs text-slate-500">{formatPedidoDate(pedido)}</p>
+                  </div>
+                  <span className="shrink-0 text-sm font-semibold text-slate-700">
+                    {formatCurrency(pedido.total)}
+                  </span>
+                </li>
+              ))}
+            </ul>
           )}
         </div>
 
-        <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-          <div className="mb-4">
-            <h3 className="text-base font-semibold text-slate-950">Produtos mais vendidos</h3>
-            <p className="text-sm text-slate-500">{periodoAtual}</p>
+        <div className="lojia-surface p-4">
+          <div className="mb-4 flex items-start justify-between gap-3">
+            <div>
+              <h3 className="text-base font-semibold text-slate-950">Produtos mais vendidos</h3>
+              <p className="text-sm text-slate-500">{periodoAtual}</p>
+            </div>
+            <span className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-600">
+              {rankingProdutos.length}
+            </span>
           </div>
 
           {rankingProdutos.length === 0 ? (
             <p className="rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
-              Nenhuma venda registrada neste período.
+              Nenhuma venda registrada neste periodo.
             </p>
           ) : (
             <>
@@ -519,7 +473,7 @@ export default function Dashboard() {
                   .map((produto, index) => (
                     <li key={produto.id} className="flex items-center justify-between gap-4 py-3">
                       <div className="flex min-w-0 items-center gap-3">
-                        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-slate-100 text-xs font-semibold text-slate-600">
+                        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-slate-200 bg-slate-50 text-xs font-semibold text-slate-600">
                           {index + 1}
                         </span>
                         <span className="truncate text-sm font-medium text-slate-900">{produto.nome}</span>

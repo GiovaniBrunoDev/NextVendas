@@ -1,3 +1,497 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+  --lojia-green: #16A36B;
+  --lojia-green-dark: #11875A;
+  --lojia-primary: #181F24;
+  --lojia-primary-soft: #26313A;
+  --lojia-charcoal: #181F24;
+  --lojia-charcoal-soft: #26313A;
+  --lojia-teal: #0F5D63;
+  --lojia-teal-dark: #0A494D;
+  --lojia-orange: #F4A62A;
+  --lojia-cream: #F7F5EF;
+  --lojia-paper: #FFFEFA;
+  --lojia-border: #E5DED2;
+  --lojia-muted: #66736D;
+  --lojia-font-sans: Aptos, Inter, "Nunito Sans", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --lojia-font-display: Aptos, Inter, "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+@layer base {
+  html {
+    background: var(--lojia-cream);
+  }
+
+  body {
+    margin: 0;
+    background:
+      radial-gradient(circle at 16% 4%, rgba(22, 163, 107, 0.08), transparent 26%),
+      linear-gradient(180deg, #fffefa 0%, var(--lojia-cream) 64%);
+    color: var(--lojia-charcoal);
+    font-family: var(--lojia-font-sans);
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    font-size: 15px;
+    font-weight: 450;
+    line-height: 1.5;
+    letter-spacing: 0;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    color: var(--lojia-charcoal);
+    font-family: var(--lojia-font-display);
+    font-weight: 760;
+    letter-spacing: 0;
+    line-height: 1.16;
+  }
+
+  p,
+  li,
+  td,
+  th,
+  label,
+  input,
+  select,
+  textarea,
+  button {
+    letter-spacing: 0;
+  }
+
+  ::selection {
+    background: rgba(22, 163, 107, 0.22);
+    color: var(--lojia-charcoal);
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+  }
+
+  button:focus-visible,
+  a:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible {
+    outline: 3px solid rgba(244, 166, 42, 0.32);
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  .lojia-shell {
+    min-height: 100vh;
+    background:
+      radial-gradient(circle at top left, rgba(22, 163, 107, 0.09), transparent 28rem),
+      linear-gradient(180deg, #fffefa 0%, var(--lojia-cream) 72%);
+    color: var(--lojia-charcoal);
+  }
+
+  .lojia-gradient {
+    background:
+      linear-gradient(145deg, rgba(24, 31, 36, 0.98), rgba(38, 49, 58, 0.97)),
+      radial-gradient(circle at top left, rgba(22, 163, 107, 0.24), transparent 18rem);
+  }
+
+  .lojia-card {
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background: #ffffff;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+  }
+
+  .lojia-card-flat {
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background: #ffffff;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+  }
+
+  .lojia-button-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 8px;
+    background: #0f172a;
+    color: white;
+    font-weight: 540;
+    transition: background-color 150ms ease, transform 150ms ease, box-shadow 150ms ease;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.12);
+  }
+
+  .lojia-button-primary:hover {
+    background: #334155;
+    transform: translateY(-1px);
+  }
+
+  .lojia-button-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #334155;
+    font-weight: 540;
+    transition: background-color 150ms ease, border-color 150ms ease;
+  }
+
+  .lojia-button-secondary:hover {
+    border-color: #cbd5e1;
+    background: #f8fafc;
+  }
+
+  .lojia-input {
+    width: 100%;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background: #f8fafc;
+    color: #0f172a;
+    outline: none;
+    transition: border-color 150ms ease, box-shadow 150ms ease;
+  }
+
+  .lojia-input:focus {
+    background: #ffffff;
+    border-color: #94a3b8;
+    box-shadow: none;
+  }
+
+  .lojia-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 999px;
+    background: #ffffff;
+    color: #64748b;
+    font-size: 0.75rem;
+    font-weight: 760;
+    letter-spacing: 0;
+    text-transform: uppercase;
+  }
+
+  .lojia-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    border-radius: 999px;
+    padding: 0.25rem 0.65rem;
+    font-size: 0.75rem;
+    font-weight: 720;
+  }
+
+  .lojia-brand-mark {
+    display: inline-flex;
+    height: 2.75rem;
+    width: 2.75rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    background: linear-gradient(160deg, #20BD7A 0%, var(--lojia-green) 56%, #087F56 100%);
+    color: white;
+    font-size: 1.55rem;
+    font-weight: 820;
+    line-height: 1;
+    box-shadow: inset 0 -10px 18px rgba(0, 0, 0, 0.12), 0 14px 28px rgba(22, 163, 107, 0.25);
+  }
+
+  .lojia-table-surface {
+    overflow: hidden;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background: #ffffff;
+  }
+
+  .lojia-page {
+    min-height: 100vh;
+    background:
+      radial-gradient(circle at 12% 0%, rgba(22, 163, 107, 0.09), transparent 24rem),
+      radial-gradient(circle at 96% 8%, rgba(15, 93, 99, 0.08), transparent 22rem),
+      linear-gradient(180deg, #fffefa 0%, #f7f5ef 68%);
+  }
+
+  .lojia-hero-panel {
+    border: 1px solid rgba(24, 31, 36, 0.1);
+    border-radius: 8px;
+    background:
+      linear-gradient(135deg, rgba(24, 31, 36, 0.99), rgba(38, 49, 58, 0.98)),
+      radial-gradient(circle at top right, rgba(22, 163, 107, 0.28), transparent 18rem);
+    color: white;
+    box-shadow: 0 18px 46px rgba(24, 31, 36, 0.16);
+  }
+
+  .lojia-surface {
+    border: 1px solid rgba(24, 31, 36, 0.1);
+    border-radius: 8px;
+    background: rgba(255, 254, 250, 0.92);
+    box-shadow: 0 14px 36px rgba(24, 31, 36, 0.07);
+  }
+
+  .lojia-soft-surface {
+    border: 1px solid rgba(24, 31, 36, 0.09);
+    border-radius: 8px;
+    background: rgba(255, 254, 250, 0.72);
+  }
+
+  .lojia-primary-action {
+    border-radius: 8px;
+    background: linear-gradient(135deg, #16A36B, #11875A);
+    color: white;
+    box-shadow: 0 12px 26px rgba(22, 163, 107, 0.22);
+    transition: transform 150ms ease, box-shadow 150ms ease, filter 150ms ease;
+  }
+
+  .lojia-primary-action:hover {
+    filter: brightness(1.02);
+    transform: translateY(-1px);
+    box-shadow: 0 16px 30px rgba(22, 163, 107, 0.26);
+  }
+
+  .lojia-ghost-action {
+    border: 1px solid rgba(24, 31, 36, 0.12);
+    border-radius: 8px;
+    background: rgba(255, 254, 250, 0.72);
+    color: var(--lojia-charcoal);
+    transition: background-color 150ms ease, border-color 150ms ease;
+  }
+
+  .lojia-ghost-action:hover {
+    border-color: rgba(15, 93, 99, 0.26);
+    background: #ffffff;
+  }
+
+  .lojia-sidebar-scroll {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .lojia-sidebar-scroll::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@layer utilities {
+  .text-lojia-green { color: var(--lojia-green); }
+  .text-lojia-teal { color: var(--lojia-teal); }
+  .text-lojia-charcoal { color: var(--lojia-charcoal); }
+  .text-lojia-muted { color: var(--lojia-muted); }
+  .bg-lojia-cream { background-color: var(--lojia-cream); }
+  .bg-lojia-paper { background-color: var(--lojia-paper); }
+  .bg-lojia-green { background-color: var(--lojia-green); }
+  .bg-lojia-teal { background-color: var(--lojia-teal); }
+  .border-lojia { border-color: var(--lojia-border); }
+
+  .font-black {
+    font-weight: 760 !important;
+  }
+
+  .font-extrabold {
+    font-weight: 740 !important;
+  }
+
+  .font-bold {
+    font-weight: 700 !important;
+  }
+
+  .font-semibold {
+    font-weight: 620 !important;
+  }
+
+  .font-medium {
+    font-weight: 540 !important;
+  }
+
+  .tracking-tight,
+  .tracking-normal,
+  .tracking-wide,
+  .tracking-wider,
+  .tracking-widest {
+    letter-spacing: 0 !important;
+  }
+
+  .text-xs {
+    line-height: 1.35 !important;
+  }
+
+  .text-sm {
+    line-height: 1.45 !important;
+  }
+
+  .text-lg,
+  .text-xl,
+  .text-2xl,
+  .text-3xl,
+  .text-4xl,
+  .text-5xl {
+    letter-spacing: 0 !important;
+  }
+
+  .bg-stone-50,
+  .bg-gray-50,
+  .bg-slate-50,
+  .bg-zinc-50 {
+    background-color: var(--lojia-cream) !important;
+  }
+
+  .bg-white {
+    background-color: var(--lojia-paper) !important;
+  }
+
+  .bg-slate-100,
+  .bg-zinc-100,
+  .bg-gray-100 {
+    background-color: rgba(24, 31, 36, 0.06) !important;
+  }
+
+  .bg-slate-900,
+  .bg-zinc-900,
+  .bg-gray-900,
+  .bg-zinc-950,
+  .bg-slate-950 {
+    background-color: var(--lojia-charcoal) !important;
+  }
+
+  .hover\:bg-slate-700:hover,
+  .hover\:bg-zinc-800:hover,
+  .hover\:bg-zinc-900:hover {
+    background-color: var(--lojia-charcoal-soft) !important;
+  }
+
+  .text-zinc-950,
+  .text-gray-900,
+  .text-slate-950,
+  .text-slate-900 {
+    color: var(--lojia-charcoal) !important;
+  }
+
+  .text-zinc-500,
+  .text-gray-500,
+  .text-slate-500,
+  .text-zinc-600,
+  .text-gray-600,
+  .text-slate-600,
+  .text-zinc-700,
+  .text-gray-700,
+  .text-slate-700,
+  .text-slate-800 {
+    color: var(--lojia-muted) !important;
+  }
+
+  .border-zinc-200,
+  .border-gray-200,
+  .border-slate-200,
+  .border-zinc-300,
+  .border-gray-300,
+  .border-slate-300 {
+    border-color: var(--lojia-border) !important;
+  }
+
+  .border-slate-900,
+  .border-zinc-900 {
+    border-color: var(--lojia-charcoal) !important;
+  }
+
+  .bg-emerald-600,
+  .bg-emerald-500,
+  .bg-green-600,
+  .bg-green-500,
+  .bg-blue-600,
+  .bg-blue-500,
+  .bg-cyan-700 {
+    background-color: #0f172a !important;
+  }
+
+  .hover\:bg-emerald-700:hover,
+  .hover\:bg-green-700:hover,
+  .hover\:bg-blue-700:hover,
+  .hover\:bg-cyan-800:hover {
+    background-color: #334155 !important;
+  }
+
+  .text-emerald-700,
+  .text-green-700,
+  .text-blue-700,
+  .text-cyan-700,
+  .text-emerald-600,
+  .text-green-600,
+  .text-blue-600,
+  .text-cyan-600 {
+    color: #475569 !important;
+  }
+
+  .bg-emerald-50,
+  .bg-green-50,
+  .bg-blue-50,
+  .bg-cyan-50,
+  .bg-emerald-100,
+  .bg-green-100,
+  .bg-blue-100,
+  .bg-cyan-100 {
+    background-color: #f8fafc !important;
+  }
+
+  .border-emerald-200,
+  .border-green-300,
+  .border-green-200,
+  .border-blue-300,
+  .border-blue-200,
+  .border-cyan-200 {
+    border-color: #e2e8f0 !important;
+  }
+
+  .text-amber-700,
+  .text-yellow-700 {
+    color: #B86D00 !important;
+  }
+
+  .bg-amber-50,
+  .bg-yellow-50,
+  .bg-amber-100,
+  .bg-yellow-100 {
+    background-color: rgba(244, 166, 42, 0.14) !important;
+  }
+}
+
+@media print {
+  body {
+    background: #ffffff !important;
+  }
+
+  body * {
+    visibility: hidden !important;
+  }
+
+  .recibo-print-area,
+  .recibo-print-area * {
+    visibility: visible !important;
+  }
+
+  .recibo-print-area {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    max-width: none !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+}

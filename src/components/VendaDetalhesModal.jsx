@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Dialog } from "@headlessui/react";
-import { Pencil, RefreshCcw, Save, Trash, X } from "lucide-react";
+import { Pencil, ReceiptText, RefreshCcw, Save, Trash, X } from "lucide-react";
+import ReciboModal from "./ReciboModal";
 
 const formatCurrency = (valor) =>
   new Intl.NumberFormat("pt-BR", {
@@ -18,6 +19,7 @@ export default function VendaDetalhesModal({
 }) {
   const [editando, setEditando] = useState(false);
   const [salvando, setSalvando] = useState(false);
+  const [mostrarRecibo, setMostrarRecibo] = useState(false);
   const [form, setForm] = useState({
     formaPagamento: "",
     tipoEntrega: "",
@@ -214,6 +216,12 @@ export default function VendaDetalhesModal({
             ) : (
               <>
                 <button
+                  onClick={() => setMostrarRecibo(true)}
+                  className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                >
+                  <ReceiptText size={16} /> Recibo
+                </button>
+                <button
                   onClick={() => setEditando(true)}
                   className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
                 >
@@ -236,6 +244,12 @@ export default function VendaDetalhesModal({
           </div>
         </Dialog.Panel>
       </div>
+      <ReciboModal
+        aberto={mostrarRecibo}
+        tipo="venda"
+        registro={venda}
+        aoFechar={() => setMostrarRecibo(false)}
+      />
     </Dialog>
   );
 }

@@ -18,9 +18,9 @@ import {
 import { SiPix } from "react-icons/si";
 
 const inputClass =
-  "w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-800 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100";
+  "w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800 outline-none transition focus:border-slate-400 focus:bg-white";
 
-const labelClass = "mb-1 flex items-center gap-2 text-xs font-semibold uppercase text-zinc-500";
+const labelClass = "mb-1 flex items-center gap-2 text-xs font-medium uppercase text-slate-500";
 
 const formasPagamento = [
   { value: "pix", label: "Pix", icon: SiPix },
@@ -141,7 +141,7 @@ export default function NovoPedidoModal({ carrinho, aoFechar, aoConfirmar }) {
         };
       });
 
-      await api.post("/pedidos", {
+      const { data } = await api.post("/pedidos", {
         clienteId: clienteId || null,
         dataEntrega: dataEntrega || null,
         horarioEntrega: horarioEntrega || null,
@@ -156,7 +156,7 @@ export default function NovoPedidoModal({ carrinho, aoFechar, aoConfirmar }) {
       });
 
       toast.success("Pedido criado e estoque reservado.");
-      aoConfirmar();
+      aoConfirmar(data.pedido);
       aoFechar();
     } catch (err) {
       console.error(err);
@@ -170,27 +170,28 @@ export default function NovoPedidoModal({ carrinho, aoFechar, aoConfirmar }) {
     control: (base, state) => ({
       ...base,
       minHeight: 40,
-      borderColor: state.isFocused ? "#10b981" : "#d4d4d8",
-      boxShadow: state.isFocused ? "0 0 0 2px #d1fae5" : "none",
-      "&:hover": { borderColor: "#10b981" },
+      borderColor: state.isFocused ? "#94a3b8" : "#e2e8f0",
+      boxShadow: "none",
+      backgroundColor: "#f8fafc",
+      "&:hover": { borderColor: "#94a3b8" },
     }),
     menuPortal: (base) => ({ ...base, zIndex: 10000 }),
   };
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-zinc-950/45 px-3 backdrop-blur-sm">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-950/50 px-3 backdrop-blur-sm">
       <div
         id="novo-pedido-modal"
-        className="relative max-h-[94vh] w-full max-w-4xl overflow-y-auto rounded-lg border border-zinc-200 bg-zinc-50 shadow-2xl"
+        className="relative max-h-[94vh] w-full max-w-4xl overflow-y-auto rounded-xl border border-slate-200 bg-white shadow-2xl"
       >
-        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-zinc-200 bg-white px-5 py-4">
+        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-white px-5 py-4">
           <div>
-            <h2 className="text-lg font-bold text-zinc-900">Novo pedido</h2>
-            <p className="text-sm text-zinc-500">{carrinho.length} item(ns) no pedido</p>
+            <h2 className="text-lg font-semibold text-slate-950">Novo pedido</h2>
+            <p className="text-sm text-slate-500">{carrinho.length} item(ns) no pedido</p>
           </div>
           <button
             onClick={aoFechar}
-            className="rounded-md p-2 text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-800"
+            className="rounded-lg p-2 text-slate-500 transition hover:bg-slate-50 hover:text-slate-900"
             title="Fechar"
           >
             <X size={20} />
@@ -200,8 +201,8 @@ export default function NovoPedidoModal({ carrinho, aoFechar, aoConfirmar }) {
         <div className="grid gap-5 p-5 lg:grid-cols-[1.35fr_0.9fr]">
           <div className="space-y-5">
             <section className="space-y-3">
-              <h3 className="flex items-center gap-2 text-sm font-bold text-zinc-800">
-                <User size={17} className="text-emerald-600" /> Cliente
+              <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-950">
+                <User size={17} className="text-slate-500" /> Cliente
               </h3>
 
               <Select
@@ -245,7 +246,7 @@ export default function NovoPedidoModal({ carrinho, aoFechar, aoConfirmar }) {
             </section>
 
             <section className="space-y-3">
-              <h3 className="flex items-center gap-2 text-sm font-bold text-zinc-800">
+              <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-950">
                 <CalendarDays size={17} className="text-amber-600" /> Agenda
               </h3>
 
@@ -274,8 +275,8 @@ export default function NovoPedidoModal({ carrinho, aoFechar, aoConfirmar }) {
             </section>
 
             <section className="space-y-3">
-              <h3 className="flex items-center gap-2 text-sm font-bold text-zinc-800">
-                <Truck size={17} className="text-cyan-700" /> Entrega
+              <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-950">
+                <Truck size={17} className="text-slate-500" /> Entrega
               </h3>
 
               <div className="grid grid-cols-2 gap-2">
@@ -292,8 +293,8 @@ export default function NovoPedidoModal({ carrinho, aoFechar, aoConfirmar }) {
                       onClick={() => setTipoEntrega(opcao.value)}
                       className={`flex items-center justify-center gap-2 rounded-md border px-3 py-2 text-sm font-semibold transition ${
                         ativo
-                          ? "border-cyan-700 bg-cyan-700 text-white"
-                          : "border-zinc-300 bg-white text-zinc-700 hover:bg-zinc-100"
+                          ? "border-slate-900 bg-slate-900 text-white"
+                          : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
                       }`}
                     >
                       <Icon size={16} /> {opcao.label}
@@ -333,8 +334,8 @@ export default function NovoPedidoModal({ carrinho, aoFechar, aoConfirmar }) {
             </section>
 
             <section className="space-y-3">
-              <h3 className="flex items-center gap-2 text-sm font-bold text-zinc-800">
-                <CreditCard size={17} className="text-rose-600" /> Pagamento
+              <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-950">
+                <CreditCard size={17} className="text-slate-500" /> Pagamento
               </h3>
 
               <div className="grid grid-cols-3 gap-2">
@@ -348,8 +349,8 @@ export default function NovoPedidoModal({ carrinho, aoFechar, aoConfirmar }) {
                       onClick={() => setFormaPagamento(opcao.value)}
                       className={`flex min-h-[58px] flex-col items-center justify-center gap-1 rounded-md border px-2 text-xs font-semibold transition ${
                         ativo
-                          ? "border-rose-500 bg-rose-50 text-rose-700"
-                          : "border-zinc-300 bg-white text-zinc-600 hover:bg-zinc-100"
+                          ? "border-slate-900 bg-slate-900 text-white"
+                          : "border-slate-300 bg-white text-slate-600 hover:bg-slate-50"
                       }`}
                     >
                       <Icon size={18} /> {opcao.label}
@@ -373,10 +374,10 @@ export default function NovoPedidoModal({ carrinho, aoFechar, aoConfirmar }) {
             </section>
           </div>
 
-          <aside className="flex flex-col rounded-lg border border-zinc-200 bg-white">
-            <div className="border-b border-zinc-200 px-4 py-3">
-              <h3 className="flex items-center gap-2 text-sm font-bold text-zinc-800">
-                <PackageCheck size={17} className="text-emerald-600" /> Resumo
+          <aside className="flex flex-col rounded-lg border border-slate-200 bg-white">
+            <div className="border-b border-slate-200 px-4 py-3">
+              <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-950">
+                <PackageCheck size={17} className="text-slate-500" /> Resumo
               </h3>
             </div>
 
@@ -385,13 +386,13 @@ export default function NovoPedidoModal({ carrinho, aoFechar, aoConfirmar }) {
                 {carrinho.map((item) => (
                   <div
                     key={`${item.produtoId}-${item.variacaoId}`}
-                    className="border-b border-zinc-100 pb-3 last:border-0 last:pb-0"
+                    className="border-b border-slate-100 pb-3 last:border-0 last:pb-0"
                   >
-                    <div className="flex justify-between gap-3 text-sm font-semibold text-zinc-800">
+                    <div className="flex justify-between gap-3 text-sm font-medium text-slate-950">
                       <span>{item.nome}</span>
                       <span>{moeda(item.preco * item.qtd)}</span>
                     </div>
-                    <p className="mt-1 text-xs text-zinc-500">
+                    <p className="mt-1 text-xs text-slate-500">
                       Tam. {item.numeracao} | {item.qtd} un. | {moeda(item.preco)}
                     </p>
                   </div>
@@ -399,36 +400,36 @@ export default function NovoPedidoModal({ carrinho, aoFechar, aoConfirmar }) {
               </div>
             </div>
 
-            <div className="space-y-2 border-t border-zinc-200 px-4 py-4 text-sm">
-              <div className="flex justify-between text-zinc-600">
+            <div className="space-y-2 border-t border-slate-200 px-4 py-4 text-sm">
+              <div className="flex justify-between text-slate-600">
                 <span>Produtos</span>
                 <span>{moeda(totalProdutos)}</span>
               </div>
               {tipoEntrega === "entrega" && (
-                <div className="flex justify-between text-zinc-600">
+                <div className="flex justify-between text-slate-600">
                   <span>Taxa</span>
                   <span>{moeda(taxaEntrega)}</span>
                 </div>
               )}
-              <div className="flex justify-between pt-2 text-xl font-bold text-zinc-950">
+              <div className="flex justify-between pt-2 text-xl font-semibold text-slate-950">
                 <span>Total</span>
-                <span className="text-emerald-700">{moeda(totalFinal)}</span>
+                <span>{moeda(totalFinal)}</span>
               </div>
             </div>
           </aside>
         </div>
 
-        <div className="sticky bottom-0 flex flex-col gap-2 border-t border-zinc-200 bg-white px-5 py-4 sm:flex-row sm:justify-end">
+        <div className="sticky bottom-0 flex flex-col gap-2 border-t border-slate-200 bg-white px-5 py-4 sm:flex-row sm:justify-end">
           <button
             onClick={aoFechar}
-            className="rounded-md border border-zinc-300 px-4 py-2 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-100"
+            className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
           >
             Cancelar
           </button>
           <button
             onClick={handleSalvarPedido}
             disabled={carregando}
-            className="rounded-md bg-emerald-600 px-5 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
+            className="rounded-lg bg-slate-900 px-5 py-2 text-sm font-medium text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {carregando ? "Salvando..." : "Salvar pedido"}
           </button>
