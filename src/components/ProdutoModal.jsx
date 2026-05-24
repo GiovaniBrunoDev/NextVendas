@@ -1,8 +1,11 @@
 import { useEffect, useState } from "react";
 import api from "../services/api";
 import { toast } from "react-toastify";
+import useModalPresence from "../hooks/useModalPresence";
 
 export default function ProdutoModal({ aoFechar, aoCadastrar }) {
+  useModalPresence();
+
   const [etapa, setEtapa] = useState(1);
   const [isMobile, setIsMobile] = useState(false);
   const [form, setForm] = useState({

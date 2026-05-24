@@ -8,7 +8,6 @@ import {
   LayoutDashboard,
   LogOut,
   PackageCheck,
-  PackagePlus,
   Search,
   ShieldCheck,
   TrendingUp,
@@ -62,7 +61,6 @@ export default function SidebarLayout({ children, setTela }) {
       { key: "historico", label: "Vendas", group: "Operação", icon: ClipboardList },
       { key: "clientes", label: "Clientes", group: "Operação", icon: UsersRound },
       { key: "estoque", label: "Estoque", group: "Gestão", icon: Boxes },
-      { key: "entradas", label: "Entradas", group: "Gestão", icon: PackagePlus },
       { key: "produtos", label: "Consultar", group: "Gestão", icon: Search },
       { key: "lucro", label: "Lucro", group: "Gestão", icon: TrendingUp },
       ...(usuario?.superadmin ? [{ key: "superadmin", label: "Admin", group: "Sistema", icon: ShieldCheck }] : []),
@@ -151,7 +149,7 @@ export default function SidebarLayout({ children, setTela }) {
 
   const renderBottomNav = () => (
     <>
-      <div className="fixed inset-x-3 bottom-4 z-50 flex max-w-[calc(100vw-1.5rem)] justify-around rounded-lg border border-white/10 bg-[#181F24] py-1.5 text-white shadow-xl">
+      <div className="lojia-mobile-nav fixed inset-x-3 bottom-4 z-50 flex max-w-[calc(100vw-1.5rem)] justify-around rounded-lg border border-white/10 bg-[#181F24] py-1.5 text-white shadow-xl">
         {itensMobile.map(({ key, label, icon: Icon }) => (
             <button
             key={key}

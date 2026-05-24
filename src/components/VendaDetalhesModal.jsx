@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Dialog } from "@headlessui/react";
 import { Pencil, ReceiptText, RefreshCcw, Save, Trash, X } from "lucide-react";
 import ReciboModal from "./ReciboModal";
+import useModalPresence from "../hooks/useModalPresence";
 
 const formatCurrency = (valor) =>
   new Intl.NumberFormat("pt-BR", {
@@ -17,6 +18,8 @@ export default function VendaDetalhesModal({
   aoTroca,
   aoAtualizar,
 }) {
+  useModalPresence(Boolean(aberto));
+
   const [editando, setEditando] = useState(false);
   const [salvando, setSalvando] = useState(false);
   const [mostrarRecibo, setMostrarRecibo] = useState(false);

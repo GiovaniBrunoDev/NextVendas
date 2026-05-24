@@ -2,8 +2,11 @@ import { useEffect, useMemo, useState } from "react";
 import { Dialog } from "@headlessui/react";
 import api from "../services/api";
 import { RefreshCcw, X } from "lucide-react";
+import useModalPresence from "../hooks/useModalPresence";
 
 export default function TrocaModal({ aberto, venda, aoFechar, aoConfirmarTroca }) {
+  useModalPresence(Boolean(aberto));
+
   const [produtos, setProdutos] = useState([]);
   const [itemSelecionado, setItemSelecionado] = useState(null);
   const [modoTroca, setModoTroca] = useState("mesmo");

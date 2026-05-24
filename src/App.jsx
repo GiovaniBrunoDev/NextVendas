@@ -48,7 +48,7 @@ function ProtectedApp() {
       case "historico":
         return <VendasListadas />;
       case "estoque":
-        return <Estoque />;
+        return <Estoque aoAdicionarReposicao={() => setTela("entradas")} />;
       case "clientes":
         return <Clientes />;
       case "produtos":

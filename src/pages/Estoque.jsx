@@ -3,6 +3,7 @@ import api from "../services/api";
 import ProdutoModal from "../components/ProdutoModal";
 import { toast } from "react-toastify";
 import { FaPlus, FaPen, FaTrashAlt } from "react-icons/fa";
+import { PackagePlus } from "lucide-react";
 
 const API_KEY = "6371650aa50b8af82e574e8022553613";
 
@@ -12,7 +13,7 @@ const formatCurrency = (valor) =>
     currency: "BRL",
   }).format(Number(valor || 0));
 
-export default function Estoque() {
+export default function Estoque({ aoAdicionarReposicao }) {
   const [produtos, setProdutos] = useState([]);
   const [carregando, setCarregando] = useState(true);
   const [mostrarModal, setMostrarModal] = useState(false);
@@ -361,12 +362,21 @@ export default function Estoque() {
             {produtos.length} produtos cadastrados, {relatorio.quantidadeTotal} pares em estoque.
           </p>
         </div>
-        <button
-          onClick={() => setMostrarModal(true)}
-          className="inline-flex items-center justify-center gap-2 rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-slate-700"
-        >
-          <FaPlus className="text-xs" /> Novo produto
-        </button>
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <button
+            type="button"
+            onClick={aoAdicionarReposicao}
+            className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50"
+          >
+            <PackagePlus size={16} /> Adicionar reposição
+          </button>
+          <button
+            onClick={() => setMostrarModal(true)}
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-slate-700"
+          >
+            <FaPlus className="text-xs" /> Novo produto
+          </button>
+        </div>
       </div>
 
       <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-5">

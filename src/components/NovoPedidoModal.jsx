@@ -16,6 +16,7 @@ import {
   X,
 } from "lucide-react";
 import { SiPix } from "react-icons/si";
+import useModalPresence from "../hooks/useModalPresence";
 
 const inputClass =
   "w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800 outline-none transition focus:border-slate-400 focus:bg-white";
@@ -44,6 +45,8 @@ function moeda(valor) {
 }
 
 export default function NovoPedidoModal({ carrinho, aoFechar, aoConfirmar }) {
+  useModalPresence();
+
   const [formaPagamento, setFormaPagamento] = useState("dinheiro");
   const [tipoEntrega, setTipoEntrega] = useState("retirada");
   const [taxaEntrega, setTaxaEntrega] = useState("");

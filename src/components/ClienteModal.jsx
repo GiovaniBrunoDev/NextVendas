@@ -2,8 +2,11 @@ import { useEffect, useState } from "react";
 import { Building2, FileText, Home, MapPin, Phone, Save, UserRound, X } from "lucide-react";
 import { toast } from "react-toastify";
 import api from "../services/api";
+import useModalPresence from "../hooks/useModalPresence";
 
 export default function ClienteModal({ aoFechar, clienteAtual = null, aoSalvar }) {
+  useModalPresence();
+
   const [nome, setNome] = useState("");
   const [telefone, setTelefone] = useState("");
   const [endereco, setEndereco] = useState("");

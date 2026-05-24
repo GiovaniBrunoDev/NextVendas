@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import api from "../services/api";
 import { toast } from "react-toastify";
-import { FaCreditCard, FaMoneyBillAlt, FaPercentage, FaTimes } from "react-icons/fa";
+import { FaArrowLeft, FaArrowRight, FaCheckCircle, FaCreditCard, FaMoneyBillAlt, FaPercentage, FaTimes } from "react-icons/fa";
 import { SiPix } from "react-icons/si";
 import Select from "react-select";
+import useModalPresence from "../hooks/useModalPresence";
 
 const formatCurrency = (valor) =>
   new Intl.NumberFormat("pt-BR", {
@@ -11,21 +12,49 @@ const formatCurrency = (valor) =>
     currency: "BRL",
   }).format(Number(valor || 0));
 
+const inputClass =
+  "w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-base text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-[#16A36B] focus:ring-3 focus:ring-[#16A36B]/10 sm:text-sm";
+
+const fieldLabelClass = "mb-1.5 block text-xs font-semibold uppercase text-slate-500";
+
+const panelClass =
+  "rounded-2xl border border-slate-200/80 bg-white p-4 shadow-[0_12px_30px_rgba(24,31,36,0.045)]";
+
 const selectStyles = {
   control: (base, state) => ({
     ...base,
-    minHeight: 42,
+    minHeight: 44,
     borderRadius: 8,
-    borderColor: state.isFocused ? "#94a3b8" : "#e2e8f0",
+    borderColor: state.isFocused ? "#16A36B" : "#e2e8f0",
     boxShadow: "none",
-    "&:hover": { borderColor: "#94a3b8" },
+    fontSize: 16,
+    "&:hover": { borderColor: "#16A36B" },
   }),
-  menu: (base) => ({ ...base, zIndex: 60 }),
+  menu: (base) => ({ ...base, zIndex: 10001 }),
+  menuPortal: (base) => ({ ...base, zIndex: 10001 }),
 };
 
+const etapas = [
+  { key: "cliente", label: "Cliente", title: "Cliente da venda" },
+  { key: "entrega", label: "Entrega", title: "Entrega" },
+  { key: "pagamento", label: "Pagamento", title: "Pagamento" },
+  { key: "resumo", label: "Resumo", title: "Conferencia final" },
+];
+
+function enderecoCompleto(cliente) {
+  if (!cliente) return "";
+
+  return [cliente.endereco, cliente.bairro, cliente.cidade, cliente.estado, cliente.cep]
+    .filter(Boolean)
+    .join(", ");
+}
+
 export default function FinalizarVendaModal({ carrinho, aoFechar, aoFinalizar }) {
+  useModalPresence();
+
+  const [etapaAtual, setEtapaAtual] = useState(0);
   const [formaPagamento, setFormaPagamento] = useState("dinheiro");
-  const [tipoEntrega, setTipoEntrega] = useState("retirada");
+  const [tipoEntrega, setTipoEntrega] = useState("entrega");
   const [taxaEntrega, setTaxaEntrega] = useState("");
   const [entregador, setEntregador] = useState("");
 
@@ -36,16 +65,37 @@ export default function FinalizarVendaModal({ carrinho, aoFechar, aoFinalizar })
 
   const [endereco, setEndereco] = useState("");
   const [desconto, setDesconto] = useState("");
+  const [tipoDesconto, setTipoDesconto] = useState("valor");
   const [carregando, setCarregando] = useState(false);
 
   const totalProdutos = carrinho.reduce((s, item) => s + item.qtd * item.preco, 0);
   const valorEntrega = tipoEntrega === "entrega" ? Number(taxaEntrega || 0) : 0;
-  const valorDesconto = Number(desconto || 0);
+  const descontoDigitado = Number(desconto || 0);
+  const percentualDesconto = Math.min(Math.max(descontoDigitado, 0), 100);
+  const valorDesconto = tipoDesconto === "percentual"
+    ? (totalProdutos * percentualDesconto) / 100
+    : descontoDigitado;
   const totalFinal = Math.max(totalProdutos + valorEntrega - valorDesconto, 0);
 
   const opcoes = useMemo(
-    () => clientes.map((c) => ({ value: c.id, label: `${c.nome} (${c.telefone || "sem telefone"})` })),
+    () =>
+      clientes.map((cliente) => {
+        const endereco = enderecoCompleto(cliente);
+
+        return {
+          value: cliente.id,
+          label: [cliente.nome, cliente.telefone, endereco].filter(Boolean).join(" - "),
+          nome: cliente.nome,
+          telefone: cliente.telefone,
+          endereco,
+        };
+      }),
     [clientes]
+  );
+
+  const clienteAtual = useMemo(
+    () => clientes.find((cliente) => String(cliente.id) === String(clienteSelecionado)),
+    [clienteSelecionado, clientes]
   );
 
   useEffect(() => {
@@ -58,7 +108,7 @@ export default function FinalizarVendaModal({ carrinho, aoFechar, aoFinalizar })
     };
     window.addEventListener("keydown", listener);
     return () => window.removeEventListener("keydown", listener);
-  }, []);
+  }, [aoFechar]);
 
   async function carregarClientes() {
     try {
@@ -90,7 +140,7 @@ export default function FinalizarVendaModal({ carrinho, aoFechar, aoFinalizar })
 
       const produtos = carrinho.map((item) => {
         if (!item.variacaoId || String(item.variacaoId).startsWith("manual-")) {
-          throw new Error(`Produto "${item.nome}" não possui variação cadastrada.`);
+          throw new Error(`Produto "${item.nome}" nao possui variacao cadastrada.`);
         }
         return { variacaoProdutoId: item.variacaoId, quantidade: item.qtd };
       });
@@ -113,7 +163,7 @@ export default function FinalizarVendaModal({ carrinho, aoFechar, aoFinalizar })
       aoFinalizar(data.venda);
     } catch (err) {
       console.error(err);
-      toast.error(err.message || "Erro ao finalizar venda.");
+      toast.error(err.response?.data?.error || err.message || "Erro ao finalizar venda.");
     } finally {
       setCarregando(false);
     }
@@ -134,260 +184,364 @@ export default function FinalizarVendaModal({ carrinho, aoFechar, aoFinalizar })
     });
   };
 
-  const vendaRapida = () => {
-    setFormaPagamento("dinheiro");
-    setTipoEntrega("retirada");
-    setTaxaEntrega("");
-    setEntregador("");
-    setClienteSelecionado("");
+  const selecionarCliente = (opcao) => {
+    const id = opcao?.value || "";
+    setClienteSelecionado(id);
     setClienteNome("");
     setClienteTelefone("");
-    setEndereco("");
-    setDesconto("");
+
+    if (!id) {
+      setEndereco("");
+      return;
+    }
+
+    const cliente = clientes.find((item) => String(item.id) === String(id));
+    setEndereco(enderecoCompleto(cliente));
+  };
+
+  const avancar = () => setEtapaAtual((valor) => Math.min(valor + 1, etapas.length - 1));
+  const voltar = () => setEtapaAtual((valor) => Math.max(valor - 1, 0));
+  const ultimaEtapa = etapaAtual === etapas.length - 1;
+  const etapa = etapas[etapaAtual];
+  const progresso = ((etapaAtual + 1) / etapas.length) * 100;
+
+  const renderCliente = () => (
+    <div className="space-y-4">
+      <div className={panelClass}>
+        <h3 className="mb-3 text-sm font-semibold text-slate-950">Cliente</h3>
+
+        {clientes.length > 0 && (
+          <Select
+            options={opcoes}
+            styles={selectStyles}
+            value={opcoes.find((opt) => String(opt.value) === String(clienteSelecionado)) || null}
+            onChange={selecionarCliente}
+            placeholder="Buscar cliente, telefone ou endereco"
+            isClearable
+            menuPortalTarget={document.body}
+            formatOptionLabel={(opcao, { context }) => (
+              <div className="min-w-0">
+                <p className="truncate text-sm font-medium text-slate-900">{opcao.nome}</p>
+                {context === "menu" && (
+                  <p className="truncate text-xs text-slate-500">
+                    {[opcao.telefone, opcao.endereco || "Sem endereco"].filter(Boolean).join(" - ")}
+                  </p>
+                )}
+              </div>
+            )}
+          />
+        )}
+      </div>
+
+      {!clienteSelecionado && (
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <label>
+            <span className={fieldLabelClass}>Nome</span>
+            <input
+              type="text"
+              placeholder="Nome do novo cliente"
+              value={clienteNome}
+              onChange={(e) => setClienteNome(e.target.value)}
+              className={inputClass}
+            />
+          </label>
+          <label>
+            <span className={fieldLabelClass}>Telefone</span>
+            <input
+              type="text"
+              placeholder="(00) 00000-0000"
+              value={clienteTelefone}
+              onChange={(e) => setClienteTelefone(formatTelefone(e.target.value))}
+              className={inputClass}
+            />
+          </label>
+        </div>
+      )}
+
+      <div className="rounded-xl border border-dashed border-slate-200 bg-white/70 px-4 py-3 text-sm text-slate-500">
+        {clienteSelecionado
+          ? `Cliente selecionado: ${clienteAtual?.nome || "Cliente"}`
+          : "Sem cliente selecionado. A venda pode seguir normalmente."}
+      </div>
+    </div>
+  );
+
+  const renderEntrega = () => (
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 gap-2">
+        {[
+          { label: "Retirada", value: "retirada" },
+          { label: "Entrega", value: "entrega" },
+        ].map((opcao) => (
+          <button
+            key={opcao.value}
+            type="button"
+            onClick={() => setTipoEntrega(opcao.value)}
+            className={`rounded-xl border px-4 py-3 text-sm font-medium transition ${
+              tipoEntrega === opcao.value
+                ? "border-[#181F24] bg-[#181F24] text-white shadow-[0_12px_24px_rgba(24,31,36,0.12)]"
+                : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50"
+            }`}
+          >
+            {opcao.label}
+          </button>
+        ))}
+      </div>
+
+      {tipoEntrega === "entrega" ? (
+        <div className="grid grid-cols-1 gap-3">
+          <label>
+            <span className={fieldLabelClass}>Endereco</span>
+            <textarea
+              rows={3}
+              value={endereco}
+              onChange={(e) => setEndereco(e.target.value)}
+              placeholder="Rua, numero, bairro, cidade"
+              className={`${inputClass} resize-none`}
+            />
+          </label>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <label>
+              <span className={fieldLabelClass}>Taxa</span>
+              <input
+                type="number"
+                placeholder="0,00"
+                value={taxaEntrega}
+                onChange={(e) => setTaxaEntrega(e.target.value)}
+                className={inputClass}
+              />
+            </label>
+            <label>
+              <span className={fieldLabelClass}>Entregador</span>
+              <input
+                type="text"
+                placeholder="Nome"
+                value={entregador}
+                onChange={(e) => setEntregador(e.target.value)}
+                className={inputClass}
+              />
+            </label>
+          </div>
+        </div>
+      ) : (
+        <div className="rounded-xl border border-dashed border-slate-200 bg-white/70 p-4 text-sm text-slate-500">
+          Retirada selecionada. Nenhuma taxa ou endereco sera lancado na venda.
+        </div>
+      )}
+    </div>
+  );
+
+  const renderPagamento = () => (
+    <div className="space-y-4">
+      <div className="grid grid-cols-3 gap-1 rounded-2xl border border-slate-200 bg-white p-1 shadow-[0_12px_30px_rgba(24,31,36,0.045)]">
+        {[
+          { value: "pix", label: "Pix", icon: <SiPix /> },
+          { value: "dinheiro", label: "Dinheiro", icon: <FaMoneyBillAlt /> },
+          { value: "cartao", label: "Cartao", icon: <FaCreditCard /> },
+        ].map((opcao) => (
+          <button
+            key={opcao.value}
+            type="button"
+            onClick={() => setFormaPagamento(opcao.value)}
+            className={`flex items-center justify-center gap-2 rounded-lg px-2 py-2.5 text-xs font-medium transition ${
+              formaPagamento === opcao.value
+                ? "bg-[#181F24] text-white shadow-[0_10px_20px_rgba(24,31,36,0.12)]"
+                : "text-slate-600 hover:bg-slate-50 hover:text-slate-950"
+            }`}
+          >
+            <span className="text-base">{opcao.icon}</span>
+            {opcao.label}
+          </button>
+        ))}
+      </div>
+
+      <div className={panelClass}>
+        <div className="flex items-center justify-between gap-3">
+          <span className="flex items-center gap-2 text-sm font-semibold text-slate-950">
+            <FaPercentage /> Desconto
+          </span>
+          <div className="flex rounded-full bg-slate-100 p-0.5 text-xs font-medium">
+            {[
+              { value: "valor", label: "R$" },
+              { value: "percentual", label: "%" },
+            ].map((opcao) => (
+              <button
+                key={opcao.value}
+                type="button"
+                onClick={() => setTipoDesconto(opcao.value)}
+                className={`rounded-full px-2.5 py-1 transition ${
+                  tipoDesconto === opcao.value
+                    ? "bg-white text-slate-950 shadow-sm"
+                    : "text-slate-500 hover:text-slate-800"
+                }`}
+              >
+                {opcao.label}
+              </button>
+            ))}
+          </div>
+        </div>
+        <input
+          type="number"
+          min="0"
+          max={tipoDesconto === "percentual" ? "100" : undefined}
+          placeholder={tipoDesconto === "percentual" ? "Ex: 10" : "Ex: 5.00"}
+          value={desconto}
+          onChange={(e) => setDesconto(e.target.value)}
+          className={`${inputClass} mt-3`}
+        />
+        {tipoDesconto === "percentual" && desconto && (
+          <p className="mt-2 text-xs text-slate-500">
+            Desconto calculado: {formatCurrency(valorDesconto)}
+          </p>
+        )}
+      </div>
+    </div>
+  );
+
+  const renderResumo = () => (
+    <div className="space-y-4">
+      <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-[0_12px_30px_rgba(24,31,36,0.045)]">
+        <div className="border-b border-slate-200/80 px-4 py-3">
+          <h3 className="text-sm font-semibold text-slate-950">Itens da venda</h3>
+        </div>
+        <div className="max-h-64 divide-y divide-slate-100 overflow-y-auto">
+          {carrinho.map((item, index) => (
+            <div key={`${item.produtoId}-${item.variacaoId}-${index}`} className="px-4 py-3 text-sm">
+              <div className="flex justify-between gap-3">
+                <span className="min-w-0 truncate text-slate-800">
+                  {item.nome} {item.numeracao ? `(Tam. ${item.numeracao})` : ""}
+                </span>
+                <span className="shrink-0 font-medium text-slate-950">
+                  {formatCurrency(item.preco * item.qtd)}
+                </span>
+              </div>
+              <p className="mt-1 text-xs text-slate-500">Qtd. {item.qtd}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div className="rounded-2xl border border-slate-200/80 bg-white p-4 text-sm shadow-[0_12px_30px_rgba(24,31,36,0.045)]">
+          <p className="font-semibold text-slate-950">Cliente</p>
+          <p className="mt-1 text-slate-500">{clienteAtual?.nome || clienteNome || "Nao informado"}</p>
+        </div>
+        <div className="rounded-2xl border border-slate-200/80 bg-white p-4 text-sm shadow-[0_12px_30px_rgba(24,31,36,0.045)]">
+          <p className="font-semibold text-slate-950">Entrega</p>
+          <p className="mt-1 capitalize text-slate-500">{tipoEntrega}</p>
+        </div>
+      </div>
+
+      <div className="rounded-2xl border border-slate-200/80 bg-[#181F24] p-4 text-sm text-white shadow-[0_16px_34px_rgba(24,31,36,0.14)]">
+        <div className="flex justify-between text-slate-600">
+          <span className="text-white/62">Produtos</span>
+          <span>{formatCurrency(totalProdutos)}</span>
+        </div>
+        <div className="mt-2 flex justify-between">
+          <span className="text-white/62">Entrega</span>
+          <span>{formatCurrency(valorEntrega)}</span>
+        </div>
+        <div className="mt-2 flex justify-between">
+          <span className="text-white/62">
+            Desconto
+            {tipoDesconto === "percentual" && desconto ? ` (${percentualDesconto}%)` : ""}
+          </span>
+          <span>- {formatCurrency(valorDesconto)}</span>
+        </div>
+        <div className="mt-3 flex justify-between border-t border-white/10 pt-3 text-xl font-semibold">
+          <span>Total</span>
+          <span>{formatCurrency(totalFinal)}</span>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderConteudo = () => {
+    if (etapa.key === "cliente") return renderCliente();
+    if (etapa.key === "entrega") return renderEntrega();
+    if (etapa.key === "pagamento") return renderPagamento();
+    return renderResumo();
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 px-3 py-4 backdrop-blur-sm">
+    <div className="fixed inset-0 z-[10000] flex items-end justify-center bg-slate-950/50 px-0 py-0 backdrop-blur-sm sm:items-center sm:px-3 sm:py-4">
       <div
         id="finalizar-venda-modal"
-        className="relative flex max-h-[95vh] w-full max-w-3xl flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-2xl"
+        className="relative flex h-[100dvh] w-full max-w-2xl flex-col overflow-hidden rounded-none border border-slate-200/80 bg-[#FFFEFA] shadow-[0_28px_80px_rgba(24,31,36,0.24)] sm:h-auto sm:max-h-[92vh] sm:rounded-[24px]"
       >
-        <div className="flex items-start justify-between gap-4 border-b border-slate-200 p-5">
-          <div>
-            <h2 className="text-xl font-semibold tracking-tight text-slate-950">Finalizar venda</h2>
-            <p className="mt-1 text-sm text-slate-500">
-              Confira cliente, entrega, pagamento e resumo antes de confirmar.
-            </p>
-          </div>
-          <button
-            onClick={aoFechar}
-            className="rounded-lg border border-slate-200 p-2 text-slate-500 hover:bg-slate-50 hover:text-slate-900"
-            aria-label="Fechar"
-          >
-            <FaTimes />
-          </button>
-        </div>
-
-        <div className="overflow-y-auto p-5">
-          <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_280px]">
-            <div className="space-y-5">
-              <section className="rounded-lg border border-slate-200 p-4">
-                <div className="mb-3 flex items-center justify-between gap-3">
-                  <div>
-                    <h3 className="text-sm font-semibold text-slate-950">Cliente</h3>
-                    <p className="text-sm text-slate-500">Opcional para vendas rápidas.</p>
-                  </div>
-                  <button
-                    onClick={vendaRapida}
-                    className="rounded-lg border border-slate-300 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50"
-                  >
-                    Venda rápida
-                  </button>
-                </div>
-
-                {clienteSelecionado ? (
-                  <div className="space-y-3">
-                    <Select
-                      options={opcoes}
-                      styles={selectStyles}
-                      value={opcoes.find((opt) => opt.value === clienteSelecionado)}
-                      onChange={(e) => setClienteSelecionado(e?.value || "")}
-                      placeholder="Buscar ou selecionar cliente"
-                      isClearable
-                    />
-                    <button
-                      onClick={() => {
-                        setClienteSelecionado("");
-                        setClienteNome("");
-                        setClienteTelefone("");
-                      }}
-                      className="text-sm font-medium text-slate-700 hover:text-slate-950"
-                    >
-                      Cadastrar novo cliente
-                    </button>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 gap-3">
-                    {clientes.length > 0 && (
-                      <Select
-                        options={opcoes}
-                        styles={selectStyles}
-                        onChange={(e) => {
-                          const id = e?.value || "";
-                          setClienteSelecionado(id);
-                          if (id) {
-                            const cliente = clientes.find((c) => c.id === id);
-                            if (cliente) setEndereco(cliente.endereco || "");
-                          } else {
-                            setEndereco("");
-                          }
-                        }}
-                        placeholder="Selecionar cliente existente"
-                        isClearable
-                      />
-                    )}
-                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                      <input
-                        type="text"
-                        placeholder="Nome do novo cliente"
-                        value={clienteNome}
-                        onChange={(e) => setClienteNome(e.target.value)}
-                        className="rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-slate-400"
-                      />
-                      <input
-                        type="text"
-                        placeholder="Telefone"
-                        value={clienteTelefone}
-                        onChange={(e) => setClienteTelefone(formatTelefone(e.target.value))}
-                        className="rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-slate-400"
-                      />
-                    </div>
-                  </div>
-                )}
-              </section>
-
-              <section className="rounded-lg border border-slate-200 p-4">
-                <h3 className="text-sm font-semibold text-slate-950">Entrega</h3>
-                <div className="mt-3 grid grid-cols-2 gap-2">
-                  {[
-                    { label: "Retirada", value: "retirada" },
-                    { label: "Entrega", value: "entrega" },
-                  ].map((opcao) => (
-                    <button
-                      key={opcao.value}
-                      onClick={() => setTipoEntrega(opcao.value)}
-                      className={`rounded-lg border px-4 py-3 text-sm font-medium transition ${
-                        tipoEntrega === opcao.value
-                          ? "border-slate-900 bg-slate-900 text-white"
-                          : "border-slate-200 text-slate-700 hover:bg-slate-50"
-                      }`}
-                    >
-                      {opcao.label}
-                    </button>
-                  ))}
-                </div>
-
-                {tipoEntrega === "entrega" && (
-                  <div className="mt-4 grid grid-cols-1 gap-3">
-                    <textarea
-                      rows={2}
-                      value={endereco}
-                      onChange={(e) => setEndereco(e.target.value)}
-                      placeholder="Endereço de entrega"
-                      className="rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-slate-400"
-                    />
-                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                      <input
-                        type="number"
-                        placeholder="Taxa de entrega"
-                        value={taxaEntrega}
-                        onChange={(e) => setTaxaEntrega(e.target.value)}
-                        className="rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-slate-400"
-                      />
-                      <input
-                        type="text"
-                        placeholder="Nome do entregador"
-                        value={entregador}
-                        onChange={(e) => setEntregador(e.target.value)}
-                        className="rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-slate-400"
-                      />
-                    </div>
-                  </div>
-                )}
-              </section>
-
-              <section className="rounded-lg border border-slate-200 p-4">
-                <h3 className="text-sm font-semibold text-slate-950">Pagamento</h3>
-                <div className="mt-3 grid grid-cols-3 gap-2">
-                  {[
-                    { value: "pix", label: "Pix", icon: <SiPix /> },
-                    { value: "dinheiro", label: "Dinheiro", icon: <FaMoneyBillAlt /> },
-                    { value: "cartao", label: "Cartão", icon: <FaCreditCard /> },
-                  ].map((opcao) => (
-                    <button
-                      key={opcao.value}
-                      onClick={() => setFormaPagamento(opcao.value)}
-                      className={`flex flex-col items-center justify-center gap-1 rounded-lg border px-2 py-3 text-xs font-medium transition ${
-                        formaPagamento === opcao.value
-                          ? "border-slate-900 bg-slate-900 text-white"
-                          : "border-slate-200 text-slate-700 hover:bg-slate-50"
-                      }`}
-                    >
-                      <span className="text-lg">{opcao.icon}</span>
-                      {opcao.label}
-                    </button>
-                  ))}
-                </div>
-              </section>
-
-              <section className="rounded-lg border border-slate-200 p-4">
-                <label className="flex items-center gap-2 text-sm font-semibold text-slate-950">
-                  <FaPercentage /> Desconto
-                </label>
-                <input
-                  type="number"
-                  placeholder="Ex: 5.00"
-                  value={desconto}
-                  onChange={(e) => setDesconto(e.target.value)}
-                  className="mt-3 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-slate-400"
-                />
-              </section>
+        <div className="shrink-0 border-b border-slate-200/80 bg-[#FFFEFA] px-4 pb-4 pt-4 sm:px-6 sm:pt-6">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h2 className="text-xl font-semibold text-slate-950">Finalizar venda</h2>
             </div>
+            <button
+              type="button"
+              onClick={aoFechar}
+              className="rounded-full border border-slate-200 bg-white p-2 text-slate-500 shadow-sm transition hover:bg-slate-50 hover:text-slate-900"
+              aria-label="Fechar"
+            >
+              <FaTimes />
+            </button>
+          </div>
 
-            <aside className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-              <h3 className="text-sm font-semibold text-slate-950">Resumo</h3>
-              <div className="mt-4 max-h-56 space-y-3 overflow-auto">
-                {carrinho.map((item, index) => (
-                  <div key={`${item.produtoId}-${item.variacaoId}-${index}`} className="text-sm">
-                    <div className="flex justify-between gap-3">
-                      <span className="min-w-0 truncate text-slate-700">
-                        {item.nome} {item.numeracao ? `(Tam. ${item.numeracao})` : ""}
-                      </span>
-                      <span className="shrink-0 font-medium text-slate-900">
-                        {formatCurrency(item.preco * item.qtd)}
-                      </span>
-                    </div>
-                    <p className="text-xs text-slate-500">Qtd. {item.qtd}</p>
-                  </div>
-                ))}
-              </div>
-
-              <div className="mt-5 space-y-2 border-t border-slate-200 pt-4 text-sm">
-                <div className="flex justify-between text-slate-600">
-                  <span>Produtos</span>
-                  <span>{formatCurrency(totalProdutos)}</span>
-                </div>
-                <div className="flex justify-between text-slate-600">
-                  <span>Entrega</span>
-                  <span>{formatCurrency(valorEntrega)}</span>
-                </div>
-                <div className="flex justify-between text-slate-600">
-                  <span>Desconto</span>
-                  <span>- {formatCurrency(valorDesconto)}</span>
-                </div>
-                <div className="flex justify-between border-t border-slate-200 pt-3 text-lg font-semibold text-slate-950">
-                  <span>Total</span>
-                  <span>{formatCurrency(totalFinal)}</span>
-                </div>
-              </div>
-            </aside>
+          <div className="mt-5">
+            <div className="h-1.5 overflow-hidden rounded-full bg-slate-200/80">
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-[#16A36B] to-[#20BD7A] transition-all duration-300"
+                style={{ width: `${progresso}%` }}
+              />
+            </div>
           </div>
         </div>
 
-        <div className="flex flex-col-reverse gap-3 border-t border-slate-200 bg-white p-5 sm:flex-row sm:justify-end">
-          <button
-            onClick={aoFechar}
-            className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
-          >
-            Cancelar
-          </button>
-          <button
-            onClick={handleFinalizar}
-            disabled={carregando}
-            className="rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-slate-700 disabled:opacity-60"
-          >
-            {carregando ? "Processando..." : "Confirmar venda"}
-          </button>
+        <div className="min-h-0 flex-1 overflow-y-auto bg-[#F7F5EF]/50 px-4 py-5 sm:px-6">
+          <div className="mb-5">
+            <h3 className="mt-1 text-lg font-semibold text-slate-950">{etapa.title}</h3>
+          </div>
+
+          {renderConteudo()}
+        </div>
+
+        <div className="shrink-0 border-t border-slate-200/80 bg-white px-4 py-4 sm:px-6">
+          <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-between">
+            {etapaAtual === 0 ? (
+              <button
+                type="button"
+                onClick={aoFechar}
+                className="rounded-xl border border-slate-300 px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+              >
+                Cancelar
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={voltar}
+                className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+              >
+                <FaArrowLeft size={12} /> Voltar
+              </button>
+            )}
+
+            {ultimaEtapa ? (
+              <button
+                type="button"
+                onClick={handleFinalizar}
+                disabled={carregando}
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#16A36B] px-5 py-3 text-sm font-medium text-white shadow-[0_14px_26px_rgba(22,163,107,0.22)] transition hover:bg-[#11875A] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {carregando ? "Processando..." : "Confirmar venda"}
+                {!carregando && <FaCheckCircle />}
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={avancar}
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#181F24] px-5 py-3 text-sm font-medium text-white shadow-[0_14px_26px_rgba(24,31,36,0.16)] transition hover:bg-[#26313A]"
+              >
+                Proximo <FaArrowRight size={12} />
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>

@@ -58,6 +58,10 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
+  body.lojia-modal-open {
+    overflow: hidden;
+  }
+
   #root {
     width: 100%;
     min-width: 0;
@@ -328,6 +332,35 @@
 
   .lojia-sidebar-scroll::-webkit-scrollbar {
     display: none;
+  }
+
+  .lojia-mobile-nav {
+    transition: transform 180ms ease, opacity 180ms ease;
+  }
+
+  body.lojia-modal-open .lojia-mobile-nav {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(120%);
+  }
+}
+
+@media (max-width: 768px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+
+  .lojia-hero-panel,
+  .lojia-surface,
+  .lojia-card,
+  .lojia-card-flat,
+  form,
+  section,
+  article {
+    min-width: 0;
+    max-width: 100%;
   }
 }
 

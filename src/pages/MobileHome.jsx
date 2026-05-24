@@ -42,7 +42,7 @@ export default function MobileHome() {
         </div>
       </div>
 
-      <nav className="fixed bottom-0 left-0 right-0 z-50 flex justify-around border-t border-[#E5DED2] bg-[#FFFEFA] py-2 shadow-md">
+      <nav className="lojia-mobile-nav fixed bottom-0 left-0 right-0 z-50 flex justify-around border-t border-[#E5DED2] bg-[#FFFEFA] py-2 shadow-md">
         <button onClick={() => navigate("/vendas/nova")} className="flex flex-col items-center text-slate-700">
           <ShoppingBag className="h-5 w-5" />
           <span className="text-xs font-semibold">Nova</span>

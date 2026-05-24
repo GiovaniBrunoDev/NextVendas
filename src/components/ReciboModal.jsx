@@ -1,5 +1,6 @@
 import { X, Printer, ReceiptText } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
+import useModalPresence from "../hooks/useModalPresence";
 
 const moeda = (valor) =>
   Number(valor || 0).toLocaleString("pt-BR", {
@@ -49,6 +50,7 @@ function normalizarItens(registro) {
 
 export default function ReciboModal({ aberto, tipo = "venda", registro, aoFechar }) {
   const { lojaAtual } = useAuth();
+  useModalPresence(Boolean(aberto && registro));
 
   if (!aberto || !registro) return null;
 
