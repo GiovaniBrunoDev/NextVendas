@@ -35,7 +35,7 @@ export default function Login() {
       }
       navigate("/", { replace: true });
     } catch (err) {
-      toast.error(err.response?.data?.error || "Nao foi possivel entrar.");
+      toast.error(err.response?.data?.error || "Não foi possível entrar.");
     } finally {
       setCarregando(false);
     }
@@ -115,7 +115,7 @@ export default function Login() {
 
           {modoBootstrap && (
             <div className="mt-5 rounded-md border border-[#F4A62A]/30 bg-[#F4A62A]/[0.12] px-3 py-2 text-xs leading-5 text-[#8A5400]">
-              Use somente se ainda nao existir superadmin cadastrado.
+              Use somente se ainda não existir superadmin cadastrado.
             </div>
           )}
 

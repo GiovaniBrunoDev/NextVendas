@@ -24,9 +24,9 @@ import {
 
 const periodos = [
   { value: "dia", label: "Hoje" },
-  { value: "7dias", label: "Ultimos 7 dias" },
-  { value: "mes", label: "Este mes" },
-  { value: "tudo", label: "Todo periodo" },
+  { value: "7dias", label: "Últimos 7 dias" },
+  { value: "mes", label: "Este mês" },
+  { value: "tudo", label: "Todo período" },
 ];
 
 const formatCurrency = (valor) =>
@@ -91,7 +91,7 @@ function FeaturedMetricCard({ titulo, valor }) {
             <FaMoneyBillWave />
           </div>
           <div>
-            <p className="text-xs text-white/62">Periodo</p>
+            <p className="text-xs text-white/62">Período</p>
             <p className="mt-0.5 text-sm font-medium text-white/85">Selecionado acima</p>
           </div>
         </div>
@@ -120,7 +120,7 @@ export default function Dashboard() {
   const [carregando, setCarregando] = useState(true);
 
   const periodoAtual = useMemo(
-    () => periodos.find((item) => item.value === periodo)?.label || "Periodo",
+    () => periodos.find((item) => item.value === periodo)?.label || "Período",
     [periodo]
   );
 
@@ -321,13 +321,13 @@ export default function Dashboard() {
           icon={<FaBoxOpen />}
         />
         <MetricCard
-          titulo="Ticket medio"
+          titulo="Ticket médio"
           valor={ticketMedio}
           isCurrency
           icon={<FaReceipt />}
         />
         <MetricCard
-          titulo="Lucro real"
+          titulo="Lucro bruto"
           valor={lucro}
           isCurrency
           icon={<FaChartLine />}
@@ -367,7 +367,7 @@ export default function Dashboard() {
         {dadosGrafico.length === 0 ? (
           <div className="flex h-[260px] items-center justify-center rounded-lg border border-dashed border-slate-200 bg-slate-50 text-center">
             <div>
-              <p className="text-sm font-medium text-slate-700">Nenhuma venda no periodo</p>
+              <p className="text-sm font-medium text-slate-700">Nenhuma venda no período</p>
               <p className="mt-1 text-xs text-slate-500">O grafico aparece quando houver vendas.</p>
             </div>
           </div>
@@ -434,7 +434,7 @@ export default function Dashboard() {
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
                       <span className="truncate text-sm font-medium text-slate-900">
-                        {pedido.cliente?.nome || "Cliente nao informado"}
+                        {pedido.cliente?.nome || "Cliente não informado"}
                       </span>
                       <span className="shrink-0 rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[11px] font-medium capitalize text-slate-600">
                         {pedido.status}
@@ -464,7 +464,7 @@ export default function Dashboard() {
 
           {rankingProdutos.length === 0 ? (
             <p className="rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
-              Nenhuma venda registrada neste periodo.
+              Nenhuma venda registrada neste período.
             </p>
           ) : (
             <>

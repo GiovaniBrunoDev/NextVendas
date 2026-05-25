@@ -77,24 +77,25 @@ export default function VendaDetalhesModal({
   return (
     <Dialog open={aberto} onClose={aoFechar} className="relative z-50">
       <div className="fixed inset-0 bg-slate-950/50 backdrop-blur-sm" aria-hidden="true" />
-      <div className="fixed inset-0 flex items-center justify-center overflow-y-auto p-3 sm:p-4">
-        <Dialog.Panel className="w-full max-w-4xl overflow-hidden rounded-xl border border-slate-200 bg-white shadow-2xl">
-          <div className="flex items-start justify-between gap-4 border-b border-slate-200 p-5">
-            <div>
-              <Dialog.Title className="text-xl font-semibold tracking-tight text-slate-950">
+      <div className="fixed inset-0 flex items-stretch justify-center overflow-hidden sm:items-center sm:overflow-y-auto sm:p-4">
+        <Dialog.Panel className="flex h-[100dvh] w-full flex-col overflow-hidden border-0 bg-white shadow-2xl sm:h-auto sm:max-h-[calc(100dvh-2rem)] sm:max-w-4xl sm:rounded-xl sm:border sm:border-slate-200">
+          <div className="flex shrink-0 items-start justify-between gap-4 border-b border-slate-200 bg-white px-4 py-4 sm:p-5">
+            <div className="min-w-0">
+              <Dialog.Title className="truncate text-lg font-semibold tracking-tight text-slate-950 sm:text-xl">
                 Venda #{venda.id}
               </Dialog.Title>
               <p className="mt-1 text-sm text-slate-500">{formatarData(venda.data)}</p>
             </div>
             <button
               onClick={aoFechar}
-              className="rounded-lg border border-slate-200 p-2 text-slate-500 hover:bg-slate-50 hover:text-slate-900"
+              aria-label="Fechar detalhes da venda"
+              className="shrink-0 rounded-lg border border-slate-200 p-2 text-slate-500 hover:bg-slate-50 hover:text-slate-900"
             >
               <X size={18} />
             </button>
           </div>
 
-          <div className="max-h-[78vh] overflow-y-auto p-5">
+          <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4 sm:p-5">
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               <InfoCard label="Total" value={formatCurrency(venda.total)} strong />
               <InfoCard label="Cliente" value={venda.cliente?.nome || "Não informado"} detail={venda.cliente?.telefone || "-"} />
@@ -203,19 +204,19 @@ export default function VendaDetalhesModal({
             </div>
           </div>
 
-          <div className="flex flex-col-reverse gap-3 border-t border-slate-200 bg-white p-5 sm:flex-row sm:justify-end">
+          <div className="grid shrink-0 grid-cols-2 gap-2 border-t border-slate-200 bg-white p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] sm:flex sm:justify-end sm:gap-3 sm:p-5">
             {editando ? (
               <>
                 <button
                   onClick={() => setEditando(false)}
-                  className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                  className="inline-flex min-h-11 items-center justify-center rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 sm:min-h-0"
                 >
                   Cancelar
                 </button>
                 <button
                   onClick={salvarEdicao}
                   disabled={salvando}
-                  className="inline-flex items-center justify-center gap-2 rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-slate-700 disabled:opacity-60"
+                  className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-slate-700 disabled:opacity-60 sm:min-h-0"
                 >
                   <Save size={16} /> {salvando ? "Salvando..." : "Salvar alterações"}
                 </button>
@@ -224,25 +225,25 @@ export default function VendaDetalhesModal({
               <>
                 <button
                   onClick={() => setMostrarRecibo(true)}
-                  className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                  className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-slate-300 px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 sm:min-h-0 sm:px-4"
                 >
                   <ReceiptText size={16} /> Recibo
                 </button>
                 <button
                   onClick={() => setEditando(true)}
-                  className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                  className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-slate-300 px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 sm:min-h-0 sm:px-4"
                 >
                   <Pencil size={16} /> Editar
                 </button>
                 <button
                   onClick={() => aoTroca(venda)}
-                  className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                  className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-slate-300 px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 sm:min-h-0 sm:px-4"
                 >
                   <RefreshCcw size={16} /> Troca
                 </button>
                 <button
                   onClick={() => aoExcluir(venda.id)}
-                  className="inline-flex items-center justify-center gap-2 rounded-lg border border-rose-200 px-4 py-2.5 text-sm font-medium text-rose-700 hover:bg-rose-50"
+                  className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-rose-200 px-3 py-2.5 text-sm font-medium text-rose-700 hover:bg-rose-50 sm:min-h-0 sm:px-4"
                 >
                   <Trash size={16} /> Excluir
                 </button>

@@ -61,7 +61,7 @@ export default function Metas() {
           <select className={inputClass} value={novaMeta.periodo} onChange={(e) => setNovaMeta({ ...novaMeta, periodo: e.target.value })}>
             <option value="dia">Dia</option>
             <option value="semana">Semana</option>
-            <option value="mes">Mes</option>
+            <option value="mes">Mês</option>
           </select>
           <button onClick={criarMeta} className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700">
             Criar

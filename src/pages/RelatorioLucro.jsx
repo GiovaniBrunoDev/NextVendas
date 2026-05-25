@@ -64,7 +64,7 @@ export default function RelatorioLucro() {
   const cards = useMemo(
     () => [
       {
-        label: "Lucro real",
+        label: "Lucro bruto",
         value: formatCurrency(resumo.lucro),
         icon: <FaChartLine />,
         destaque: true,
@@ -104,7 +104,7 @@ export default function RelatorioLucro() {
     <div className="min-h-screen space-y-6 bg-slate-50 p-4 sm:p-6">
       <div className="flex flex-col gap-4 rounded-lg border border-slate-200 bg-white p-4 shadow-sm lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-950">Lucro real</h1>
+          <h1 className="text-2xl font-semibold tracking-tight text-slate-950">Lucro bruto</h1>
           <p className="mt-1 text-sm text-slate-500">
             Receita de produtos menos desconto e custo das mercadorias vendidas.
           </p>
@@ -200,7 +200,7 @@ export default function RelatorioLucro() {
             <LinhaResumo label="Custo mercadorias" value={`- ${formatCurrency(resumo.custoProdutos)}`} />
             <div className="border-t border-slate-200 pt-3">
               <LinhaResumo label="Vendas analisadas" value={resumo.vendas || 0} strong />
-              <LinhaResumo label="Lucro real" value={formatCurrency(resumo.lucro)} strong />
+              <LinhaResumo label="Lucro bruto" value={formatCurrency(resumo.lucro)} strong />
             </div>
           </div>
         </aside>

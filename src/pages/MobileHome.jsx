@@ -5,11 +5,11 @@ export default function MobileHome() {
   const navigate = useNavigate();
 
   const produtos = [
-    { id: 1, nome: "Tenis Nike Air", preco: 299.9 },
-    { id: 2, nome: "Tenis Adidas UltraBoost", preco: 349.9 },
-    { id: 3, nome: "Tenis Puma RS-X", preco: 259.9 },
-    { id: 4, nome: "Tenis Vans Old Skool", preco: 219.9 },
-    { id: 5, nome: "Tenis Converse All Star", preco: 199.9 },
+    { id: 1, nome: "Tênis Nike Air", preco: 299.9 },
+    { id: 2, nome: "Tênis Adidas UltraBoost", preco: 349.9 },
+    { id: 3, nome: "Tênis Puma RS-X", preco: 259.9 },
+    { id: 4, nome: "Tênis Vans Old Skool", preco: 219.9 },
+    { id: 5, nome: "Tênis Converse All Star", preco: 199.9 },
   ];
 
   return (

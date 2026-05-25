@@ -281,7 +281,7 @@ export default function Caixa() {
                   >
                     <option value="dinheiro">Dinheiro</option>
                     <option value="pix">Pix</option>
-                    <option value="cartao">Cartao</option>
+                    <option value="cartao">Cartão</option>
                     <option value="outro">Outro</option>
                   </select>
                 </label>
@@ -437,7 +437,7 @@ function HistoricoCaixa({ historico }) {
   return (
     <section className="lojia-surface overflow-hidden">
       <div className="border-b border-slate-200 p-4">
-        <h2 className="text-base font-semibold text-slate-950">Ultimos caixas fechados</h2>
+        <h2 className="text-base font-semibold text-slate-950">Últimos caixas fechados</h2>
       </div>
       <div className="divide-y divide-slate-100">
         {historico.length > 0 ? (

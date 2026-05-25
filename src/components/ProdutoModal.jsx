@@ -207,7 +207,7 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
         return false;
       }
       if (!form.preco || Number(form.preco) < 0) {
-        toast.error("Informe o preco corretamente.");
+        toast.error("Informe o preço corretamente.");
         return false;
       }
       if (form.custoUnitario !== "" && Number(form.custoUnitario) < 0) {
@@ -260,8 +260,8 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
         gifUrl = res.data.gifUrl;
 
         if (!videoUrl || !gifUrl) {
-          console.error("Resposta invalida do upload de video:", res.data);
-          throw new Error("Upload de video nao retornou videoUrl/gifUrl.");
+          console.error("Resposta inválida do upload de vídeo:", res.data);
+          throw new Error("Upload de vídeo não retornou videoUrl/gifUrl.");
         }
       }
 
@@ -374,7 +374,7 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
                   rows={2}
                   value={novoFornecedor.observacao}
                   onChange={(event) => setNovoFornecedor((prev) => ({ ...prev, observacao: event.target.value }))}
-                  placeholder="Observacao opcional"
+                  placeholder="Observação opcional"
                   className={`${inputClass} mt-2 resize-none`}
                 />
                 <div className="mt-2 flex justify-end gap-2">
@@ -481,12 +481,12 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
 
           {videoPreview && podeAdicionarVideo ? (
             <div>
-              <p className={labelClass}>Previa do video</p>
+              <p className={labelClass}>Prévia do vídeo</p>
               <video src={videoPreview} controls className="h-40 w-full rounded-lg border border-slate-200 object-cover" />
             </div>
           ) : (
             <div className="rounded-lg border border-slate-200 bg-white/70 p-4 text-sm text-slate-500">
-              Nenhum video selecionado.
+              Nenhum vídeo selecionado.
             </div>
           )}
         </div>
@@ -514,7 +514,7 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
             <div key={index} className="grid grid-cols-[minmax(0,1fr)_120px_auto] gap-2">
               <input
                 type="text"
-                placeholder="Numeracao"
+                placeholder="Numeração"
                 value={variacao.numeracao}
                 onChange={(event) => handleVariacaoChange(index, "numeracao", event.target.value)}
                 className={inputClass}
@@ -567,7 +567,7 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
                   {fornecedorSelecionado?.nome || "Sem fornecedor"}
                 </span>
                 {videoFile && podeAdicionarVideo && (
-                  <span className="rounded-full bg-[#16A36B]/10 px-2 py-1 text-[#11875A]">Com video</span>
+                  <span className="rounded-full bg-[#16A36B]/10 px-2 py-1 text-[#11875A]">Com vídeo</span>
                 )}
               </div>
             </div>
@@ -590,7 +590,7 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
             ))}
           </div>
           {variacoesValidas.some((item) => item.estoque === 0) && (
-            <p className="mt-3 text-xs text-amber-700">Existe numeracao com estoque zero.</p>
+            <p className="mt-3 text-xs text-amber-700">Existe numeração com estoque zero.</p>
           )}
         </div>
       </div>

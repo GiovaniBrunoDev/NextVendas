@@ -130,8 +130,7 @@ export default function Vendas() {
     <div className="lojia-page min-h-screen p-4 sm:p-6">
       <div className="lojia-hero-panel mb-6 flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="text-xs font-medium uppercase text-white/62">PDV</p>
-          <h1 className="mt-1 text-2xl font-semibold tracking-tight text-white">Nova venda</h1>
+          <h1 className="text-2xl font-semibold tracking-tight text-white">Nova venda</h1>
           <p className="mt-1 text-sm text-white/68">
             Busque produtos, selecione a numeração e finalize pelo carrinho.
           </p>
@@ -393,7 +392,7 @@ export default function Vendas() {
             </div>
             {temItemManual && (
               <p className="mt-2 text-xs text-slate-500">
-                Itens avulsos entram apenas na venda e nao alteram o estoque.
+                Itens avulsos entram apenas na venda e não alteram o estoque.
               </p>
             )}
           </div>

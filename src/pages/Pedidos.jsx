@@ -11,7 +11,6 @@ import {
   PackageCheck,
   PackageX,
   ReceiptText,
-  RefreshCw,
   Search,
   ShoppingBag,
   Timer,
@@ -217,7 +216,7 @@ export default function Pedidos() {
             <div className="min-w-0">
               <p className="text-xs font-medium uppercase text-slate-500">Pedido #{pedido.id}</p>
               <h3 className="mt-1 truncate text-lg font-semibold text-slate-950">
-                {pedido.cliente?.nome || "Cliente nao informado"}
+                {pedido.cliente?.nome || "Cliente não informado"}
               </h3>
               {pedido.cliente?.telefone && (
                 <p className="mt-1 text-xs text-slate-500">{pedido.cliente.telefone}</p>
@@ -336,19 +335,11 @@ export default function Pedidos() {
     <div className="lojia-page min-h-screen p-4 sm:p-6">
       <div className="lojia-hero-panel mb-6 flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="text-xs font-medium uppercase text-white/62">Operacao</p>
-          <h1 className="mt-1 text-2xl font-semibold text-white">Pedidos</h1>
+          <h1 className="text-2xl font-semibold text-white">Pedidos</h1>
           <p className="mt-1 text-sm text-white/68">
             Acompanhe reservas de estoque, entregas e pedidos prontos para virar venda.
           </p>
         </div>
-        <button
-          onClick={carregarPedidos}
-          className="inline-flex items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/[0.08] px-3 py-2 text-sm font-medium text-white hover:bg-white/[0.14]"
-        >
-          <RefreshCw size={16} />
-          Atualizar
-        </button>
       </div>
 
       <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-5">

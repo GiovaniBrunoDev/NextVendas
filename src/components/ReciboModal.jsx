@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { X, Printer, ReceiptText } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import useModalPresence from "../hooks/useModalPresence";
@@ -50,6 +51,7 @@ function normalizarItens(registro) {
 
 export default function ReciboModal({ aberto, tipo = "venda", registro, aoFechar }) {
   const { lojaAtual } = useAuth();
+  const reciboRef = useRef(null);
   useModalPresence(Boolean(aberto && registro));
 
   if (!aberto || !registro) return null;
@@ -66,79 +68,8 @@ export default function ReciboModal({ aberto, tipo = "venda", registro, aoFechar
   const numero = tipo === "pedido" ? `Pedido #${registro.id}` : `Venda #${registro.id}`;
 
   const imprimir = () => {
-    const recibo = document.querySelector(".recibo-print-area");
-    if (!recibo) return;
-
-    const estilos = Array.from(document.querySelectorAll('style, link[rel="stylesheet"]'))
-      .map((node) => node.outerHTML)
-      .join("\n");
-
-    const reciboHtml = `
-      <!doctype html>
-      <html lang="pt-BR">
-        <head>
-          <meta charset="utf-8" />
-          <title>${titulo} - ${numero}</title>
-          ${estilos}
-          <style>
-            body {
-              margin: 0 !important;
-              background: #ffffff !important;
-            }
-
-            .print-shell {
-              width: min(720px, 100%);
-              margin: 0 auto;
-              padding: 0;
-            }
-
-            @page { size: A4; margin: 12mm; }
-
-            @media print {
-              * {
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-                visibility: visible !important;
-              }
-
-              .print-shell {
-                width: 100%;
-              }
-
-              .recibo-print-area {
-                position: static !important;
-                left: auto !important;
-                top: auto !important;
-                width: 100% !important;
-                max-width: 720px !important;
-                margin: 0 auto !important;
-                border: 1px solid #e2e8f0 !important;
-                border-radius: 8px !important;
-                padding: 20px !important;
-                box-shadow: none !important;
-              }
-            }
-          </style>
-        </head>
-        <body>
-          <main class="print-shell">
-            ${recibo.outerHTML}
-          </main>
-        </body>
-      </html>
-    `;
-
-    const janela = window.open("", "_blank", "width=820,height=900");
-    if (!janela) {
-      window.print();
-      return;
-    }
-
-    janela.document.open();
-    janela.document.write(reciboHtml);
-    janela.document.close();
-    janela.focus();
-    setTimeout(() => janela.print(), 250);
+    if (!reciboRef.current) return;
+    window.print();
   };
 
   return (
@@ -161,7 +92,7 @@ export default function ReciboModal({ aberto, tipo = "venda", registro, aoFechar
         </div>
 
         <div className="overflow-y-auto p-5">
-          <div className="recibo-print-area mx-auto max-w-[720px] rounded-lg border border-slate-200 bg-white p-5 text-slate-950">
+          <div ref={reciboRef} className="recibo-print-area mx-auto max-w-[720px] rounded-lg border border-slate-200 bg-white p-5 text-slate-950">
             <header className="flex items-start justify-between gap-4 border-b border-slate-200 pb-4">
               <div>
                 <div className="flex items-center gap-2">
@@ -187,12 +118,12 @@ export default function ReciboModal({ aberto, tipo = "venda", registro, aoFechar
             <section className="grid gap-4 border-b border-slate-200 py-4 sm:grid-cols-2">
               <div>
                 <p className="text-xs font-medium uppercase text-slate-500">Cliente</p>
-                <p className="mt-1 text-sm font-semibold">{cliente?.nome || "Nao informado"}</p>
+                <p className="mt-1 text-sm font-semibold">{cliente?.nome || "Não informado"}</p>
                 {cliente?.telefone && <p className="text-xs text-slate-500">{cliente.telefone}</p>}
               </div>
               <div>
                 <p className="text-xs font-medium uppercase text-slate-500">Pagamento</p>
-                <p className="mt-1 text-sm font-semibold capitalize">{registro.formaPagamento || "Nao informado"}</p>
+                <p className="mt-1 text-sm font-semibold capitalize">{registro.formaPagamento || "Não informado"}</p>
                 {registro.status && <p className="text-xs capitalize text-slate-500">Status: {registro.status}</p>}
               </div>
               <div>
@@ -206,9 +137,9 @@ export default function ReciboModal({ aberto, tipo = "venda", registro, aoFechar
                 )}
               </div>
               <div>
-                <p className="text-xs font-medium uppercase text-slate-500">Endereco</p>
+                <p className="text-xs font-medium uppercase text-slate-500">Endereço</p>
                 <p className="mt-1 text-sm font-semibold">
-                  {registro.endereco || cliente?.endereco || "Nao informado"}
+                  {registro.endereco || cliente?.endereco || "Não informado"}
                 </p>
               </div>
             </section>
@@ -230,7 +161,7 @@ export default function ReciboModal({ aberto, tipo = "venda", registro, aoFechar
                       <tr key={item.id}>
                         <td className="px-3 py-2">
                           <p className="font-medium">{item.nome}</p>
-                          {item.numeracao && <p className="text-xs text-slate-500">Numeracao {item.numeracao}</p>}
+                          {item.numeracao && <p className="text-xs text-slate-500">Numeração {item.numeracao}</p>}
                         </td>
                         <td className="px-3 py-2 text-center">{item.quantidade}</td>
                         <td className="px-3 py-2 text-right">{moeda(item.precoUnitario)}</td>
@@ -274,15 +205,15 @@ export default function ReciboModal({ aberto, tipo = "venda", registro, aoFechar
                 )}
                 {registro.observacoes && (
                   <p className="mt-2">
-                    <span className="font-medium">Observacoes:</span> {registro.observacoes}
+                    <span className="font-medium">Observações:</span> {registro.observacoes}
                   </p>
                 )}
               </section>
             )}
 
             <footer className="mt-5 border-t border-slate-200 pt-4 text-center text-xs text-slate-500">
-              <p>Documento nao fiscal emitido pelo sistema Lojia.</p>
-              <p>Obrigado pela preferencia.</p>
+              <p>Documento não fiscal emitido pelo sistema Lojia.</p>
+              <p>Obrigado pela preferência.</p>
             </footer>
           </div>
         </div>

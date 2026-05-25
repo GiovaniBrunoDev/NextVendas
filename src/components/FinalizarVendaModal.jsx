@@ -224,7 +224,7 @@ export default function FinalizarVendaModal({ carrinho, aoFechar, aoFinalizar })
             styles={selectStyles}
             value={opcoes.find((opt) => String(opt.value) === String(clienteSelecionado)) || null}
             onChange={selecionarCliente}
-            placeholder="Buscar cliente, telefone ou endereco"
+            placeholder="Buscar cliente, telefone ou endereço"
             isClearable
             menuPortalTarget={document.body}
             formatOptionLabel={(opcao, { context }) => (
@@ -232,7 +232,7 @@ export default function FinalizarVendaModal({ carrinho, aoFechar, aoFinalizar })
                 <p className="truncate text-sm font-medium text-slate-900">{opcao.nome}</p>
                 {context === "menu" && (
                   <p className="truncate text-xs text-slate-500">
-                    {[opcao.telefone, opcao.endereco || "Sem endereco"].filter(Boolean).join(" - ")}
+                    {[opcao.telefone, opcao.endereco || "Sem endereço"].filter(Boolean).join(" - ")}
                   </p>
                 )}
               </div>
@@ -299,7 +299,7 @@ export default function FinalizarVendaModal({ carrinho, aoFechar, aoFinalizar })
       {tipoEntrega === "entrega" ? (
         <div className="grid grid-cols-1 gap-3">
           <label>
-            <span className={fieldLabelClass}>Endereco</span>
+            <span className={fieldLabelClass}>Endereço</span>
             <textarea
               rows={3}
               value={endereco}
@@ -345,7 +345,7 @@ export default function FinalizarVendaModal({ carrinho, aoFechar, aoFinalizar })
         {[
           { value: "pix", label: "Pix", icon: <SiPix /> },
           { value: "dinheiro", label: "Dinheiro", icon: <FaMoneyBillAlt /> },
-          { value: "cartao", label: "Cartao", icon: <FaCreditCard /> },
+          { value: "cartao", label: "Cartão", icon: <FaCreditCard /> },
         ].map((opcao) => (
           <button
             key={opcao.value}
@@ -432,7 +432,7 @@ export default function FinalizarVendaModal({ carrinho, aoFechar, aoFinalizar })
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="rounded-2xl border border-slate-200/80 bg-white p-4 text-sm shadow-[0_12px_30px_rgba(24,31,36,0.045)]">
           <p className="font-semibold text-slate-950">Cliente</p>
-          <p className="mt-1 text-slate-500">{clienteAtual?.nome || clienteNome || "Nao informado"}</p>
+          <p className="mt-1 text-slate-500">{clienteAtual?.nome || clienteNome || "Não informado"}</p>
         </div>
         <div className="rounded-2xl border border-slate-200/80 bg-white p-4 text-sm shadow-[0_12px_30px_rgba(24,31,36,0.045)]">
           <p className="font-semibold text-slate-950">Entrega</p>

@@ -78,7 +78,7 @@ export default function Clientes() {
         {[
           { label: "Clientes", value: resumo.total, icon: UsersRound },
           { label: "Com telefone", value: resumo.comTelefone, icon: Phone },
-          { label: "Com endereco", value: resumo.comEndereco, icon: MapPin },
+          { label: "Com endereço", value: resumo.comEndereco, icon: MapPin },
         ].map(({ label, value, icon: Icon }) => (
           <div key={label} className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
             <p className="flex items-center gap-2 text-xs font-medium uppercase text-slate-500">
@@ -147,7 +147,7 @@ export default function Clientes() {
                       </p>
                       <p className="flex items-start gap-2 text-slate-500">
                         <MapPin size={15} className="mt-0.5" />
-                        <span>{endereco || "Sem endereco cadastrado"}</span>
+                        <span>{endereco || "Sem endereço cadastrado"}</span>
                       </p>
                     </div>
 

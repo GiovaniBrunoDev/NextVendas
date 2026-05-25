@@ -26,7 +26,7 @@ const labelClass = "mb-1 flex items-center gap-2 text-xs font-medium uppercase t
 const formasPagamento = [
   { value: "pix", label: "Pix", icon: SiPix },
   { value: "dinheiro", label: "Dinheiro", icon: Banknote },
-  { value: "cartao", label: "Cartao", icon: CreditCard },
+  { value: "cartao", label: "Cartão", icon: CreditCard },
 ];
 
 function formatTelefone(value) {
@@ -130,10 +130,10 @@ export default function NovoPedidoModal({ carrinho, aoFechar, aoConfirmar }) {
 
       const produtos = carrinho.map((item) => {
         if (!item.variacaoId) {
-          throw new Error(`Produto "${item.nome}" nao possui variacao selecionada.`);
+          throw new Error(`Produto "${item.nome}" não possui variação selecionada.`);
         }
         if (!item.preco) {
-          throw new Error(`Produto "${item.nome}" nao tem preco definido.`);
+          throw new Error(`Produto "${item.nome}" não tem preço definido.`);
         }
 
         return {
@@ -310,7 +310,7 @@ export default function NovoPedidoModal({ carrinho, aoFechar, aoConfirmar }) {
                 <div className="grid gap-3 sm:grid-cols-[1fr_150px]">
                   <div>
                     <label className={labelClass}>
-                      <MapPin size={14} /> Endereco
+                      <MapPin size={14} /> Endereço
                     </label>
                     <input
                       type="text"
@@ -365,7 +365,7 @@ export default function NovoPedidoModal({ carrinho, aoFechar, aoConfirmar }) {
 
             <section>
               <label className={labelClass}>
-                <FileText size={14} /> Observacoes
+                <FileText size={14} /> Observações
               </label>
               <textarea
                 rows={3}
