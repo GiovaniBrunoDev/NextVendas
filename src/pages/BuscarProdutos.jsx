@@ -5,6 +5,7 @@ import { saveAs } from "file-saver";
 import { Download, Image, PackageSearch, Search, Share2, Tag, X } from "lucide-react";
 
 const API_BASE_URL = (api.defaults.baseURL || "").replace(/\/$/, "");
+const DOWNLOAD_CONCURRENCY = 6;
 
 const generoLabels = {
   feminino: "Feminino",
@@ -57,6 +58,37 @@ const extensaoPorMime = (mime = "") => {
   return "jpg";
 };
 
+async function baixarBlobProduto(produto) {
+  const url = imagemProduto(produto);
+
+  if (/^https?:\/\//i.test(url)) {
+    try {
+      const resposta = await fetch(url, { cache: "force-cache" });
+
+      if (resposta.ok) {
+        const blob = await resposta.blob();
+        if (blob.size > 0) {
+          return {
+            blob,
+            contentType: blob.type || resposta.headers.get("content-type") || "image/jpeg",
+          };
+        }
+      }
+    } catch (err) {
+      console.warn("Download direto bloqueado, tentando pelo servidor:", err);
+    }
+  }
+
+  const res = await api.get(`/produtos/${produto.id}/imagem-download`, {
+    responseType: "blob",
+  });
+
+  return {
+    blob: res.data,
+    contentType: res.headers?.["content-type"] || res.data?.type || "image/jpeg",
+  };
+}
+
 const formatarMoeda = (valor) =>
   Number(valor || 0).toLocaleString("pt-BR", {
     style: "currency",
@@ -75,6 +107,7 @@ export default function BuscaProdutos() {
   const [marcaSelecionada, setMarcaSelecionada] = useState("");
   const [modalCompartilharAberto, setModalCompartilharAberto] = useState(false);
   const [feedbackCompartilhamento, setFeedbackCompartilhamento] = useState(null);
+  const [progressoDownload, setProgressoDownload] = useState(null);
 
   async function carregarProdutos() {
     try {
@@ -208,25 +241,47 @@ export default function BuscaProdutos() {
     try {
       setBaixando(true);
       setFeedbackCompartilhamento(null);
+      setProgressoDownload({ atual: 0, total: produtosParaCompartilhar.length });
       const zip = new JSZip();
       const nomesUsados = new Map();
       let arquivosAdicionados = 0;
+      let cursor = 0;
+      const resultados = [];
 
-      for (const produto of produtosParaCompartilhar) {
+      const baixarProximo = async () => {
+        const index = cursor;
+        cursor += 1;
+        const produto = produtosParaCompartilhar[index];
+        if (!produto) return;
+
         try {
-          const res = await api.get(`/produtos/${produto.id}/imagem-download`, {
-            responseType: "blob",
-          });
-          const extensao = extensaoPorMime(res.headers?.["content-type"]);
-          const nomeBase = `${nomeArquivoSeguro(produto.nome)}-tam-${numeracaoSelecionada}`;
-          const repeticoes = nomesUsados.get(nomeBase) || 0;
-          nomesUsados.set(nomeBase, repeticoes + 1);
-          const nomeArquivo = repeticoes > 0 ? `${nomeBase}-${repeticoes + 1}.${extensao}` : `${nomeBase}.${extensao}`;
-          zip.file(nomeArquivo, res.data);
-          arquivosAdicionados += 1;
+          const imagem = await baixarBlobProduto(produto);
+          resultados[index] = { produto, ...imagem };
         } catch (err) {
           console.error(`Erro ao baixar ${imagemProduto(produto)}:`, err);
+        } finally {
+          setProgressoDownload((prev) =>
+            prev ? { ...prev, atual: Math.min(prev.atual + 1, prev.total) } : prev
+          );
+          await baixarProximo();
         }
+      };
+
+      const trabalhadores = Array.from(
+        { length: Math.min(DOWNLOAD_CONCURRENCY, produtosParaCompartilhar.length) },
+        () => baixarProximo()
+      );
+
+      await Promise.all(trabalhadores);
+
+      for (const resultado of resultados.filter(Boolean)) {
+        const extensao = extensaoPorMime(resultado.contentType);
+        const nomeBase = `${nomeArquivoSeguro(resultado.produto.nome)}-tam-${numeracaoSelecionada}`;
+        const repeticoes = nomesUsados.get(nomeBase) || 0;
+        nomesUsados.set(nomeBase, repeticoes + 1);
+        const nomeArquivo = repeticoes > 0 ? `${nomeBase}-${repeticoes + 1}.${extensao}` : `${nomeBase}.${extensao}`;
+        zip.file(nomeArquivo, resultado.blob);
+        arquivosAdicionados += 1;
       }
 
       if (arquivosAdicionados === 0) {
@@ -248,6 +303,7 @@ export default function BuscaProdutos() {
       });
     } finally {
       setBaixando(false);
+      setProgressoDownload(null);
     }
   }
 
@@ -370,6 +426,7 @@ export default function BuscaProdutos() {
           produtosComImagem={produtosParaCompartilhar.length}
           produtosPreview={produtosParaCompartilhar.slice(0, 4)}
           baixando={baixando}
+          progresso={progressoDownload}
           feedback={feedbackCompartilhamento}
           onBaixarImagens={baixarImagens}
           onLimpar={limparFiltrosCompartilhamento}
@@ -397,6 +454,7 @@ function CompartilharImagensModal({
   produtosComImagem,
   produtosPreview,
   baixando,
+  progresso,
   feedback,
   onBaixarImagens,
   onLimpar,
@@ -484,6 +542,23 @@ function CompartilharImagensModal({
             </div>
           </div>
 
+          {baixando && progresso?.total > 0 && (
+            <div className="rounded-lg border border-slate-200 bg-white p-3">
+              <div className="mb-2 flex items-center justify-between text-xs">
+                <span className="font-semibold text-slate-700">Baixando imagens</span>
+                <span className="text-slate-500">
+                  {progresso.atual}/{progresso.total}
+                </span>
+              </div>
+              <div className="h-2 overflow-hidden rounded-full bg-slate-100">
+                <div
+                  className="h-full rounded-full bg-[#16A36B] transition-all"
+                  style={{ width: `${Math.round((progresso.atual / progresso.total) * 100)}%` }}
+                />
+              </div>
+            </div>
+          )}
+
           {feedback ? (
             <div className={`rounded-lg border p-3 text-xs ${feedbackClasses[feedback.tipo] || feedbackClasses.aviso}`}>
               {feedback.texto}
@@ -534,7 +609,9 @@ function CompartilharImagensModal({
           >
             <Download size={16} />
             {baixando
-              ? "Gerando pacote..."
+              ? progresso?.total
+                ? `Baixando ${progresso.atual}/${progresso.total}`
+                : "Gerando pacote..."
               : produtosComImagem > 0
                 ? `Baixar ${produtosComImagem} imagem${produtosComImagem === 1 ? "" : "s"}`
                 : "Baixar imagens"}

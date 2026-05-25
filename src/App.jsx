@@ -15,6 +15,7 @@ import Pedidos from "./pages/Pedidos";
 import RelatorioLucro from "./pages/RelatorioLucro";
 import EntradaEstoque from "./pages/EntradaEstoque";
 import Caixa from "./pages/Caixa";
+import Financeiro from "./pages/Financeiro";
 import Login from "./pages/Login";
 import AceitarConvite from "./pages/AceitarConvite";
 import SuperAdmin from "./pages/SuperAdmin";
@@ -105,6 +106,8 @@ function ProtectedApp() {
         return <RelatorioLucro />;
       case "caixa":
         return <Caixa />;
+      case "financeiro":
+        return <Financeiro />;
       case "entradas":
         return <EntradaEstoque />;
       case "superadmin":

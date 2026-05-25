@@ -39,6 +39,8 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
+    "video:dev": "remotion studio src/remotion/index.jsx",
+    "video:render": "remotion render src/remotion/index.jsx SalvarSiteIphone out/salvar-site-iphone.mp4",
     "electron:dev": "concurrently \"npm start\" \"wait-on http://localhost:3000 && cross-env ELECTRON_START_URL=http://localhost:3000 electron .\"",
     "desktop:build": "cross-env REACT_APP_API_URL=https://nextpdv.onrender.com npm run build && cross-env CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --win",
     "desktop:publish": "cross-env REACT_APP_API_URL=https://nextpdv.onrender.com npm run build && cross-env CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --win --publish always",
@@ -101,12 +103,14 @@
     "node": "22.x"
   },
   "devDependencies": {
+    "@remotion/cli": "^4.0.466",
     "autoprefixer": "^10.4.21",
     "concurrently": "^9.2.1",
     "cross-env": "^10.1.0",
     "electron": "^42.2.0",
     "electron-builder": "^26.8.1",
     "postcss": "^8.5.6",
+    "remotion": "^4.0.466",
     "tailwindcss": "^3.4.3",
     "wait-on": "^9.0.10"
   }

@@ -26,6 +26,7 @@ const acessoPorPerfil = {
   estoque: ["admin", "gerente"],
   entradas: ["admin", "gerente"],
   caixa: ["admin", "gerente", "vendedor"],
+  financeiro: ["admin", "gerente"],
   lucro: ["admin", "gerente"],
   metas: ["admin", "gerente"],
 };
@@ -64,6 +65,7 @@ export default function SidebarLayout({ children, setTela }) {
       { key: "clientes", label: "Clientes", group: "Operação", icon: UsersRound },
       { key: "estoque", label: "Estoque", group: "Gestão", icon: Boxes },
       { key: "produtos", label: "Consultar", group: "Gestão", icon: Search },
+      { key: "financeiro", label: "Financeiro", group: "Gestão", icon: Wallet },
       { key: "lucro", label: "Lucro", group: "Gestão", icon: TrendingUp },
       ...(usuario?.superadmin ? [{ key: "superadmin", label: "Admin", group: "Sistema", icon: ShieldCheck }] : []),
     ],
