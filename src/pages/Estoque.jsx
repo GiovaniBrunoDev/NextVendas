@@ -44,14 +44,10 @@ export default function Estoque({ aoAdicionarReposicao }) {
   const carregarProdutos = async () => {
     try {
       setCarregando(true);
-      const [resProdutos, resFornecedores] = await Promise.all([
-        api.get("/produtos"),
-        api.get("/fornecedores"),
-      ]);
+      const resProdutos = await api.get("/produtos");
       const produtosData = resProdutos.data;
 
       setProdutos(produtosData);
-      setFornecedores(Array.isArray(resFornecedores.data) ? resFornecedores.data : []);
       setProdutoSelecionado((selecionadoAtual) => {
         if (!selecionadoAtual) return null;
         return produtosData.find((produto) => produto.id === selecionadoAtual.id) || null;
@@ -60,6 +56,14 @@ export default function Estoque({ aoAdicionarReposicao }) {
       toast.error("Erro ao carregar produtos");
     } finally {
       setCarregando(false);
+    }
+
+    try {
+      const resFornecedores = await api.get("/fornecedores");
+      setFornecedores(Array.isArray(resFornecedores.data) ? resFornecedores.data : []);
+    } catch (err) {
+      console.error("Erro ao carregar fornecedores:", err);
+      setFornecedores([]);
     }
   };
 
