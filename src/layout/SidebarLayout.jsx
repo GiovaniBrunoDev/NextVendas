@@ -11,6 +11,7 @@ import {
   Search,
   ShieldCheck,
   TrendingUp,
+  Wallet,
   UsersRound,
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
@@ -24,6 +25,7 @@ const acessoPorPerfil = {
   produtos: ["admin", "gerente", "vendedor"],
   estoque: ["admin", "gerente"],
   entradas: ["admin", "gerente"],
+  caixa: ["admin", "gerente", "vendedor"],
   lucro: ["admin", "gerente"],
   metas: ["admin", "gerente"],
 };
@@ -168,7 +170,7 @@ export default function SidebarLayout({ children, setTela }) {
   );
 
   return (
-    <div className="lojia-shell flex min-h-screen w-full min-w-0 flex-col overflow-x-hidden pb-20 md:flex-row md:pb-0">
+    <div className="lojia-shell flex min-h-screen w-full min-w-0 flex-col overflow-x-hidden pb-20 md:h-screen md:min-h-0 md:overflow-hidden md:pb-0 md:flex-row">
       {!isMobile && (
         <aside className="lojia-gradient flex w-72 shrink-0 flex-col overflow-hidden p-4 text-white shadow-[18px_0_42px_rgba(36,48,43,0.12)] md:sticky md:top-0 md:h-screen">
           <div className="mb-4 shrink-0 px-1">
@@ -203,7 +205,7 @@ export default function SidebarLayout({ children, setTela }) {
         </aside>
       )}
 
-      <main className="min-w-0 flex-1 overflow-x-hidden overflow-y-auto bg-transparent p-3 sm:p-4 md:p-6">{children}</main>
+      <main className="min-w-0 flex-1 overflow-x-hidden overflow-y-auto bg-transparent p-3 sm:p-4 md:h-screen md:min-h-0 md:p-6">{children}</main>
       {isMobile && renderBottomNav()}
     </div>
   );

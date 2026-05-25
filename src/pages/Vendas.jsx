@@ -4,7 +4,7 @@ import FinalizarVendaModal from "../components/FinalizarVendaModal";
 import ReciboModal from "../components/ReciboModal";
 import { toast } from "react-toastify";
 import NovoPedidoModal from "../components/NovoPedidoModal";
-import { FaSearch, FaShoppingCart, FaUndo } from "react-icons/fa";
+import { FaPlus, FaSearch, FaShoppingCart, FaUndo } from "react-icons/fa";
 
 const formatCurrency = (valor) =>
   new Intl.NumberFormat("pt-BR", {
@@ -19,6 +19,8 @@ export default function Vendas() {
   const [mostrarFinalizarModal, setMostrarFinalizarModal] = useState(false);
   const [mostrarPedidoModal, setMostrarPedidoModal] = useState(false);
   const [recibo, setRecibo] = useState(null);
+  const [mostrarItemManual, setMostrarItemManual] = useState(false);
+  const [itemManual, setItemManual] = useState({ nome: "", tamanho: "", custo: "", preco: "" });
 
   const [carregando, setCarregando] = useState(false);
   const [erroCarregamento, setErroCarregamento] = useState(false);
@@ -57,6 +59,7 @@ export default function Vendas() {
 
   const total = carrinho.reduce((soma, item) => soma + item.qtd * item.preco, 0);
   const totalItens = carrinho.reduce((soma, item) => soma + item.qtd, 0);
+  const temItemManual = carrinho.some((item) => item.manual);
 
   function adicionarAoCarrinho(produto) {
     setCarrinho((prev) => {
@@ -85,6 +88,42 @@ export default function Vendas() {
     setCarrinho([]);
     setMostrarFinalizarModal(false);
     setBusca("");
+  }
+
+  function adicionarItemManual() {
+    const nome = itemManual.nome.trim();
+    const tamanho = itemManual.tamanho.trim();
+    const custo = Number(itemManual.custo || 0);
+    const preco = Number(itemManual.preco || 0);
+
+    if (!nome) {
+      toast.error("Informe o item fora de estoque.");
+      return;
+    }
+
+    if (!Number.isFinite(custo) || custo < 0 || !Number.isFinite(preco) || preco <= 0) {
+      toast.error("Informe custo e valor de venda corretamente.");
+      return;
+    }
+
+    const idManual = `manual-${Date.now()}`;
+    setCarrinho((prev) => [
+      ...prev,
+      {
+        produtoId: idManual,
+        variacaoId: idManual,
+        manual: true,
+        nome,
+        preco,
+        custoUnitario: custo,
+        outrosCustos: 0,
+        numeracao: tamanho,
+        qtd: 1,
+      },
+    ]);
+    setItemManual({ nome: "", tamanho: "", custo: "", preco: "" });
+    setMostrarItemManual(false);
+    toast.success("Item fora de estoque adicionado.");
   }
 
   return (
@@ -116,6 +155,75 @@ export default function Vendas() {
                 placeholder="Digite nome ou código"
                 className="w-full rounded-lg border border-[#E5DED2] bg-[#FFFEFA] py-3 pl-10 pr-3 text-sm outline-none transition placeholder:text-slate-400 focus:border-[#16A36B] focus:bg-white"
               />
+            </div>
+
+            <div className="mt-3 rounded-lg border border-[#E5DED2] bg-[#FFFEFA]/80 p-3">
+              <button
+                type="button"
+                onClick={() => setMostrarItemManual((valor) => !valor)}
+                className="flex w-full items-center justify-between gap-3 text-left text-sm font-semibold text-slate-900"
+              >
+                <span>Produto fora de estoque</span>
+                <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-[#16A36B]/10 text-[#11875A]">
+                  <FaPlus size={12} />
+                </span>
+              </button>
+
+              {mostrarItemManual && (
+                <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_96px_120px_120px_auto] sm:items-end">
+                  <label>
+                    <span className="mb-1 block text-xs font-medium text-slate-500">Item</span>
+                    <input
+                      type="text"
+                      value={itemManual.nome}
+                      onChange={(e) => setItemManual((prev) => ({ ...prev, nome: e.target.value }))}
+                      placeholder="Ex: Sandalia encomendada"
+                      className="w-full rounded-lg border border-[#E5DED2] bg-white px-3 py-2.5 text-base outline-none transition placeholder:text-slate-400 focus:border-[#16A36B] sm:text-sm"
+                    />
+                  </label>
+                  <label>
+                    <span className="mb-1 block text-xs font-medium text-slate-500">Tamanho</span>
+                    <input
+                      type="text"
+                      value={itemManual.tamanho}
+                      onChange={(e) => setItemManual((prev) => ({ ...prev, tamanho: e.target.value }))}
+                      placeholder="Ex: 36"
+                      className="w-full rounded-lg border border-[#E5DED2] bg-white px-3 py-2.5 text-base outline-none transition placeholder:text-slate-400 focus:border-[#16A36B] sm:text-sm"
+                    />
+                  </label>
+                  <label>
+                    <span className="mb-1 block text-xs font-medium text-slate-500">Custo</span>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={itemManual.custo}
+                      onChange={(e) => setItemManual((prev) => ({ ...prev, custo: e.target.value }))}
+                      placeholder="0,00"
+                      className="w-full rounded-lg border border-[#E5DED2] bg-white px-3 py-2.5 text-base outline-none transition placeholder:text-slate-400 focus:border-[#16A36B] sm:text-sm"
+                    />
+                  </label>
+                  <label>
+                    <span className="mb-1 block text-xs font-medium text-slate-500">Venda</span>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={itemManual.preco}
+                      onChange={(e) => setItemManual((prev) => ({ ...prev, preco: e.target.value }))}
+                      placeholder="0,00"
+                      className="w-full rounded-lg border border-[#E5DED2] bg-white px-3 py-2.5 text-base outline-none transition placeholder:text-slate-400 focus:border-[#16A36B] sm:text-sm"
+                    />
+                  </label>
+                  <button
+                    type="button"
+                    onClick={adicionarItemManual}
+                    className="lojia-primary-action h-10 px-4 text-sm font-medium"
+                  >
+                    Adicionar
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 
@@ -246,7 +354,7 @@ export default function Vendas() {
                       <div className="min-w-0">
                         <p className="truncate text-sm font-semibold text-slate-950">{item.nome}</p>
                         <p className="mt-1 text-xs text-slate-500">
-                          Tam. {item.numeracao} x {item.qtd}
+                          {item.numeracao ? `Tam. ${item.numeracao} x ${item.qtd}` : `Qtd. ${item.qtd}`}
                         </p>
                       </div>
                       <p className="shrink-0 text-sm font-semibold text-slate-900">
@@ -277,11 +385,17 @@ export default function Vendas() {
               <button
                 className="lojia-ghost-action px-4 py-3 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-50"
                 onClick={() => setMostrarPedidoModal(true)}
-                disabled={carrinho.length === 0}
+                disabled={carrinho.length === 0 || temItemManual}
+                title={temItemManual ? "Itens avulsos podem ser finalizados apenas como venda." : undefined}
               >
                 Criar pedido
               </button>
             </div>
+            {temItemManual && (
+              <p className="mt-2 text-xs text-slate-500">
+                Itens avulsos entram apenas na venda e nao alteram o estoque.
+              </p>
+            )}
           </div>
         </aside>
       </div>

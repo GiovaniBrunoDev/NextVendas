@@ -225,7 +225,8 @@ export default function Dashboard() {
         vendasPeriodo.reduce((acc, venda) => {
           venda.itens.forEach((item) => {
             const produto = item.variacaoProduto?.produto;
-            if (produto) acc[produto.nome] = (acc[produto.nome] || 0) + Number(item.quantidade || 0);
+            const nome = produto?.nome || item.nomeManual;
+            if (nome) acc[nome] = (acc[nome] || 0) + Number(item.quantidade || 0);
           });
           return acc;
         }, {})

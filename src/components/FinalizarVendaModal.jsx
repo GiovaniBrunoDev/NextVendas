@@ -139,8 +139,16 @@ export default function FinalizarVendaModal({ carrinho, aoFechar, aoFinalizar })
       }
 
       const produtos = carrinho.map((item) => {
-        if (!item.variacaoId || String(item.variacaoId).startsWith("manual-")) {
-          throw new Error(`Produto "${item.nome}" nao possui variacao cadastrada.`);
+        if (item.manual || !item.variacaoId || String(item.variacaoId).startsWith("manual-")) {
+          return {
+            manual: true,
+            nome: item.nome,
+            quantidade: item.qtd,
+            precoUnitario: item.preco,
+            custoUnitario: item.custoUnitario || 0,
+            outrosCustos: item.outrosCustos || 0,
+            numeracao: item.numeracao || null,
+          };
         }
         return { variacaoProdutoId: item.variacaoId, quantidade: item.qtd };
       });

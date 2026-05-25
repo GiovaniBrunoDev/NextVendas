@@ -25,7 +25,7 @@ export default function TrocaModal({ aberto, venda, aoFechar, aoConfirmarTroca }
 
   const variacoesMesmoProduto = useMemo(() => {
     const produtoOriginal = produtos.find(
-      (p) => p.id === itemSelecionado?.variacaoProduto.produto.id
+      (p) => p.id === itemSelecionado?.variacaoProduto?.produto?.id
     );
     if (!produtoOriginal || !itemSelecionado) return [];
 
@@ -43,8 +43,10 @@ export default function TrocaModal({ aberto, venda, aoFechar, aoConfirmarTroca }
 
   if (!venda) return null;
 
+  const itensTrocaveis = (venda.itens || []).filter((item) => item.variacaoProduto);
+
   const confirmar = () => {
-    if (!itemSelecionado || !novaVariacao) return;
+    if (!itemSelecionado?.variacaoProduto || !novaVariacao) return;
 
     aoConfirmarTroca({
       vendaId: venda.id,
@@ -81,7 +83,7 @@ export default function TrocaModal({ aberto, venda, aoFechar, aoConfirmarTroca }
             <section>
               <h2 className="text-sm font-semibold text-slate-950">Item a trocar</h2>
               <div className="mt-3 grid grid-cols-1 gap-2">
-                {venda.itens.map((item) => {
+                {itensTrocaveis.map((item) => {
                   const ativo = itemSelecionado?.id === item.id;
 
                   return (
@@ -107,6 +109,11 @@ export default function TrocaModal({ aberto, venda, aoFechar, aoConfirmarTroca }
                     </button>
                   );
                 })}
+                {itensTrocaveis.length === 0 && (
+                  <div className="rounded-lg border border-dashed border-slate-200 bg-slate-50 p-4 text-sm text-slate-500">
+                    Esta venda possui apenas itens avulsos, sem troca vinculada ao estoque.
+                  </div>
+                )}
               </div>
             </section>
 

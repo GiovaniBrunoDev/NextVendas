@@ -4,6 +4,7 @@ import ProdutoModal from "../components/ProdutoModal";
 import { toast } from "react-toastify";
 import { FaPlus, FaPen, FaTrashAlt } from "react-icons/fa";
 import { PackagePlus } from "lucide-react";
+import { useAuth } from "../contexts/AuthContext";
 
 const API_KEY = "6371650aa50b8af82e574e8022553613";
 
@@ -14,7 +15,10 @@ const formatCurrency = (valor) =>
   }).format(Number(valor || 0));
 
 export default function Estoque({ aoAdicionarReposicao }) {
+  const { lojaAtual } = useAuth();
+  const podeAdicionarVideo = Number(lojaAtual?.loja?.id) === 1;
   const [produtos, setProdutos] = useState([]);
+  const [fornecedores, setFornecedores] = useState([]);
   const [carregando, setCarregando] = useState(true);
   const [mostrarModal, setMostrarModal] = useState(false);
   const [estoquesEditados, setEstoquesEditados] = useState({});
@@ -27,6 +31,9 @@ export default function Estoque({ aoAdicionarReposicao }) {
   const [editandoProduto, setEditandoProduto] = useState(false);
   const [produtoEditado, setProdutoEditado] = useState({
     nome: "",
+    marca: "",
+    genero: "unissex",
+    fornecedorId: "",
     preco: "",
     custoUnitario: "",
     outrosCustos: "",
@@ -37,10 +44,14 @@ export default function Estoque({ aoAdicionarReposicao }) {
   const carregarProdutos = async () => {
     try {
       setCarregando(true);
-      const res = await api.get("/produtos");
-      const produtosData = res.data;
+      const [resProdutos, resFornecedores] = await Promise.all([
+        api.get("/produtos"),
+        api.get("/fornecedores"),
+      ]);
+      const produtosData = resProdutos.data;
 
       setProdutos(produtosData);
+      setFornecedores(Array.isArray(resFornecedores.data) ? resFornecedores.data : []);
       setProdutoSelecionado((selecionadoAtual) => {
         if (!selecionadoAtual) return null;
         return produtosData.find((produto) => produto.id === selecionadoAtual.id) || null;
@@ -67,6 +78,9 @@ export default function Estoque({ aoAdicionarReposicao }) {
 
     setProdutoEditado({
       nome: produtoSelecionado.nome || "",
+      marca: produtoSelecionado.marca || "",
+      genero: produtoSelecionado.genero || "unissex",
+      fornecedorId: produtoSelecionado.fornecedorId || "",
       preco: produtoSelecionado.preco ?? "",
       custoUnitario: produtoSelecionado.custoUnitario ?? "",
       outrosCustos: produtoSelecionado.outrosCustos ?? "",
@@ -157,6 +171,9 @@ export default function Estoque({ aoAdicionarReposicao }) {
     if (!produtoSelecionado) return;
 
     const nome = produtoEditado.nome.trim();
+    const genero = ["feminino", "masculino", "unissex"].includes(produtoEditado.genero)
+      ? produtoEditado.genero
+      : "unissex";
     const preco = Number(produtoEditado.preco);
     const custoUnitario = Number(produtoEditado.custoUnitario);
     const outrosCustos = Number(produtoEditado.outrosCustos);
@@ -170,6 +187,9 @@ export default function Estoque({ aoAdicionarReposicao }) {
       setSalvandoProduto(true);
       const { data } = await api.put(`/produtos/${produtoSelecionado.id}`, {
         nome,
+        marca: produtoEditado.marca?.trim() || null,
+        genero,
+        fornecedorId: produtoEditado.fornecedorId || null,
         preco,
         custoUnitario,
         outrosCustos,
@@ -442,6 +462,12 @@ export default function Estoque({ aoAdicionarReposicao }) {
                       <p className="truncate text-sm font-semibold text-slate-950">{produto.nome}</p>
                       <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-500">
                         <span>{formatCurrency(produto.preco)}</span>
+                        {produto.marca && (
+                          <>
+                            <span className="h-1 w-1 rounded-full bg-slate-300"></span>
+                            <span>{produto.marca}</span>
+                          </>
+                        )}
                         <span className="h-1 w-1 rounded-full bg-slate-300"></span>
                         <span>{estoqueTotal} pares</span>
                       </div>
@@ -449,6 +475,14 @@ export default function Estoque({ aoAdicionarReposicao }) {
                         <span className="rounded-full border border-slate-200 px-2 py-0.5 text-[11px] font-medium text-slate-600">
                           {produto.variacoes?.length || 0} variações
                         </span>
+                        <span className="rounded-full border border-slate-200 px-2 py-0.5 text-[11px] font-medium capitalize text-slate-600">
+                          {produto.genero || "unissex"}
+                        </span>
+                        {produto.fornecedor?.nome && (
+                          <span className="rounded-full border border-slate-200 px-2 py-0.5 text-[11px] font-medium text-slate-600">
+                            {produto.fornecedor.nome}
+                          </span>
+                        )}
                         {produto.videoUrl && (
                           <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-700">
                             Com vídeo
@@ -524,6 +558,15 @@ export default function Estoque({ aoAdicionarReposicao }) {
                           <span className="rounded-full bg-slate-100 px-2.5 py-1 font-medium text-slate-700">
                             {calcularEstoqueTotal(produtoSelecionado)} pares
                           </span>
+                          <span className="rounded-full bg-slate-100 px-2.5 py-1 font-medium capitalize text-slate-700">
+                            {produtoSelecionado.genero || "unissex"}
+                          </span>
+                          <span className="rounded-full bg-slate-100 px-2.5 py-1 font-medium text-slate-700">
+                            {produtoSelecionado.marca || "Sem marca"}
+                          </span>
+                          <span className="rounded-full bg-slate-100 px-2.5 py-1 font-medium text-slate-700">
+                            {produtoSelecionado.fornecedor?.nome || "Sem fornecedor"}
+                          </span>
                         </div>
                       </div>
 
@@ -543,18 +586,20 @@ export default function Estoque({ aoAdicionarReposicao }) {
                       >
                         {editandoProduto ? "Fechar edição" : "Editar valores"}
                       </button>
-                      <button
-                        type="button"
-                        onClick={() => document.getElementById("uploadVideoCard")?.click()}
-                        disabled={atualizandoVideo}
-                        className="rounded-lg border border-slate-300 px-3 py-2 font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60"
-                      >
-                        {atualizandoVideo
-                          ? "Processando vídeo..."
-                          : produtoSelecionado.videoUrl
-                            ? "Trocar vídeo"
-                            : "Adicionar vídeo"}
-                      </button>
+                      {podeAdicionarVideo && (
+                        <button
+                          type="button"
+                          onClick={() => document.getElementById("uploadVideoCard")?.click()}
+                          disabled={atualizandoVideo}
+                          className="rounded-lg border border-slate-300 px-3 py-2 font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60"
+                        >
+                          {atualizandoVideo
+                            ? "Processando vídeo..."
+                            : produtoSelecionado.videoUrl
+                              ? "Trocar vídeo"
+                              : "Adicionar vídeo"}
+                        </button>
+                      )}
                       {produtoSelecionado.videoUrl && (
                         <a
                           href={produtoSelecionado.videoUrl}
@@ -575,16 +620,18 @@ export default function Estoque({ aoAdicionarReposicao }) {
                           Ver GIF
                         </a>
                       )}
-                      <input
-                        type="file"
-                        accept="video/*"
-                        id="uploadVideoCard"
-                        onChange={(e) => {
-                          trocarVideoProduto(e.target.files[0]);
-                          e.target.value = "";
-                        }}
-                        className="hidden"
-                      />
+                      {podeAdicionarVideo && (
+                        <input
+                          type="file"
+                          accept="video/*"
+                          id="uploadVideoCard"
+                          onChange={(e) => {
+                            trocarVideoProduto(e.target.files[0]);
+                            e.target.value = "";
+                          }}
+                          className="hidden"
+                        />
+                      )}
                     </div>
                   </div>
                 </div>
@@ -592,7 +639,7 @@ export default function Estoque({ aoAdicionarReposicao }) {
                 {editandoProduto && (
                   <div className="mt-5 rounded-lg border border-slate-200 bg-slate-50 p-4">
                     <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
-                      <label className="md:col-span-4">
+                      <label>
                         <span className="text-xs font-medium uppercase tracking-wide text-slate-500">Nome</span>
                         <input
                           type="text"
@@ -602,6 +649,48 @@ export default function Estoque({ aoAdicionarReposicao }) {
                           }
                           className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-slate-400"
                         />
+                      </label>
+                      <label>
+                        <span className="text-xs font-medium uppercase tracking-wide text-slate-500">Marca</span>
+                        <input
+                          type="text"
+                          value={produtoEditado.marca}
+                          onChange={(e) =>
+                            setProdutoEditado((prev) => ({ ...prev, marca: e.target.value }))
+                          }
+                          className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-slate-400"
+                        />
+                      </label>
+                      <label>
+                        <span className="text-xs font-medium uppercase tracking-wide text-slate-500">Gênero</span>
+                        <select
+                          value={produtoEditado.genero}
+                          onChange={(e) =>
+                            setProdutoEditado((prev) => ({ ...prev, genero: e.target.value }))
+                          }
+                          className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-slate-400"
+                        >
+                          <option value="feminino">Feminino</option>
+                          <option value="masculino">Masculino</option>
+                          <option value="unissex">Unissex</option>
+                        </select>
+                      </label>
+                      <label>
+                        <span className="text-xs font-medium uppercase tracking-wide text-slate-500">Fornecedor</span>
+                        <select
+                          value={produtoEditado.fornecedorId}
+                          onChange={(e) =>
+                            setProdutoEditado((prev) => ({ ...prev, fornecedorId: e.target.value }))
+                          }
+                          className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-slate-400"
+                        >
+                          <option value="">Sem fornecedor</option>
+                          {fornecedores.map((fornecedor) => (
+                            <option key={fornecedor.id} value={fornecedor.id}>
+                              {fornecedor.nome}
+                            </option>
+                          ))}
+                        </select>
                       </label>
                       <label>
                         <span className="text-xs font-medium uppercase tracking-wide text-slate-500">Preço</span>

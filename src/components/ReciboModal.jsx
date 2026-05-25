@@ -38,9 +38,9 @@ function normalizarItens(registro) {
     const quantidade = Number(item.quantidade || 0);
 
     return {
-      id: item.id || `${item.variacaoProdutoId}-${produto.nome}`,
-      nome: produto.nome || item.nome || "Produto",
-      numeracao: variacao.numeracao || item.numeracao || "-",
+      id: item.id || `${item.variacaoProdutoId || "manual"}-${produto.nome || item.nomeManual || item.nome}`,
+      nome: produto.nome || item.nomeManual || item.nome || "Produto",
+      numeracao: variacao.numeracao || item.numeracaoManual || item.numeracao || "",
       quantidade,
       precoUnitario,
       subtotal: Number(item.subtotal ?? quantidade * precoUnitario),
@@ -230,7 +230,7 @@ export default function ReciboModal({ aberto, tipo = "venda", registro, aoFechar
                       <tr key={item.id}>
                         <td className="px-3 py-2">
                           <p className="font-medium">{item.nome}</p>
-                          <p className="text-xs text-slate-500">Numeracao {item.numeracao}</p>
+                          {item.numeracao && <p className="text-xs text-slate-500">Numeracao {item.numeracao}</p>}
                         </td>
                         <td className="px-3 py-2 text-center">{item.quantidade}</td>
                         <td className="px-3 py-2 text-right">{moeda(item.precoUnitario)}</td>

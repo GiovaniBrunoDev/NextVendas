@@ -20,6 +20,14 @@ const formatarData = (data) =>
     minute: "2-digit",
   });
 
+const nomeItemVenda = (item) =>
+  item.variacaoProduto?.produto?.nome || item.nomeManual || item.nome || "Produto";
+
+const descricaoItemVenda = (item) => {
+  const numeracao = item.variacaoProduto?.numeracao || item.numeracaoManual;
+  return `${nomeItemVenda(item)} ${numeracao ? numeracao : ""} (${item.quantidade}x)`;
+};
+
 export default function VendasListadas() {
   const [mostrarTrocaModal, setMostrarTrocaModal] = useState(false);
   const [vendas, setVendas] = useState([]);
@@ -56,7 +64,7 @@ export default function VendasListadas() {
       const pagamento = venda.formaPagamento?.toLowerCase() || "";
       const id = String(venda.id);
       const itens = venda.itens
-        .map((item) => item.variacaoProduto.produto.nome.toLowerCase())
+        .map((item) => nomeItemVenda(item).toLowerCase())
         .join(" ");
 
       return cliente.includes(termo) || pagamento.includes(termo) || itens.includes(termo) || id.includes(termo);
@@ -209,7 +217,7 @@ export default function VendasListadas() {
                   <td className="px-4 py-3 text-slate-600">
                     <div className="max-w-xs truncate">
                       {venda.itens
-                        .map((item) => `${item.variacaoProduto.produto.nome} ${item.variacaoProduto.numeracao} (${item.quantidade}x)`)
+                        .map(descricaoItemVenda)
                         .join(", ")}
                     </div>
                   </td>
