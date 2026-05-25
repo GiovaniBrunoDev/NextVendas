@@ -283,20 +283,20 @@ export default function Dashboard() {
             </p>
           </div>
 
-          <div className="inline-flex w-full flex-wrap gap-1 rounded-lg border border-[#E5DED2] bg-[#F7F5EF] p-1 sm:w-auto">
+          <div className="grid w-full grid-cols-4 gap-1 rounded-lg border border-[#E5DED2] bg-[#F7F5EF] p-1 sm:inline-flex sm:w-auto">
             {periodos.map((item) => {
               const ativo = periodo === item.value;
               return (
                 <button
                   key={item.value}
                   onClick={() => setPeriodo(item.value)}
-                  className={`min-h-9 flex-1 rounded-md px-3 text-sm font-medium transition sm:flex-none ${
+                  className={`min-h-9 min-w-0 rounded-md px-1 text-[10px] font-medium transition sm:flex-none sm:px-3 sm:text-sm ${
                     ativo
                       ? "bg-white text-[#181F24] shadow-sm"
                       : "text-slate-600 hover:bg-white/70 hover:text-slate-900"
                   }`}
                 >
-                  {item.label}
+                  <span className="whitespace-nowrap">{item.label}</span>
                 </button>
               );
             })}
