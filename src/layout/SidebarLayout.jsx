@@ -10,7 +10,6 @@ import {
   PackageCheck,
   Search,
   ShieldCheck,
-  TrendingUp,
   Wallet,
   UsersRound,
 } from "lucide-react";
@@ -27,7 +26,6 @@ const acessoPorPerfil = {
   entradas: ["admin", "gerente"],
   caixa: ["admin", "gerente", "vendedor"],
   financeiro: ["admin", "gerente"],
-  lucro: ["admin", "gerente"],
   metas: ["admin", "gerente"],
 };
 
@@ -66,7 +64,6 @@ export default function SidebarLayout({ children, setTela }) {
       { key: "estoque", label: "Estoque", group: "Gestão", icon: Boxes },
       { key: "produtos", label: "Consultar", group: "Gestão", icon: Search },
       { key: "financeiro", label: "Financeiro", group: "Gestão", icon: Wallet },
-      { key: "lucro", label: "Lucro", group: "Gestão", icon: TrendingUp },
       ...(usuario?.superadmin ? [{ key: "superadmin", label: "Admin", group: "Sistema", icon: ShieldCheck }] : []),
     ],
     [usuario?.superadmin]
@@ -85,15 +82,15 @@ export default function SidebarLayout({ children, setTela }) {
 
   const statusPlano = assinaturaAtiva
     ? {
-        label: `${assinatura?.status || "ativa"} ate ${formatDate(assinatura?.venceEm)}`,
-        className: "border-white/[0.1] bg-white/[0.055] text-white/[0.82]",
-        icon: CheckCircle2,
-      }
+      label: `${assinatura?.status || "ativa"} ate ${formatDate(assinatura?.venceEm)}`,
+      className: "border-white/[0.1] bg-white/[0.055] text-white/[0.82]",
+      icon: CheckCircle2,
+    }
     : {
-        label: "Assinatura vencida",
-        className: "border-[#F4A62A]/40 bg-[#F4A62A]/[0.15] text-[#FFE4AA]",
-        icon: AlertTriangle,
-      };
+      label: "Assinatura vencida",
+      className: "border-[#F4A62A]/40 bg-[#F4A62A]/[0.15] text-[#FFE4AA]",
+      icon: AlertTriangle,
+    };
 
   const StatusIcon = statusPlano.icon;
 
@@ -124,22 +121,20 @@ export default function SidebarLayout({ children, setTela }) {
           <button
             key={key}
             onClick={() => trocarTela(key)}
-            className={`group relative flex w-full items-center rounded-lg px-2.5 py-2 text-left transition ${
-              ativo
+            className={`group relative flex w-full items-center rounded-lg px-2.5 py-2 text-left transition ${ativo
                 ? "bg-[#FFFEFA] text-[#181F24] shadow-[0_12px_26px_rgba(0,0,0,0.12)]"
                 : destaque
                   ? "border border-[#16A36B]/[0.26] bg-[#16A36B]/[0.13] text-white/[0.92] hover:bg-[#16A36B]/[0.2]"
                   : "text-white/[0.72] hover:bg-white/[0.085] hover:text-white"
-            }`}
+              }`}
           >
             <span
-              className={`mr-2.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md transition ${
-                ativo
+              className={`mr-2.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md transition ${ativo
                   ? "bg-[#16A36B]/10 text-[#16A36B]"
                   : destaque
                     ? "bg-[#16A36B]/[0.16] text-[#D8F7E8]"
                     : "bg-white/[0.055] text-white/[0.54] group-hover:text-white/[0.86]"
-              }`}
+                }`}
             >
               <Icon size={16} />
             </span>
@@ -155,17 +150,16 @@ export default function SidebarLayout({ children, setTela }) {
     <>
       <div className="lojia-mobile-nav fixed inset-x-3 bottom-4 z-50 flex max-w-[calc(100vw-1.5rem)] justify-around rounded-lg border border-white/10 bg-[#181F24] py-1.5 text-white shadow-xl">
         {itensMobile.map(({ key, label, icon: Icon }) => (
-            <button
+          <button
             key={key}
             onClick={() => trocarTela(key)}
-            className={`flex min-w-0 flex-1 flex-col items-center px-1.5 text-[10px] transition ${
-                telaAtiva === key ? "text-[#71E2A9]" : "text-white/[0.78]"
+            className={`flex min-w-0 flex-1 flex-col items-center px-1.5 text-[10px] transition ${telaAtiva === key ? "text-[#71E2A9]" : "text-white/[0.78]"
               }`}
-            >
-              <Icon size={18} className="mb-0.5" />
-              <span className="w-full truncate whitespace-nowrap text-center">{label}</span>
-            </button>
-          ))}
+          >
+            <Icon size={18} className="mb-0.5" />
+            <span className="w-full truncate whitespace-nowrap text-center">{label}</span>
+          </button>
+        ))}
       </div>
       <div className="fixed bottom-0 left-0 right-0 z-40 h-5 bg-[#F7F5EF]" />
     </>
@@ -176,13 +170,12 @@ export default function SidebarLayout({ children, setTela }) {
       {!isMobile && (
         <aside className="lojia-gradient flex w-72 shrink-0 flex-col overflow-hidden p-4 text-white shadow-[18px_0_42px_rgba(36,48,43,0.12)] md:sticky md:top-0 md:h-screen">
           <div className="mb-4 shrink-0 px-1">
-            <div className="overflow-hidden rounded-lg border border-white/10 bg-white/[0.96] p-2 shadow-[0_14px_28px_rgba(0,0,0,0.14)]">
-              <img
-                src="/lojia-brand.png"
-                alt="Lojia"
-                className="h-14 w-full scale-[1.45] object-contain"
-              />
-            </div>
+            <img
+              src="/lojia-logo.png"
+              alt="Lojia"
+              className="h-16
+               w-full scale-[1.75] object-contain"
+            />
           </div>
 
           <div className="shrink-0 border-t border-white/[0.1]" />

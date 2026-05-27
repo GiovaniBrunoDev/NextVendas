@@ -12,14 +12,15 @@ import MobileHome from "./pages/MobileHome";
 import BuscarProdutos from "./pages/BuscarProdutos";
 import Metas from "./pages/Metas";
 import Pedidos from "./pages/Pedidos";
-import RelatorioLucro from "./pages/RelatorioLucro";
 import EntradaEstoque from "./pages/EntradaEstoque";
 import Caixa from "./pages/Caixa";
 import Financeiro from "./pages/Financeiro";
 import Login from "./pages/Login";
 import AceitarConvite from "./pages/AceitarConvite";
 import SuperAdmin from "./pages/SuperAdmin";
+import Institucional from "./pages/Institucional";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import ConnectionStatus from "./components/ConnectionStatus";
 
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -44,7 +45,7 @@ function LoadingScreen() {
             animate={{ y: [0, -4, 0] }}
             transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
           >
-            <img src="/lojia-brand.png" alt="Lojia" className="h-16 w-44 object-contain" />
+            <img src="/lojia-logo.png" alt="Lojia" className="h-16 w-44 object-contain" />
           </motion.div>
         </div>
 
@@ -102,8 +103,6 @@ function ProtectedApp() {
         return <Metas />;
       case "pedidos":
         return <Pedidos />;
-      case "lucro":
-        return <RelatorioLucro />;
       case "caixa":
         return <Caixa />;
       case "financeiro":
@@ -129,10 +128,12 @@ function AppRoutes() {
     <>
       <Routes>
         <Route path="/login" element={<Login />} />
+        <Route path="/institucional" element={<Institucional />} />
         <Route path="/convite/:token" element={<AceitarConvite />} />
         <Route path="/mobile" element={<MobileHome />} />
         <Route path="/*" element={<ProtectedApp />} />
       </Routes>
+      <ConnectionStatus />
       <ToastContainer position="top-right" autoClose={3000} />
     </>
   );

@@ -66,7 +66,7 @@ export default function AceitarConvite() {
     <main className="lojia-shell grid min-h-screen px-4 py-8 text-[#181F24] lg:grid-cols-[420px_1fr] lg:px-10">
       <aside className="lojia-gradient mb-5 rounded-lg border border-white/10 p-5 text-white shadow-2xl lg:mb-0 lg:self-center">
         <div className="mb-8 overflow-hidden rounded-xl border border-white/10 bg-white/[0.96] p-3 shadow-2xl">
-          <img src="/lojia-brand.png" alt="Lojia" className="h-20 w-full scale-[1.35] object-contain" />
+          <img src="/lojia-logo.png" alt="Lojia" className="h-20 w-full scale-[1.35] object-contain" />
         </div>
         <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-md bg-white/10 text-[#CFF8E5]">
           <Store size={24} />

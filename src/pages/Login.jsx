@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Navigate, useLocation, useNavigate } from "react-router-dom";
+import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { ArrowRight, Eye, Mail, UserRound } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
@@ -47,7 +47,16 @@ export default function Login() {
       <div className="absolute bottom-[-18rem] left-[32%] hidden h-[34rem] w-[28rem] rotate-[-14deg] rounded-[46%] border border-[#181F24] bg-white lg:block" />
       <div className="absolute bottom-[-20rem] left-[43%] hidden h-[30rem] w-[28rem] rotate-[8deg] rounded-[46%] border border-[#181F24] bg-white lg:block" />
 
-      <section className="relative z-10 grid min-h-[100dvh] w-full min-w-0 items-center gap-10 px-3 py-5 sm:px-4 sm:py-8 lg:grid-cols-[488px_minmax(360px,1fr)] lg:gap-12 lg:px-8 xl:px-[12vw]">
+      <div className="absolute left-4 top-4 z-20 sm:left-6 sm:top-6">
+        <Link
+          to="/institucional"
+          className="inline-flex min-h-10 items-center justify-center rounded-lg border border-[#181F24]/10 bg-white/70 px-4 text-sm font-semibold text-[#181F24] shadow-sm backdrop-blur transition hover:bg-white"
+        >
+          Conheça a Lojia
+        </Link>
+      </div>
+
+      <section className="relative z-10 grid min-h-[100dvh] w-full min-w-0 items-center gap-10 px-3 py-20 sm:px-4 sm:py-20 lg:grid-cols-[488px_minmax(360px,1fr)] lg:gap-12 lg:px-8 xl:px-[12vw]">
         <form
           onSubmit={enviar}
           className="mx-auto w-full max-w-[488px] rounded-[18px] bg-white px-5 py-7 shadow-[0_18px_34px_rgba(24,31,36,0.10)] sm:rounded-[22px] sm:px-14 sm:py-14"

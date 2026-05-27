@@ -7,17 +7,17 @@ import {
   CalendarDays,
   CheckCircle2,
   Clock3,
+  ExternalLink,
   MapPin,
-  PackageCheck,
   PackageX,
   ReceiptText,
   Search,
   ShoppingBag,
   Timer,
   Truck,
-  UserRound,
 } from "lucide-react";
 import ReciboModal from "../components/ReciboModal";
+import ConfirmarPedidoVendaModal from "../components/ConfirmarPedidoVendaModal";
 
 function moeda(valor) {
   return Number(valor || 0).toLocaleString("pt-BR", {
@@ -45,6 +45,10 @@ function formatarData(value) {
     day: "2-digit",
     month: "short",
   });
+}
+
+function googleMapsUrl(endereco) {
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(endereco)}`;
 }
 
 function statusInfo(status) {
@@ -76,6 +80,7 @@ export default function Pedidos() {
   const [filtro, setFiltro] = useState("todos");
   const [busca, setBusca] = useState("");
   const [recibo, setRecibo] = useState(null);
+  const [pedidoParaConfirmar, setPedidoParaConfirmar] = useState(null);
 
   const carregarPedidos = async () => {
     try {
@@ -89,11 +94,12 @@ export default function Pedidos() {
     }
   };
 
-  const confirmarPedido = async (id) => {
+  const confirmarPedido = async (pedido, dadosVenda) => {
     try {
-      setPedidoProcessando(id);
-      const { data } = await api.post(`/pedidos/${id}/confirmar`);
-      toast.success(`Pedido #${id} lancado como venda.`);
+      setPedidoProcessando(pedido.id);
+      const { data } = await api.post(`/pedidos/${pedido.id}/confirmar`, dadosVenda);
+      toast.success(`Pedido #${pedido.id} lançado como venda.`);
+      setPedidoParaConfirmar(null);
       await carregarPedidos();
       if (data?.venda) setRecibo({ tipo: "venda", registro: data.venda });
     } catch (err) {
@@ -108,7 +114,7 @@ export default function Pedidos() {
     try {
       setPedidoProcessando(id);
       await api.put(`/pedidos/${id}/status`, { status: "cancelado" });
-      toast.success(`Pedido #${id} cancelado e estoque devolvido.`);
+      toast.success(`Pedido #${id} cancelado.`);
       await carregarPedidos();
     } catch (err) {
       console.error(err);
@@ -181,7 +187,12 @@ export default function Pedidos() {
 
       const bateFiltro = filtro === "todos" || pedido.grupo === filtro;
       const itensTexto = pedido.itens
-        ?.map((item) => `${item.variacaoProduto?.produto?.nome || ""} ${item.variacaoProduto?.numeracao || ""}`)
+        ?.map(
+          (item) =>
+            `${item.variacaoProduto?.produto?.nome || item.nomeManual || item.nome || ""} ${
+              item.variacaoProduto?.numeracao || item.numeracaoManual || ""
+            }`
+        )
         .join(" ")
         .toLowerCase();
       const bateBusca =
@@ -204,6 +215,7 @@ export default function Pedidos() {
     const status = statusInfo(pedido.status);
     const grupo = grupoInfo(pedido.grupo);
     const GrupoIcon = grupo.icon;
+    const enderecoEntrega = (pedido.endereco || pedido.cliente?.endereco || "").trim();
 
     return (
       <motion.article
@@ -253,19 +265,41 @@ export default function Pedidos() {
             </div>
           </div>
 
+          {pedido.tipoEntrega === "entrega" && (
+            <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50/70 p-3">
+              <p className="flex items-center gap-2 text-xs font-medium uppercase text-slate-500">
+                <MapPin size={14} /> Endereço da entrega
+              </p>
+              {enderecoEntrega ? (
+                <a
+                  href={googleMapsUrl(enderecoEntrega)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-1 inline-flex max-w-full items-center gap-2 text-sm font-medium text-slate-950 underline decoration-slate-300 underline-offset-4 transition hover:text-[#11875A] hover:decoration-[#16A36B]"
+                  title="Abrir no Google Maps"
+                >
+                  <span className="truncate">{enderecoEntrega}</span>
+                  <ExternalLink size={14} className="shrink-0 text-slate-400" />
+                </a>
+              ) : (
+                <p className="mt-1 text-sm text-slate-500">Endereço não informado.</p>
+              )}
+            </div>
+          )}
+
           <div className="mt-4 rounded-lg border border-slate-200">
             <div className="flex items-center justify-between border-b border-slate-200 px-3 py-2">
-              <p className="text-xs font-medium uppercase text-slate-500">Itens reservados</p>
+              <p className="text-xs font-medium uppercase text-slate-500">Itens do pedido</p>
               <span className="text-xs font-medium text-slate-500">{quantidadeItens} un.</span>
             </div>
             <div className="divide-y divide-slate-100">
               {itens.slice(0, 3).map((item) => (
                 <div key={item.id || `${pedido.id}-${item.variacaoProdutoId}`} className="px-3 py-2.5">
                   <p className="truncate text-sm font-medium text-slate-950">
-                    {item.variacaoProduto?.produto?.nome || "Produto"}
+                    {item.variacaoProduto?.produto?.nome || item.nomeManual || item.nome || "Produto"}
                   </p>
                   <p className="mt-0.5 text-xs text-slate-500">
-                    Tam. {item.variacaoProduto?.numeracao || "-"} x {item.quantidade} | {moeda(item.precoUnitario)}
+                    Tam. {item.variacaoProduto?.numeracao || item.numeracaoManual || "-"} x {item.quantidade} | {moeda(item.precoUnitario)}
                   </p>
                 </div>
               ))}
@@ -298,7 +332,7 @@ export default function Pedidos() {
               <ReceiptText size={16} />
             </button>
             <button
-              onClick={() => confirmarPedido(pedido.id)}
+              onClick={() => setPedidoParaConfirmar(pedido)}
               disabled={processando || !podeFinalizar}
               className="lojia-primary-action inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-50"
             >
@@ -416,6 +450,15 @@ export default function Pedidos() {
         registro={recibo?.registro}
         aoFechar={() => setRecibo(null)}
       />
+
+      {pedidoParaConfirmar && (
+        <ConfirmarPedidoVendaModal
+          pedido={pedidoParaConfirmar}
+          carregando={pedidoProcessando === pedidoParaConfirmar.id}
+          aoFechar={() => setPedidoParaConfirmar(null)}
+          aoConfirmar={(dadosVenda) => confirmarPedido(pedidoParaConfirmar, dadosVenda)}
+        />
+      )}
     </div>
   );
 }

@@ -4,7 +4,7 @@ import FinalizarVendaModal from "../components/FinalizarVendaModal";
 import ReciboModal from "../components/ReciboModal";
 import { toast } from "react-toastify";
 import NovoPedidoModal from "../components/NovoPedidoModal";
-import { FaPlus, FaSearch, FaShoppingCart, FaUndo } from "react-icons/fa";
+import { FaPlus, FaSearch, FaShoppingCart, FaTrash, FaUndo } from "react-icons/fa";
 
 const formatCurrency = (valor) =>
   new Intl.NumberFormat("pt-BR", {
@@ -59,7 +59,6 @@ export default function Vendas() {
 
   const total = carrinho.reduce((soma, item) => soma + item.qtd * item.preco, 0);
   const totalItens = carrinho.reduce((soma, item) => soma + item.qtd, 0);
-  const temItemManual = carrinho.some((item) => item.manual);
 
   function adicionarAoCarrinho(produto) {
     setCarrinho((prev) => {
@@ -82,6 +81,10 @@ export default function Vendas() {
 
   function removerUltimoAdicionado() {
     setCarrinho((prev) => prev.slice(0, -1));
+  }
+
+  function removerItemCarrinho(indexParaRemover) {
+    setCarrinho((prev) => prev.filter((_, index) => index !== indexParaRemover));
   }
 
   function limparCarrinho() {
@@ -356,9 +359,20 @@ export default function Vendas() {
                           {item.numeracao ? `Tam. ${item.numeracao} x ${item.qtd}` : `Qtd. ${item.qtd}`}
                         </p>
                       </div>
-                      <p className="shrink-0 text-sm font-semibold text-slate-900">
-                        {formatCurrency(item.preco * item.qtd)}
-                      </p>
+                      <div className="flex shrink-0 items-start gap-2">
+                        <p className="text-sm font-semibold text-slate-900">
+                          {formatCurrency(item.preco * item.qtd)}
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => removerItemCarrinho(index)}
+                          className="rounded-lg p-1.5 text-slate-400 transition hover:bg-rose-50 hover:text-rose-600"
+                          aria-label={`Remover ${item.nome} do carrinho`}
+                          title="Remover item"
+                        >
+                          <FaTrash size={12} />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -384,17 +398,11 @@ export default function Vendas() {
               <button
                 className="lojia-ghost-action px-4 py-3 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-50"
                 onClick={() => setMostrarPedidoModal(true)}
-                disabled={carrinho.length === 0 || temItemManual}
-                title={temItemManual ? "Itens avulsos podem ser finalizados apenas como venda." : undefined}
+                disabled={carrinho.length === 0}
               >
                 Criar pedido
               </button>
             </div>
-            {temItemManual && (
-              <p className="mt-2 text-xs text-slate-500">
-                Itens avulsos entram apenas na venda e não alteram o estoque.
-              </p>
-            )}
           </div>
         </aside>
       </div>

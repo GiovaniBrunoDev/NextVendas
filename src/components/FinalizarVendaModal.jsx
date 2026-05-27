@@ -5,6 +5,7 @@ import { FaArrowLeft, FaArrowRight, FaCheckCircle, FaCreditCard, FaMoneyBillAlt,
 import { SiPix } from "react-icons/si";
 import Select from "react-select";
 import useModalPresence from "../hooks/useModalPresence";
+import EntregadorSelect from "./EntregadorSelect";
 
 const formatCurrency = (valor) =>
   new Intl.NumberFormat("pt-BR", {
@@ -319,16 +320,10 @@ export default function FinalizarVendaModal({ carrinho, aoFechar, aoFinalizar })
                 className={inputClass}
               />
             </label>
-            <label>
+            <div>
               <span className={fieldLabelClass}>Entregador</span>
-              <input
-                type="text"
-                placeholder="Nome"
-                value={entregador}
-                onChange={(e) => setEntregador(e.target.value)}
-                className={inputClass}
-              />
-            </label>
+              <EntregadorSelect value={entregador} onChange={setEntregador} selectStyles={selectStyles} />
+            </div>
           </div>
         </div>
       ) : (
