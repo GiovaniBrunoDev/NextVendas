@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import QRCode from "qrcode";
 import { toast } from "react-toastify";
 import {
   ArrowLeft,
@@ -85,6 +86,7 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
     status: "idle",
     carregando: false,
   });
+  const [qrCodeDataUrl, setQrCodeDataUrl] = useState("");
   const [videoFile, setVideoFile] = useState(null);
   const [videoPreview, setVideoPreview] = useState(null);
 
@@ -143,6 +145,41 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
       window.clearInterval(intervalo);
     };
   }, [mobileUpload.status, mobileUpload.token]);
+
+  useEffect(() => {
+    let ativo = true;
+
+    async function gerarQrCode() {
+      if (!mobileUpload.uploadUrl) {
+        setQrCodeDataUrl("");
+        return;
+      }
+
+      try {
+        const dataUrl = await QRCode.toDataURL(mobileUpload.uploadUrl, {
+          width: 180,
+          margin: 1,
+          color: {
+            dark: "#181F24",
+            light: "#FFFFFF",
+          },
+        });
+        if (ativo) setQrCodeDataUrl(dataUrl);
+      } catch (error) {
+        console.error("Erro ao gerar QR Code:", error);
+        if (ativo) {
+          setQrCodeDataUrl("");
+          toast.error("Nao foi possivel gerar o QR Code. Tente novamente.");
+        }
+      }
+    }
+
+    gerarQrCode();
+
+    return () => {
+      ativo = false;
+    };
+  }, [mobileUpload.uploadUrl]);
 
   async function carregarFornecedores() {
     try {
@@ -509,12 +546,6 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
   }
 
   function renderMidia() {
-    const qrCodeUrl = mobileUpload.uploadUrl
-      ? `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(
-          mobileUpload.uploadUrl
-        )}`
-      : "";
-
     return (
       <div className="space-y-4">
         <div className={`grid grid-cols-1 gap-3 ${podeAdicionarVideo ? "lg:grid-cols-3" : "lg:grid-cols-2"}`}>
@@ -526,13 +557,19 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
           </label>
 
           <div className="hidden rounded-lg border border-[#E5DED2] bg-white p-4 text-center md:block">
-            {mobileUpload.status === "aguardando" && qrCodeUrl ? (
+            {mobileUpload.status === "aguardando" ? (
               <div>
-                <img
-                  src={qrCodeUrl}
-                  alt="QR Code para enviar imagem"
-                  className="mx-auto h-32 w-32 rounded-lg border border-slate-200 bg-white p-2"
-                />
+                {qrCodeDataUrl ? (
+                  <img
+                    src={qrCodeDataUrl}
+                    alt="QR Code para enviar imagem"
+                    className="mx-auto h-32 w-32 rounded-lg border border-slate-200 bg-white p-2"
+                  />
+                ) : (
+                  <div className="mx-auto flex h-32 w-32 items-center justify-center rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-500">
+                    Gerando QR...
+                  </div>
+                )}
                 <p className="mt-3 text-sm font-semibold text-slate-950">Aguardando foto do celular</p>
                 <p className="mt-1 text-xs text-slate-500">
                   Abra o QR Code com a camera do celular, escolha a imagem e ela aparece aqui.
