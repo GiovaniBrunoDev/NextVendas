@@ -71,12 +71,14 @@ export default function FinalizarVendaModal({ carrinho, aoFechar, aoFinalizar })
 
   const totalProdutos = carrinho.reduce((s, item) => s + item.qtd * item.preco, 0);
   const valorEntrega = tipoEntrega === "entrega" ? Number(taxaEntrega || 0) : 0;
-  const descontoDigitado = Number(desconto || 0);
+  const totalAntesDesconto = totalProdutos + valorEntrega;
+  const descontoDigitado = Number(String(desconto || "0").replace(",", "."));
   const percentualDesconto = Math.min(Math.max(descontoDigitado, 0), 100);
   const valorDesconto = tipoDesconto === "percentual"
-    ? (totalProdutos * percentualDesconto) / 100
+    ? (totalAntesDesconto * percentualDesconto) / 100
     : descontoDigitado;
-  const totalFinal = Math.max(totalProdutos + valorEntrega - valorDesconto, 0);
+  const descontoAplicado = Math.min(Math.max(Number.isFinite(valorDesconto) ? valorDesconto : 0, 0), totalAntesDesconto);
+  const totalFinal = Math.max(totalAntesDesconto - descontoAplicado, 0);
 
   const opcoes = useMemo(
     () =>
@@ -158,7 +160,7 @@ export default function FinalizarVendaModal({ carrinho, aoFechar, aoFinalizar })
         produtos,
         total: totalFinal,
         subtotalProdutos: totalProdutos,
-        desconto: valorDesconto,
+        desconto: descontoAplicado,
         formaPagamento,
         tipoEntrega,
         taxaEntrega: tipoEntrega === "entrega" ? Number(taxaEntrega || 0) : null,
@@ -394,7 +396,7 @@ export default function FinalizarVendaModal({ carrinho, aoFechar, aoFinalizar })
         />
         {tipoDesconto === "percentual" && desconto && (
           <p className="mt-2 text-xs text-slate-500">
-            Desconto calculado: {formatCurrency(valorDesconto)}
+            Desconto calculado: {formatCurrency(descontoAplicado)}
           </p>
         )}
       </div>
@@ -449,7 +451,7 @@ export default function FinalizarVendaModal({ carrinho, aoFechar, aoFinalizar })
             Desconto
             {tipoDesconto === "percentual" && desconto ? ` (${percentualDesconto}%)` : ""}
           </span>
-          <span>- {formatCurrency(valorDesconto)}</span>
+          <span>- {formatCurrency(descontoAplicado)}</span>
         </div>
         <div className="mt-3 flex justify-between border-t border-white/10 pt-3 text-xl font-semibold">
           <span>Total</span>

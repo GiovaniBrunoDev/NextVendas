@@ -49,12 +49,14 @@ export default function ConfirmarPedidoVendaModal({ pedido, aoFechar, aoConfirma
   );
   const descontoDigitado = Number(String(desconto || "0").replace(",", "."));
   const percentualDesconto = Math.min(Math.max(Number.isFinite(descontoDigitado) ? descontoDigitado : 0, 0), 100);
+  const valorEntrega = pedido?.tipoEntrega === "entrega" ? Number(pedido?.taxaEntrega || 0) : 0;
+  const totalAntesDesconto = subtotalProdutos + valorEntrega;
   const valorDesconto =
     tipoDesconto === "percentual"
-      ? (subtotalProdutos * percentualDesconto) / 100
+      ? (totalAntesDesconto * percentualDesconto) / 100
       : Math.max(Number.isFinite(descontoDigitado) ? descontoDigitado : 0, 0);
-  const valorEntrega = pedido?.tipoEntrega === "entrega" ? Number(pedido?.taxaEntrega || 0) : 0;
-  const totalFinal = Math.max(subtotalProdutos + valorEntrega - valorDesconto, 0);
+  const descontoAplicado = Math.min(valorDesconto, totalAntesDesconto);
+  const totalFinal = Math.max(totalAntesDesconto - descontoAplicado, 0);
 
   function confirmar() {
     if (!formaPagamento) {
@@ -64,7 +66,7 @@ export default function ConfirmarPedidoVendaModal({ pedido, aoFechar, aoConfirma
 
     aoConfirmar({
       formaPagamento,
-      desconto: valorDesconto,
+      desconto: descontoAplicado,
       entregador: pedido?.tipoEntrega === "entrega" ? entregador || null : null,
     });
   }
@@ -156,7 +158,7 @@ export default function ConfirmarPedidoVendaModal({ pedido, aoFechar, aoConfirma
                 className={`${inputClass} mt-3`}
               />
               {tipoDesconto === "percentual" && desconto && (
-                <p className="mt-2 text-xs text-slate-500">Desconto calculado: {moeda(valorDesconto)}</p>
+                <p className="mt-2 text-xs text-slate-500">Desconto calculado: {moeda(descontoAplicado)}</p>
               )}
             </div>
 
@@ -210,7 +212,7 @@ export default function ConfirmarPedidoVendaModal({ pedido, aoFechar, aoConfirma
               )}
               <div className="mt-2 flex justify-between">
                 <span className="text-white/62">Desconto</span>
-                <span>- {moeda(valorDesconto)}</span>
+                <span>- {moeda(descontoAplicado)}</span>
               </div>
               <div className="mt-3 flex justify-between border-t border-white/10 pt-3 text-xl font-semibold">
                 <span>Total</span>

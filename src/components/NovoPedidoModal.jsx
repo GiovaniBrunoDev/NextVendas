@@ -272,8 +272,8 @@ export default function NovoPedidoModal({ carrinho, aoFechar, aoConfirmar }) {
   );
 
   const renderAgenda = () => (
-    <div className="space-y-4">
-      <div className="grid gap-3 sm:grid-cols-2">
+    <div className="space-y-3 sm:space-y-4">
+      <div className="grid gap-3 min-[420px]:grid-cols-2">
         <label>
           <span className={fieldLabelClass}>Data de entrega</span>
           <input
@@ -307,7 +307,7 @@ export default function NovoPedidoModal({ carrinho, aoFechar, aoConfirmar }) {
               key={opcao.value}
               type="button"
               onClick={() => setTipoEntrega(opcao.value)}
-              className={`flex items-center justify-center gap-2 rounded-xl border px-4 py-3 text-sm font-medium transition ${
+              className={`flex items-center justify-center gap-2 rounded-xl border px-3 py-2.5 text-sm font-medium transition sm:px-4 sm:py-3 ${
                 ativo
                   ? "border-[#181F24] bg-[#181F24] text-white shadow-[0_12px_24px_rgba(24,31,36,0.12)]"
                   : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50"
@@ -320,15 +320,15 @@ export default function NovoPedidoModal({ carrinho, aoFechar, aoConfirmar }) {
       </div>
 
       {tipoEntrega === "entrega" ? (
-        <div className="grid gap-3 sm:grid-cols-[1fr_160px]">
+        <div className="grid gap-3 min-[430px]:grid-cols-[minmax(0,1fr)_132px] sm:grid-cols-[1fr_160px]">
           <label>
             <span className={fieldLabelClass}>Endereço</span>
             <textarea
-              rows={3}
+              rows={2}
               value={endereco}
               onChange={(e) => setEndereco(e.target.value)}
               placeholder="Rua, número, bairro, cidade"
-              className={`${inputClass} resize-none`}
+              className={`${inputClass} min-h-[92px] resize-none`}
             />
           </label>
           <label>
@@ -352,11 +352,11 @@ export default function NovoPedidoModal({ carrinho, aoFechar, aoConfirmar }) {
       <label>
         <span className={fieldLabelClass}>Observações</span>
         <textarea
-          rows={3}
+          rows={2}
           value={observacoes}
           onChange={(e) => setObservacoes(e.target.value)}
           placeholder="Detalhes combinados com o cliente"
-          className={`${inputClass} resize-none`}
+          className={`${inputClass} min-h-[86px] resize-none`}
         />
       </label>
     </div>
@@ -462,15 +462,15 @@ export default function NovoPedidoModal({ carrinho, aoFechar, aoConfirmar }) {
           </div>
         </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto bg-[#F7F5EF]/50 px-4 py-5 sm:px-6">
-          <div className="mb-5">
+        <div className="min-h-0 flex-1 overflow-y-auto bg-[#F7F5EF]/50 px-3 py-4 sm:px-6 sm:py-5">
+          <div className="mb-4 sm:mb-5">
             <h3 className="mt-1 text-lg font-semibold text-slate-950">{etapa.title}</h3>
           </div>
 
           {renderConteudo()}
         </div>
 
-        <div className="shrink-0 border-t border-slate-200/80 bg-white px-4 py-4 sm:px-6">
+        <div className="shrink-0 border-t border-slate-200/80 bg-white px-4 py-4 pb-[calc(1rem+env(safe-area-inset-bottom))] sm:px-6 sm:pb-4">
           <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-between">
             {etapaAtual === 0 ? (
               <button

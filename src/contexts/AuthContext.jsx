@@ -39,9 +39,32 @@ export function AuthProvider({ children }) {
     return data;
   }
 
+  async function cadastrarLojista(payload) {
+    const { data } = await api.post("/auth/cadastro", payload);
+    aplicarSessao(data);
+    return data;
+  }
+
   async function aceitarConvite(payload) {
     const { data } = await api.post("/auth/aceitar-convite", payload);
     aplicarSessao(data);
+    return data;
+  }
+
+  async function atualizarMinhaConta(payload) {
+    const { data } = await api.put("/auth/minha-conta", payload);
+    if (data.token) {
+      localStorage.setItem("pdv_token", data.token);
+      setToken(data.token);
+    }
+    setUsuario(data.usuario);
+    setLojas(data.lojas || []);
+
+    const existeLoja = data.lojas?.some((item) => String(item.loja.id) === String(lojaAtualId));
+    if (!existeLoja && data.lojas?.[0]?.loja?.id) {
+      setLojaAtualId(data.lojas[0].loja.id);
+    }
+
     return data;
   }
 
@@ -94,7 +117,9 @@ export function AuthProvider({ children }) {
     carregando,
     autenticado: Boolean(token && usuario),
     login,
+    cadastrarLojista,
     aceitarConvite,
+    atualizarMinhaConta,
     bootstrapSuperadmin,
     logout,
     setLojaAtualId,

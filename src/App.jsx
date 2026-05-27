@@ -16,9 +16,11 @@ import EntradaEstoque from "./pages/EntradaEstoque";
 import Caixa from "./pages/Caixa";
 import Financeiro from "./pages/Financeiro";
 import Login from "./pages/Login";
+import CadastroLojista from "./pages/CadastroLojista";
 import AceitarConvite from "./pages/AceitarConvite";
 import SuperAdmin from "./pages/SuperAdmin";
 import Institucional from "./pages/Institucional";
+import MinhaConta from "./pages/MinhaConta";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import ConnectionStatus from "./components/ConnectionStatus";
 
@@ -111,6 +113,8 @@ function ProtectedApp() {
         return <EntradaEstoque />;
       case "superadmin":
         return usuario?.superadmin ? <SuperAdmin /> : <Dashboard />;
+      case "minha-conta":
+        return <MinhaConta />;
       default:
         return <Dashboard />;
     }
@@ -128,6 +132,7 @@ function AppRoutes() {
     <>
       <Routes>
         <Route path="/login" element={<Login />} />
+        <Route path="/cadastro" element={<CadastroLojista />} />
         <Route path="/institucional" element={<Institucional />} />
         <Route path="/convite/:token" element={<AceitarConvite />} />
         <Route path="/mobile" element={<MobileHome />} />

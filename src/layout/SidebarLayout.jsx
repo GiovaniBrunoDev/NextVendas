@@ -10,6 +10,7 @@ import {
   PackageCheck,
   Search,
   ShieldCheck,
+  UserCog,
   Wallet,
   UsersRound,
 } from "lucide-react";
@@ -26,6 +27,7 @@ const acessoPorPerfil = {
   entradas: ["admin", "gerente"],
   caixa: ["admin", "gerente", "vendedor"],
   financeiro: ["admin", "gerente"],
+  "minha-conta": ["admin", "gerente", "vendedor"],
   metas: ["admin", "gerente"],
 };
 
@@ -64,6 +66,7 @@ export default function SidebarLayout({ children, setTela }) {
       { key: "estoque", label: "Estoque", group: "Gestão", icon: Boxes },
       { key: "produtos", label: "Consultar", group: "Gestão", icon: Search },
       { key: "financeiro", label: "Financeiro", group: "Gestão", icon: Wallet },
+      { key: "minha-conta", label: "Minha conta", group: "Sistema", icon: UserCog },
       ...(usuario?.superadmin ? [{ key: "superadmin", label: "Admin", group: "Sistema", icon: ShieldCheck }] : []),
     ],
     [usuario?.superadmin]
@@ -184,12 +187,16 @@ export default function SidebarLayout({ children, setTela }) {
 
           <div className="mt-4 shrink-0 border-t border-white/[0.08] pt-4">
             {planoBox}
-            <div className="mb-3 rounded-lg bg-white/[0.045] px-3 py-2">
+            <button
+              type="button"
+              onClick={() => trocarTela("minha-conta")}
+              className="mb-3 w-full rounded-lg bg-white/[0.045] px-3 py-2 text-left transition hover:bg-white/[0.075]"
+            >
               <p className="truncate text-sm font-bold text-white">{usuario?.nome}</p>
               <p className="mt-0.5 text-xs font-semibold capitalize text-white/[0.48]">
                 {papel || (usuario?.superadmin ? "superadmin" : "sem perfil")}
               </p>
-            </div>
+            </button>
             <button
               onClick={logout}
               className="flex w-full items-center rounded-lg px-3 py-2.5 text-sm font-bold text-white/[0.68] transition hover:bg-white/[0.075] hover:text-white"

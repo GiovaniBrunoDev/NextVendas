@@ -3,11 +3,15 @@ import { toast } from "react-toastify";
 import {
   ArrowLeft,
   ArrowRight,
+  CheckCircle2,
   ImagePlus,
   PackagePlus,
   Plus,
+  QrCode,
+  RefreshCw,
   Save,
   Shirt,
+  Smartphone,
   Tag,
   Truck,
   X,
@@ -42,6 +46,14 @@ const formatCurrency = (valor) =>
     currency: "BRL",
   }).format(Number(valor || 0));
 
+function montarUrlMidia(url) {
+  if (!url) return "";
+  if (/^(https?:|data:|blob:)/i.test(url)) return url;
+
+  const base = api.defaults.baseURL || window.location.origin;
+  return `${String(base).replace(/\/$/, "")}${url.startsWith("/") ? url : `/${url}`}`;
+}
+
 export default function ProdutoModal({ aoFechar, aoCadastrar }) {
   useModalPresence();
 
@@ -66,6 +78,13 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
 
   const [imagemPreview, setImagemPreview] = useState(null);
   const [imagemFile, setImagemFile] = useState(null);
+  const [imagemUrlRemota, setImagemUrlRemota] = useState("");
+  const [mobileUpload, setMobileUpload] = useState({
+    token: "",
+    uploadUrl: "",
+    status: "idle",
+    carregando: false,
+  });
   const [videoFile, setVideoFile] = useState(null);
   const [videoPreview, setVideoPreview] = useState(null);
 
@@ -95,6 +114,35 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
     window.addEventListener("keydown", listener);
     return () => window.removeEventListener("keydown", listener);
   }, [aoFechar]);
+
+  useEffect(() => {
+    if (mobileUpload.status !== "aguardando" || !mobileUpload.token) return undefined;
+
+    let ativo = true;
+
+    async function verificarUploadCelular() {
+      try {
+        const { data } = await api.get(`/mobile-upload/sessoes/${mobileUpload.token}`);
+        if (!ativo || !data?.imageUrl) return;
+
+        setImagemUrlRemota(data.imageUrl);
+        setImagemPreview(montarUrlMidia(data.imageUrl));
+        setImagemFile(null);
+        setMobileUpload((prev) => ({ ...prev, status: "recebido", carregando: false }));
+        toast.success("Imagem recebida pelo celular.");
+      } catch (error) {
+        console.error("Erro ao verificar upload pelo celular:", error);
+      }
+    }
+
+    verificarUploadCelular();
+    const intervalo = window.setInterval(verificarUploadCelular, 2500);
+
+    return () => {
+      ativo = false;
+      window.clearInterval(intervalo);
+    };
+  }, [mobileUpload.status, mobileUpload.token]);
 
   async function carregarFornecedores() {
     try {
@@ -164,6 +212,7 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
 
     setImagemPreview(URL.createObjectURL(file));
     setImagemFile(file);
+    setImagemUrlRemota("");
   }
 
   function handleSelecionarVideo(event) {
@@ -197,6 +246,23 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
       toast.error(error.response?.data?.error || "Erro ao cadastrar fornecedor.");
     } finally {
       setSalvandoFornecedor(false);
+    }
+  }
+
+  async function iniciarUploadCelular() {
+    try {
+      setMobileUpload((prev) => ({ ...prev, carregando: true }));
+      const { data } = await api.post("/mobile-upload/sessoes", { origin: window.location.origin });
+      setMobileUpload({
+        token: data.token,
+        uploadUrl: data.uploadUrl,
+        status: "aguardando",
+        carregando: false,
+      });
+    } catch (error) {
+      console.error("Erro ao criar upload por celular:", error);
+      setMobileUpload((prev) => ({ ...prev, carregando: false, status: "idle" }));
+      toast.error(error.response?.data?.error || "Erro ao criar upload pelo celular.");
     }
   }
 
@@ -248,7 +314,8 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
       let videoUrl = "";
       let gifUrl = "";
 
-      if (imagemFile) imagemUrl = await fazerUploadImgBB();
+      if (imagemUrlRemota) imagemUrl = imagemUrlRemota;
+      else if (imagemFile) imagemUrl = await fazerUploadImgBB();
 
       if (podeAdicionarVideo && videoFile) {
         const formData = new FormData();
@@ -442,28 +509,82 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
   }
 
   function renderMidia() {
+    const qrCodeUrl = mobileUpload.uploadUrl
+      ? `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(
+          mobileUpload.uploadUrl
+        )}`
+      : "";
+
     return (
       <div className="space-y-4">
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <div className={`grid grid-cols-1 gap-3 ${podeAdicionarVideo ? "lg:grid-cols-3" : "lg:grid-cols-2"}`}>
           <label className="rounded-lg border border-dashed border-[#E5DED2] bg-[#FFFEFA]/70 p-4 text-center transition hover:bg-white">
             <ImagePlus className="mx-auto text-[#16A36B]" />
-            <span className="mt-2 block text-sm font-semibold text-slate-950">Imagem do produto</span>
-            <span className="mt-1 block text-xs text-slate-500">JPG, PNG ou WEBP</span>
+            <span className="mt-2 block text-sm font-semibold text-slate-950">Enviar deste computador</span>
+            <span className="mt-1 block text-xs text-slate-500">Escolha uma foto salva aqui.</span>
             <input type="file" accept="image/*" onChange={handleSelecionarImagem} className="hidden" />
           </label>
 
-          {podeAdicionarVideo ? (
+          <div className="hidden rounded-lg border border-[#E5DED2] bg-white p-4 text-center md:block">
+            {mobileUpload.status === "aguardando" && qrCodeUrl ? (
+              <div>
+                <img
+                  src={qrCodeUrl}
+                  alt="QR Code para enviar imagem"
+                  className="mx-auto h-32 w-32 rounded-lg border border-slate-200 bg-white p-2"
+                />
+                <p className="mt-3 text-sm font-semibold text-slate-950">Aguardando foto do celular</p>
+                <p className="mt-1 text-xs text-slate-500">
+                  Abra o QR Code com a camera do celular, escolha a imagem e ela aparece aqui.
+                </p>
+                <button
+                  type="button"
+                  onClick={iniciarUploadCelular}
+                  className="mt-3 inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-xs font-medium text-slate-600 transition hover:bg-slate-50"
+                >
+                  <RefreshCw size={13} /> Adicionar outra imagem
+                </button>
+              </div>
+            ) : mobileUpload.status === "recebido" ? (
+              <div className="flex h-full min-h-[156px] flex-col items-center justify-center">
+                <CheckCircle2 className="text-[#16A36B]" size={28} />
+                <p className="mt-3 text-sm font-semibold text-slate-950">Foto recebida do celular</p>
+                <p className="mt-1 text-xs text-slate-500">Ela ja foi colocada na previa do produto.</p>
+                <button
+                  type="button"
+                  onClick={iniciarUploadCelular}
+                  className="mt-3 inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-xs font-medium text-slate-600 transition hover:bg-slate-50"
+                >
+                  <QrCode size={13} /> Enviar outra foto
+                </button>
+              </div>
+            ) : (
+              <div className="flex h-full min-h-[156px] flex-col items-center justify-center">
+                <Smartphone className="text-[#16A36B]" size={26} />
+                <p className="mt-3 text-sm font-semibold text-slate-950">Usar foto do celular</p>
+                <p className="mt-1 text-xs text-slate-500">
+                  Gere um QR Code para fotografar ou escolher a imagem pelo celular.
+                </p>
+                <button
+                  type="button"
+                  onClick={iniciarUploadCelular}
+                  disabled={mobileUpload.carregando}
+                  className="mt-3 inline-flex items-center justify-center gap-2 rounded-lg bg-[#181F24] px-3 py-2 text-xs font-medium text-white transition hover:bg-[#26313A] disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {mobileUpload.carregando ? <RefreshCw size={13} className="animate-spin" /> : <QrCode size={13} />}
+                  Adicionar imagem do celular
+                </button>
+              </div>
+            )}
+          </div>
+
+          {podeAdicionarVideo && (
             <label className="rounded-lg border border-dashed border-[#E5DED2] bg-[#FFFEFA]/70 p-4 text-center transition hover:bg-white">
               <ImagePlus className="mx-auto text-[#16A36B]" />
               <span className="mt-2 block text-sm font-semibold text-slate-950">Video do catalogo</span>
               <span className="mt-1 block text-xs text-slate-500">Disponivel para a loja principal</span>
               <input type="file" accept="video/*" onChange={handleSelecionarVideo} className="hidden" />
             </label>
-          ) : (
-            <div className="rounded-lg border border-[#E5DED2] bg-[#FFFEFA]/70 p-4 text-sm text-slate-500">
-              <p className="font-semibold text-slate-950">Video indisponivel nesta loja</p>
-              <p className="mt-1">Esta opcao sera liberada para outras lojas posteriormente.</p>
-            </div>
           )}
         </div>
 
@@ -471,7 +592,11 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
           {imagemPreview ? (
             <div>
               <p className={labelClass}>Previa da imagem</p>
-              <img src={imagemPreview} alt="Previa" className="h-40 w-full rounded-lg border border-slate-200 object-cover" />
+              <img
+                src={imagemPreview}
+                alt="Previa"
+                className="h-28 w-full rounded-lg border border-slate-200 bg-white object-contain p-2 sm:h-32"
+              />
             </div>
           ) : (
             <div className="rounded-lg border border-slate-200 bg-white/70 p-4 text-sm text-slate-500">
@@ -484,11 +609,11 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
               <p className={labelClass}>Prévia do vídeo</p>
               <video src={videoPreview} controls className="h-40 w-full rounded-lg border border-slate-200 object-cover" />
             </div>
-          ) : (
+          ) : podeAdicionarVideo ? (
             <div className="rounded-lg border border-slate-200 bg-white/70 p-4 text-sm text-slate-500">
               Nenhum vídeo selecionado.
             </div>
-          )}
+          ) : null}
         </div>
       </div>
     );
@@ -610,7 +735,7 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
       onClick={aoFechar}
     >
       <div
-        className="relative flex h-[100dvh] w-full max-w-3xl flex-col overflow-hidden rounded-none border border-slate-200/80 bg-[#FFFEFA] shadow-[0_28px_80px_rgba(24,31,36,0.24)] sm:h-auto sm:max-h-[92vh] sm:rounded-[24px]"
+        className="relative flex h-[100dvh] w-full max-w-3xl flex-col overflow-hidden rounded-none border border-slate-200/80 bg-[#FFFEFA] shadow-[0_28px_80px_rgba(24,31,36,0.24)] sm:h-auto sm:max-h-[92vh] sm:rounded-[24px] lg:max-w-4xl"
         onClick={(event) => event.stopPropagation()}
       >
         <div className="shrink-0 border-b border-slate-200/80 bg-[#FFFEFA] px-4 pb-4 pt-4 sm:px-6 sm:pt-6">

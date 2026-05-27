@@ -179,7 +179,7 @@ export default function Vendas() {
                       type="text"
                       value={itemManual.nome}
                       onChange={(e) => setItemManual((prev) => ({ ...prev, nome: e.target.value }))}
-                      placeholder="Ex: Sandalia encomendada"
+                      placeholder="Ex: Tênis Adidas"
                       className="w-full rounded-lg border border-[#E5DED2] bg-white px-3 py-2.5 text-base outline-none transition placeholder:text-slate-400 focus:border-[#16A36B] sm:text-sm"
                     />
                   </label>
