@@ -69,6 +69,10 @@ function montarUrlMidia(url) {
   return `${String(base).replace(/\/$/, "")}${url.startsWith("/") ? url : `/${url}`}`;
 }
 
+function montarQrFallbackUrl(url) {
+  return `https://api.qrserver.com/v1/create-qr-code/?size=180x180&margin=8&data=${encodeURIComponent(url)}`;
+}
+
 export default function ProdutoModal({ aoFechar, aoCadastrar }) {
   useModalPresence();
 
@@ -205,9 +209,8 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
       } catch (error) {
         console.error("Erro ao gerar QR Code:", error);
         if (ativo) {
-          setQrCodeDataUrl("");
-          setQrCodeErro(true);
-          toast.error("Nao foi possivel gerar o QR Code. Use o link ou tente novamente.");
+          setQrCodeDataUrl(montarQrFallbackUrl(mobileUpload.uploadUrl));
+          setQrCodeErro(false);
         }
       }
     }
@@ -225,7 +228,7 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
       setFornecedores(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error("Erro ao carregar fornecedores:", error);
-      toast.error("Erro ao carregar fornecedores.");
+      setFornecedores([]);
     }
   }
 
