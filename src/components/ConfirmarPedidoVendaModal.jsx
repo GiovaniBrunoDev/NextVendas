@@ -113,7 +113,7 @@ export default function ConfirmarPedidoVendaModal({ pedido, aoFechar, aoConfirma
                     onClick={() => setFormaPagamento(opcao.value)}
                     className={`flex items-center justify-center gap-2 rounded-lg px-2 py-2.5 text-xs font-medium transition ${
                       formaPagamento === opcao.value
-                        ? "bg-[#181F24] text-white shadow-[0_10px_20px_rgba(24,31,36,0.12)]"
+                        ? "bg-[#020C2C] text-white shadow-[0_10px_20px_rgba(24,31,36,0.12)]"
                         : "text-slate-600 hover:bg-slate-50 hover:text-slate-950"
                     }`}
                   >
@@ -199,7 +199,7 @@ export default function ConfirmarPedidoVendaModal({ pedido, aoFechar, aoConfirma
               </div>
             </div>
 
-            <div className="rounded-2xl border border-slate-200/80 bg-[#181F24] p-4 text-sm text-white shadow-[0_16px_34px_rgba(24,31,36,0.14)]">
+            <div className="rounded-2xl border border-slate-200/80 bg-[#020C2C] p-4 text-sm text-white shadow-[0_16px_34px_rgba(24,31,36,0.14)]">
               <div className="flex justify-between">
                 <span className="text-white/62">Produtos</span>
                 <span>{moeda(subtotalProdutos)}</span>
@@ -235,7 +235,7 @@ export default function ConfirmarPedidoVendaModal({ pedido, aoFechar, aoConfirma
               type="button"
               onClick={confirmar}
               disabled={carregando}
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#16A36B] px-5 py-3 text-sm font-medium text-white shadow-[0_14px_26px_rgba(22,163,107,0.22)] transition hover:bg-[#11875A] disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#16A36B] px-5 py-3 text-sm font-medium text-white shadow-[0_14px_26px_rgba(22,163,107,0.22)] transition hover:bg-[#020C2C] disabled:cursor-not-allowed disabled:opacity-60"
             >
               {carregando ? "Processando..." : "Lançar venda"}
               {!carregando && <FaCheckCircle />}

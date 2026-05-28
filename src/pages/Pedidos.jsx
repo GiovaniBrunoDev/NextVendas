@@ -275,7 +275,7 @@ export default function Pedidos() {
                   href={googleMapsUrl(enderecoEntrega)}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="mt-1 inline-flex max-w-full items-center gap-2 text-sm font-medium text-slate-950 underline decoration-slate-300 underline-offset-4 transition hover:text-[#11875A] hover:decoration-[#16A36B]"
+                  className="mt-1 inline-flex max-w-full items-center gap-2 text-sm font-medium text-slate-950 underline decoration-slate-300 underline-offset-4 transition hover:text-[#020C2C] hover:decoration-[#16A36B]"
                   title="Abrir no Google Maps"
                 >
                   <span className="truncate">{enderecoEntrega}</span>

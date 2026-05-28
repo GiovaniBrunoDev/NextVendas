@@ -112,7 +112,7 @@ export default function MinhaConta() {
         </div>
         <button
           disabled={salvando}
-          className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-[#16A36B] px-4 text-sm font-semibold text-white transition hover:bg-[#11875A] disabled:cursor-not-allowed disabled:opacity-60"
+          className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-[#16A36B] px-4 text-sm font-semibold text-white transition hover:bg-[#020C2C] disabled:cursor-not-allowed disabled:opacity-60"
         >
           <Save size={16} />
           {salvando ? "Salvando..." : "Salvar alterações"}
@@ -265,7 +265,7 @@ export default function MinhaConta() {
         <aside className="space-y-5">
           <section className="lojia-surface p-5">
             <div className="flex items-start gap-3">
-              <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#16A36B]/10 text-[#11875A]">
+              <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#16A36B]/10 text-[#020C2C]">
                 <CheckCircle2 size={20} />
               </span>
               <div className="min-w-0">
@@ -315,7 +315,7 @@ function Section({ title, icon: Icon, children }) {
   return (
     <section className="lojia-surface p-5">
       <div className="mb-4 flex items-center gap-2">
-        <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-[#181F24] text-white">
+        <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-[#020C2C] text-white">
           <Icon size={17} />
         </span>
         <h2 className="text-base font-semibold text-slate-950">{title}</h2>

@@ -317,7 +317,7 @@ export default function NovoPedidoModal({ carrinho, aoFechar, aoConfirmar }) {
               onClick={() => setTipoEntrega(opcao.value)}
               className={`flex items-center justify-center gap-2 rounded-xl border px-3 py-2.5 text-sm font-medium transition sm:px-4 sm:py-3 ${
                 ativo
-                  ? "border-[#181F24] bg-[#181F24] text-white shadow-[0_12px_24px_rgba(24,31,36,0.12)]"
+                  ? "border-[#020C2C] bg-[#020C2C] text-white shadow-[0_12px_24px_rgba(24,31,36,0.12)]"
                   : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50"
               }`}
             >
@@ -411,7 +411,7 @@ export default function NovoPedidoModal({ carrinho, aoFechar, aoConfirmar }) {
         </div>
       )}
 
-      <div className="rounded-2xl border border-slate-200/80 bg-[#181F24] p-4 text-sm text-white shadow-[0_16px_34px_rgba(24,31,36,0.14)]">
+      <div className="rounded-2xl border border-slate-200/80 bg-[#020C2C] p-4 text-sm text-white shadow-[0_16px_34px_rgba(24,31,36,0.14)]">
         <div className="flex justify-between">
           <span className="text-white/62">Produtos</span>
           <span>{moeda(totalProdutos)}</span>
@@ -503,7 +503,7 @@ export default function NovoPedidoModal({ carrinho, aoFechar, aoConfirmar }) {
                 type="button"
                 onClick={handleSalvarPedido}
                 disabled={carregando}
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#16A36B] px-5 py-3 text-sm font-medium text-white shadow-[0_14px_26px_rgba(22,163,107,0.22)] transition hover:bg-[#11875A] disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#16A36B] px-5 py-3 text-sm font-medium text-white shadow-[0_14px_26px_rgba(22,163,107,0.22)] transition hover:bg-[#020C2C] disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {carregando ? "Salvando..." : "Criar pedido"}
                 {!carregando && <FaCheckCircle />}
@@ -512,7 +512,7 @@ export default function NovoPedidoModal({ carrinho, aoFechar, aoConfirmar }) {
               <button
                 type="button"
                 onClick={avancar}
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#181F24] px-5 py-3 text-sm font-medium text-white shadow-[0_14px_26px_rgba(24,31,36,0.16)] transition hover:bg-[#26313A]"
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#020C2C] px-5 py-3 text-sm font-medium text-white shadow-[0_14px_26px_rgba(24,31,36,0.16)] transition hover:bg-[#081743]"
               >
                 Próximo <FaArrowRight size={12} />
               </button>

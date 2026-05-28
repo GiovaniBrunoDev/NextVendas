@@ -193,7 +193,7 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
         const opcoes = {
           width: 180,
           margin: 1,
-          color: { dark: "#181F24", light: "#FFFFFF" },
+          color: { dark: "#020C2C", light: "#FFFFFF" },
         };
         const dataUrl = gerarDataUrl
           ? await gerarDataUrl(mobileUpload.uploadUrl, opcoes)
@@ -694,7 +694,7 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
                   type="button"
                   onClick={iniciarUploadCelular}
                   disabled={mobileUpload.carregando}
-                  className="mt-3 inline-flex items-center justify-center gap-2 rounded-lg bg-[#181F24] px-3 py-2 text-xs font-medium text-white transition hover:bg-[#26313A] disabled:cursor-not-allowed disabled:opacity-60"
+                  className="mt-3 inline-flex items-center justify-center gap-2 rounded-lg bg-[#020C2C] px-3 py-2 text-xs font-medium text-white transition hover:bg-[#081743] disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {mobileUpload.carregando ? <RefreshCw size={13} className="animate-spin" /> : <QrCode size={13} />}
                   Adicionar imagem do celular
@@ -817,7 +817,7 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
                   {fornecedorSelecionado?.nome || "Sem fornecedor"}
                 </span>
                 {videoFile && podeAdicionarVideo && (
-                  <span className="rounded-full bg-[#16A36B]/10 px-2 py-1 text-[#11875A]">Com vídeo</span>
+                  <span className="rounded-full bg-[#16A36B]/10 px-2 py-1 text-[#020C2C]">Com vídeo</span>
                 )}
               </div>
             </div>
@@ -882,7 +882,7 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
           <div className="mt-5">
             <div className="mb-2 grid grid-cols-4 gap-1 text-[11px] font-medium text-slate-500">
               {etapas.map((item, index) => (
-                <span key={item.key} className={index <= etapaAtual ? "text-[#11875A]" : ""}>
+                <span key={item.key} className={index <= etapaAtual ? "text-[#020C2C]" : ""}>
                   {item.label}
                 </span>
               ))}
@@ -925,7 +925,7 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
                 <button
                   type="submit"
                   disabled={carregando}
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#16A36B] px-5 py-3 text-sm font-medium text-white shadow-[0_14px_26px_rgba(22,163,107,0.22)] transition hover:bg-[#11875A] disabled:cursor-not-allowed disabled:opacity-60"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#16A36B] px-5 py-3 text-sm font-medium text-white shadow-[0_14px_26px_rgba(22,163,107,0.22)] transition hover:bg-[#020C2C] disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {carregando ? "Salvando..." : "Salvar produto"}
                   {!carregando && <Save size={15} />}
@@ -934,7 +934,7 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
                 <button
                   type="button"
                   onClick={avancar}
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#181F24] px-5 py-3 text-sm font-medium text-white shadow-[0_14px_26px_rgba(24,31,36,0.16)] transition hover:bg-[#26313A]"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#020C2C] px-5 py-3 text-sm font-medium text-white shadow-[0_14px_26px_rgba(24,31,36,0.16)] transition hover:bg-[#081743]"
                 >
                   Proximo <ArrowRight size={14} />
                 </button>

@@ -138,7 +138,7 @@ export default function EntregadorSelect({ value, onChange, selectStyles = defau
               type="button"
               onClick={salvarEntregador}
               disabled={salvando}
-              className="min-h-11 rounded-xl bg-[#181F24] px-4 text-sm font-semibold text-white transition hover:bg-[#26313A] disabled:opacity-60"
+              className="min-h-11 rounded-xl bg-[#020C2C] px-4 text-sm font-semibold text-white transition hover:bg-[#081743] disabled:opacity-60"
             >
               {salvando ? "Salvando..." : "Salvar"}
             </button>

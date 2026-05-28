@@ -34,7 +34,7 @@ export default function MobileHome() {
         <div className="grid grid-cols-2 gap-4">
           {produtos.map((produto) => (
             <div key={produto.id} className="rounded-lg border border-slate-200 bg-white p-4 text-center shadow-sm">
-              <div className="mb-2 truncate text-sm font-semibold text-[#181F24]">{produto.nome}</div>
+              <div className="mb-2 truncate text-sm font-semibold text-[#020C2C]">{produto.nome}</div>
               <div className="text-lg font-semibold text-slate-950">R$ {produto.preco.toFixed(2)}</div>
               <button className="mt-3 rounded-lg bg-slate-900 px-3 py-1.5 text-sm font-medium text-white">Adicionar</button>
             </div>

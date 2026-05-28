@@ -121,13 +121,13 @@ export default function CadastroLojista() {
   }
 
   return (
-  <main className="min-h-[100dvh] bg-[#F6F7F8] text-[#181F24]">
+  <main className="min-h-[100dvh] bg-[#F6F7F8] text-[#020C2C]">
     <section className="mx-auto grid min-h-[100dvh] w-full max-w-6xl items-center gap-10 px-4 py-6 lg:grid-cols-[0.9fr_1fr] lg:px-8">
       
       <aside className="hidden lg:block">
         <Link
           to="/login"
-          className="mb-10 inline-flex items-center gap-2 text-sm font-semibold text-slate-500 transition hover:text-[#181F24]"
+          className="mb-10 inline-flex items-center gap-2 text-sm font-semibold text-slate-500 transition hover:text-[#020C2C]"
         >
           <ArrowLeft size={16} />
           Voltar para login
@@ -140,11 +140,11 @@ export default function CadastroLojista() {
             className="mb-10 h-16 w-44 object-contain"
           />
 
-          <span className="inline-flex rounded-full border border-[#16A36B]/20 bg-[#16A36B]/10 px-3 py-1 text-xs font-bold uppercase tracking-wide text-[#11875A]">
+          <span className="inline-flex rounded-full border border-[#16A36B]/20 bg-[#16A36B]/10 px-3 py-1 text-xs font-bold uppercase tracking-wide text-[#020C2C]">
             Cadastro rápido
           </span>
 
-          <h1 className="mt-5 text-5xl font-semibold leading-[1.04] tracking-tight text-[#181F24]">
+          <h1 className="mt-5 text-5xl font-semibold leading-[1.04] tracking-tight text-[#020C2C]">
             Comece sua gestão de forma simples.
           </h1>
 
@@ -178,7 +178,7 @@ export default function CadastroLojista() {
               <p className="text-xs font-bold uppercase tracking-wide text-[#16A36B]">
                 Nova conta
               </p>
-              <h2 className="mt-1 text-2xl font-semibold tracking-tight text-[#181F24]">
+              <h2 className="mt-1 text-2xl font-semibold tracking-tight text-[#020C2C]">
                 Configure sua loja
               </h2>
               <p className="mt-1 text-sm text-slate-500">
@@ -186,7 +186,7 @@ export default function CadastroLojista() {
               </p>
             </div>
 
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-[#181F24]">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-[#020C2C]">
               {etapa.key === "usuario" && <UserRound size={21} />}
               {etapa.key === "loja" && <Store size={21} />}
               {etapa.key === "senha" && <Lock size={21} />}
@@ -328,7 +328,7 @@ export default function CadastroLojista() {
             <button
               type="button"
               onClick={avancar}
-              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl bg-[#181F24] px-5 text-sm font-semibold text-white shadow-[0_14px_28px_rgba(24,31,36,0.14)] transition hover:bg-[#26313A]"
+              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl bg-[#020C2C] px-5 text-sm font-semibold text-white shadow-[0_14px_28px_rgba(24,31,36,0.14)] transition hover:bg-[#081743]"
             >
               Continuar
               <ArrowRight size={16} />
@@ -336,7 +336,7 @@ export default function CadastroLojista() {
           ) : (
             <button
               disabled={salvando}
-              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl bg-[#16A36B] px-5 text-sm font-semibold text-white shadow-[0_14px_28px_rgba(22,163,107,0.20)] transition hover:bg-[#11875A] disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl bg-[#16A36B] px-5 text-sm font-semibold text-white shadow-[0_14px_28px_rgba(22,163,107,0.20)] transition hover:bg-[#020C2C] disabled:cursor-not-allowed disabled:opacity-60"
             >
               {salvando ? "Criando conta..." : "Criar minha loja"}
               {!salvando && <ArrowRight size={16} />}

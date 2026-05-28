@@ -166,7 +166,7 @@ export default function Vendas() {
                 className="flex w-full items-center justify-between gap-3 text-left text-sm font-semibold text-slate-900"
               >
                 <span>Produto fora de estoque</span>
-                <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-[#16A36B]/10 text-[#11875A]">
+                <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-[#16A36B]/10 text-[#020C2C]">
                   <FaPlus size={12} />
                 </span>
               </button>
@@ -294,7 +294,7 @@ export default function Vendas() {
                               className={`rounded-lg border px-3 py-2 text-sm font-medium transition ${
                                 variacao.estoque === 0
                                   ? "cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400 line-through"
-                                  : "border-[#E5DED2] bg-white text-slate-800 hover:border-[#16A36B] hover:bg-[#16A36B]/5 hover:text-[#11875A]"
+                                  : "border-[#E5DED2] bg-white text-slate-800 hover:border-[#16A36B] hover:bg-[#16A36B]/5 hover:text-[#020C2C]"
                               }`}
                             >
                               {variacao.numeracao}

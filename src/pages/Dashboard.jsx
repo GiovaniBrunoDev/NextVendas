@@ -67,7 +67,7 @@ function MetricCard({ titulo, valor, isCurrency = false, icon }) {
             {isNumeric ? <AnimatedNumber value={valor} format={format} /> : valor}
           </p>
         </div>
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#16A36B]/10 text-sm text-[#11875A]">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#16A36B]/10 text-sm text-[#020C2C]">
           {icon}
         </div>
       </div>
@@ -292,7 +292,7 @@ export default function Dashboard() {
                   onClick={() => setPeriodo(item.value)}
                   className={`min-h-9 min-w-0 rounded-md px-1 text-[10px] font-medium transition sm:flex-none sm:px-3 sm:text-sm ${
                     ativo
-                      ? "bg-white text-[#181F24] shadow-sm"
+                      ? "bg-white text-[#020C2C] shadow-sm"
                       : "text-slate-600 hover:bg-white/70 hover:text-slate-900"
                   }`}
                 >

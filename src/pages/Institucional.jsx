@@ -44,8 +44,8 @@ const passos = [
 
 export default function Institucional() {
   return (
-    <main className="min-h-screen overflow-x-hidden bg-[#FFFEFA] text-[#181F24]">
-      <section className="relative flex min-h-[88dvh] flex-col overflow-hidden bg-[#181F24] text-white">
+    <main className="min-h-screen overflow-x-hidden bg-[#FFFEFA] text-[#020C2C]">
+      <section className="relative flex min-h-[88dvh] flex-col overflow-hidden bg-[#020C2C] text-white">
         <img
           src="/login-stock-hero.png"
           alt="Pessoa organizando estoque de calçados com computador exibindo sistema"
@@ -101,7 +101,7 @@ export default function Institucional() {
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Link
                 to="/login"
-                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-[#16A36B] px-5 text-sm font-semibold text-white shadow-[0_18px_34px_rgba(22,163,107,0.25)] transition hover:bg-[#11875A]"
+                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-[#16A36B] px-5 text-sm font-semibold text-white shadow-[0_18px_34px_rgba(22,163,107,0.25)] transition hover:bg-[#020C2C]"
               >
                 Acessar sistema <ArrowRight size={17} />
               </Link>
@@ -121,10 +121,10 @@ export default function Institucional() {
           const Icon = recurso.icon;
           return (
             <article key={recurso.titulo} className="rounded-lg border border-[#E5DED2] bg-[#FFFEFA] p-5 shadow-[0_16px_34px_rgba(24,31,36,0.08)]">
-              <div className="mb-5 flex h-10 w-10 items-center justify-center rounded-lg bg-[#16A36B]/10 text-[#11875A]">
+              <div className="mb-5 flex h-10 w-10 items-center justify-center rounded-lg bg-[#16A36B]/10 text-[#020C2C]">
                 <Icon size={20} />
               </div>
-              <h2 className="text-base font-semibold text-[#181F24]">{recurso.titulo}</h2>
+              <h2 className="text-base font-semibold text-[#020C2C]">{recurso.titulo}</h2>
               <p className="mt-3 text-sm leading-6 text-[#66736D]">{recurso.texto}</p>
             </article>
           );
@@ -133,8 +133,8 @@ export default function Institucional() {
 
       <section className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-10 px-4 py-20 sm:px-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:items-center lg:px-8">
         <div>
-          <span className="text-xs font-semibold uppercase text-[#11875A]">Feito para o dia a dia</span>
-          <h2 className="mt-3 text-3xl font-semibold text-[#181F24] sm:text-4xl">
+          <span className="text-xs font-semibold uppercase text-[#020C2C]">Feito para o dia a dia</span>
+          <h2 className="mt-3 text-3xl font-semibold text-[#020C2C] sm:text-4xl">
             O lojista não precisa de um sistema complicado para trabalhar bem.
           </h2>
           <p className="mt-5 text-base leading-7 text-[#66736D]">
@@ -143,7 +143,7 @@ export default function Institucional() {
 
           <div className="mt-8 space-y-3">
             {passos.map((passo) => (
-              <div key={passo} className="flex items-start gap-3 text-sm font-medium text-[#181F24]">
+              <div key={passo} className="flex items-start gap-3 text-sm font-medium text-[#020C2C]">
                 <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-[#16A36B]" />
                 <span>{passo}</span>
               </div>
@@ -155,15 +155,15 @@ export default function Institucional() {
           <div className="rounded-lg border border-[#E5DED2] bg-[#FFFEFA] p-4">
             <div className="mb-5 flex items-center justify-between gap-3">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#181F24] text-white">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#020C2C] text-white">
                   <Store size={20} />
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-[#181F24]">Resumo da loja</p>
+                  <p className="text-sm font-semibold text-[#020C2C]">Resumo da loja</p>
                   <p className="text-xs text-[#66736D]">Visão simples para decidir rápido</p>
                 </div>
               </div>
-              <span className="rounded-full bg-[#16A36B]/10 px-3 py-1 text-xs font-semibold text-[#11875A]">
+              <span className="rounded-full bg-[#16A36B]/10 px-3 py-1 text-xs font-semibold text-[#020C2C]">
                 online
               </span>
             </div>
@@ -178,7 +178,7 @@ export default function Institucional() {
                 <div key={label} className="rounded-lg border border-[#E5DED2] bg-white p-4">
                   <Icon size={18} className="text-[#16A36B]" />
                   <p className="mt-4 text-xs font-medium uppercase text-[#66736D]">{label}</p>
-                  <p className="mt-1 text-lg font-semibold text-[#181F24]">{value}</p>
+                  <p className="mt-1 text-lg font-semibold text-[#020C2C]">{value}</p>
                 </div>
               ))}
             </div>
@@ -189,8 +189,8 @@ export default function Institucional() {
       <section id="rotina" className="bg-[#F7F5EF]">
         <div className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-8 px-4 py-[4.5rem] sm:px-6 lg:grid-cols-3 lg:px-8">
           <div className="lg:col-span-1">
-            <span className="text-xs font-semibold uppercase text-[#11875A]">Rotina mais leve</span>
-            <h2 className="mt-3 text-3xl font-semibold text-[#181F24]">
+            <span className="text-xs font-semibold uppercase text-[#020C2C]">Rotina mais leve</span>
+            <h2 className="mt-3 text-3xl font-semibold text-[#020C2C]">
               Menos improviso. Mais controle.
             </h2>
           </div>
@@ -202,7 +202,7 @@ export default function Institucional() {
               ["Estoque", "Reposição, custo, fornecedor, marca e numeração."],
             ].map(([titulo, texto]) => (
               <article key={titulo} className="rounded-lg border border-[#E5DED2] bg-[#FFFEFA] p-5">
-                <h3 className="text-base font-semibold text-[#181F24]">{titulo}</h3>
+                <h3 className="text-base font-semibold text-[#020C2C]">{titulo}</h3>
                 <p className="mt-3 text-sm leading-6 text-[#66736D]">{texto}</p>
               </article>
             ))}
@@ -211,7 +211,7 @@ export default function Institucional() {
       </section>
 
       <section id="contato" className="mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-        <div className="rounded-lg bg-[#181F24] px-5 py-10 text-center text-white sm:px-8">
+        <div className="rounded-lg bg-[#020C2C] px-5 py-10 text-center text-white sm:px-8">
           <div className="mx-auto mb-5 flex h-12 w-12 items-center justify-center rounded-lg bg-white/10 text-[#16A36B]">
             <ShieldCheck size={24} />
           </div>
@@ -224,7 +224,7 @@ export default function Institucional() {
           <div className="mt-8 flex justify-center">
             <Link
               to="/login"
-              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-[#16A36B] px-5 text-sm font-semibold text-white transition hover:bg-[#11875A]"
+              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-[#16A36B] px-5 text-sm font-semibold text-white transition hover:bg-[#020C2C]"
             >
               Entrar na Lojia <ArrowRight size={17} />
             </Link>

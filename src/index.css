@@ -4,13 +4,13 @@
 
 :root {
   --lojia-green: #16A36B;
-  --lojia-green-dark: #11875A;
-  --lojia-primary: #181F24;
-  --lojia-primary-soft: #26313A;
-  --lojia-charcoal: #181F24;
-  --lojia-charcoal-soft: #26313A;
-  --lojia-teal: #0F5D63;
-  --lojia-teal-dark: #0A494D;
+  --lojia-green-dark: #020C2C;
+  --lojia-primary: #020C2C;
+  --lojia-primary-soft: #081743;
+  --lojia-charcoal: #020C2C;
+  --lojia-charcoal-soft: #081743;
+  --lojia-teal: #020C2C;
+  --lojia-teal-dark: #020C2C;
   --lojia-orange: #F4A62A;
   --lojia-cream: #F7F5EF;
   --lojia-paper: #FFFEFA;
@@ -146,8 +146,8 @@
 
   .lojia-gradient {
     background:
-      linear-gradient(145deg, rgba(24, 31, 36, 0.98), rgba(38, 49, 58, 0.97)),
-      radial-gradient(circle at top left, rgba(22, 163, 107, 0.24), transparent 18rem);
+      linear-gradient(145deg, rgba(2, 12, 44, 0.99), rgba(8, 23, 67, 0.98)),
+      radial-gradient(circle at top left, rgba(22, 163, 107, 0.18), transparent 18rem);
   }
 
   .lojia-card {
@@ -247,7 +247,7 @@
     align-items: center;
     justify-content: center;
     border-radius: 10px;
-    background: linear-gradient(160deg, #20BD7A 0%, var(--lojia-green) 56%, #087F56 100%);
+    background: linear-gradient(160deg, #20BD7A 0%, var(--lojia-green) 56%, #020C2C 100%);
     color: white;
     font-size: 1.55rem;
     font-weight: 820;
@@ -271,36 +271,36 @@
     overflow-x: hidden;
     background:
       radial-gradient(circle at 12% 0%, rgba(22, 163, 107, 0.09), transparent 24rem),
-      radial-gradient(circle at 96% 8%, rgba(15, 93, 99, 0.08), transparent 22rem),
+      radial-gradient(circle at 96% 8%, rgba(2, 12, 44, 0.06), transparent 22rem),
       linear-gradient(180deg, #fffefa 0%, #f7f5ef 68%);
   }
 
   .lojia-hero-panel {
-    border: 1px solid rgba(24, 31, 36, 0.1);
+    border: 1px solid rgba(2, 12, 44, 0.1);
     border-radius: 8px;
     background:
-      linear-gradient(135deg, rgba(24, 31, 36, 0.99), rgba(38, 49, 58, 0.98)),
-      radial-gradient(circle at top right, rgba(22, 163, 107, 0.28), transparent 18rem);
+      linear-gradient(135deg, rgba(2, 12, 44, 0.99), rgba(8, 23, 67, 0.98)),
+      radial-gradient(circle at top right, rgba(22, 163, 107, 0.18), transparent 18rem);
     color: white;
-    box-shadow: 0 18px 46px rgba(24, 31, 36, 0.16);
+    box-shadow: 0 18px 46px rgba(2, 12, 44, 0.16);
   }
 
   .lojia-surface {
-    border: 1px solid rgba(24, 31, 36, 0.1);
+    border: 1px solid rgba(2, 12, 44, 0.1);
     border-radius: 8px;
     background: rgba(255, 254, 250, 0.92);
-    box-shadow: 0 14px 36px rgba(24, 31, 36, 0.07);
+    box-shadow: 0 14px 36px rgba(2, 12, 44, 0.07);
   }
 
   .lojia-soft-surface {
-    border: 1px solid rgba(24, 31, 36, 0.09);
+    border: 1px solid rgba(2, 12, 44, 0.09);
     border-radius: 8px;
     background: rgba(255, 254, 250, 0.72);
   }
 
   .lojia-primary-action {
     border-radius: 8px;
-    background: linear-gradient(135deg, #16A36B, #11875A);
+    background: linear-gradient(135deg, #16A36B, #020C2C);
     color: white;
     box-shadow: 0 12px 26px rgba(22, 163, 107, 0.22);
     transition: transform 150ms ease, box-shadow 150ms ease, filter 150ms ease;
@@ -313,7 +313,7 @@
   }
 
   .lojia-ghost-action {
-    border: 1px solid rgba(24, 31, 36, 0.12);
+    border: 1px solid rgba(2, 12, 44, 0.12);
     border-radius: 8px;
     background: rgba(255, 254, 250, 0.72);
     color: var(--lojia-charcoal);
@@ -321,7 +321,7 @@
   }
 
   .lojia-ghost-action:hover {
-    border-color: rgba(15, 93, 99, 0.26);
+    border-color: rgba(2, 12, 44, 0.24);
     background: #ffffff;
   }
 
@@ -434,7 +434,7 @@
   .bg-slate-100,
   .bg-zinc-100,
   .bg-gray-100 {
-    background-color: rgba(24, 31, 36, 0.06) !important;
+    background-color: rgba(2, 12, 44, 0.06) !important;
   }
 
   .bg-slate-900,

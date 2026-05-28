@@ -125,7 +125,7 @@ export default function SidebarLayout({ children, setTela }) {
             key={key}
             onClick={() => trocarTela(key)}
             className={`group relative flex w-full items-center rounded-lg px-2.5 py-2 text-left transition ${ativo
-                ? "bg-[#FFFEFA] text-[#181F24] shadow-[0_12px_26px_rgba(0,0,0,0.12)]"
+                ? "bg-[#FFFEFA] text-[#020C2C] shadow-[0_12px_26px_rgba(0,0,0,0.12)]"
                 : destaque
                   ? "border border-[#16A36B]/[0.26] bg-[#16A36B]/[0.13] text-white/[0.92] hover:bg-[#16A36B]/[0.2]"
                   : "text-white/[0.72] hover:bg-white/[0.085] hover:text-white"
@@ -151,7 +151,7 @@ export default function SidebarLayout({ children, setTela }) {
 
   const renderBottomNav = () => (
     <>
-      <div className="lojia-mobile-nav fixed inset-x-3 bottom-4 z-50 flex max-w-[calc(100vw-1.5rem)] justify-around rounded-lg border border-white/10 bg-[#181F24] py-1.5 text-white shadow-xl">
+      <div className="lojia-mobile-nav fixed inset-x-3 bottom-4 z-50 flex max-w-[calc(100vw-1.5rem)] justify-around rounded-lg border border-white/10 bg-[#020C2C] py-1.5 text-white shadow-xl">
         {itensMobile.map(({ key, label, icon: Icon }) => (
           <button
             key={key}

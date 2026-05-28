@@ -81,7 +81,7 @@ const categoriasEntrada = ["recebimento", "venda externa", "ajuste", "reembolso"
 const categoriasSaida = ["fornecedor", "aluguel", "frete", "taxa", "funcionario", "marketing", "outro"];
 
 const statusClasses = {
-  pago: "bg-[#16A36B]/10 text-[#11875A]",
+  pago: "bg-[#16A36B]/10 text-[#020C2C]",
   pendente: "bg-amber-50 text-amber-700",
   vencido: "bg-rose-50 text-rose-700",
 };
@@ -240,7 +240,7 @@ export default function Financeiro() {
   if (carregando && !dados) {
     return (
       <div className="flex h-screen flex-col items-center justify-center bg-[#F7F5EF]">
-        <div className="h-11 w-11 animate-spin rounded-full border-4 border-slate-200 border-t-[#181F24]" />
+        <div className="h-11 w-11 animate-spin rounded-full border-4 border-slate-200 border-t-[#020C2C]" />
         <p className="mt-5 text-sm font-medium text-slate-600">Carregando financeiro...</p>
       </div>
     );
@@ -315,7 +315,7 @@ export default function Financeiro() {
                 <button
                   type="button"
                   onClick={() => abrirLancamento("saida")}
-                  className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-[#181F24] px-4 text-sm font-semibold text-white transition hover:bg-[#26313A]"
+                  className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-[#020C2C] px-4 text-sm font-semibold text-white transition hover:bg-[#081743]"
                 >
                   <Plus size={17} /> Despesa
                 </button>
@@ -461,7 +461,7 @@ function LucroResumo({ dados, carregando }) {
     return (
       <div className="lojia-surface flex min-h-[320px] items-center justify-center p-8">
         <div className="text-center">
-          <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-[#181F24]" />
+          <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-[#020C2C]" />
           <p className="mt-4 text-sm font-medium text-slate-600">Calculando lucro bruto...</p>
         </div>
       </div>
@@ -503,7 +503,7 @@ function LucroResumo({ dados, carregando }) {
                 }}
                 formatter={(value) => moeda(value)}
               />
-              <Bar dataKey="lucro" fill="#181F24" radius={[6, 6, 0, 0]} />
+              <Bar dataKey="lucro" fill="#020C2C" radius={[6, 6, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </section>
@@ -608,7 +608,7 @@ function LancamentoModal({ form, clientes, categorias, salvando, onChange, onSub
                   type="button"
                   onClick={() => onChange("tipo", item.value)}
                   className={`rounded-md px-2 py-2 text-sm font-semibold transition ${
-                    form.tipo === item.value ? "bg-[#181F24] text-white" : "text-slate-600 hover:bg-white"
+                    form.tipo === item.value ? "bg-[#020C2C] text-white" : "text-slate-600 hover:bg-white"
                   }`}
                 >
                   {item.label}
@@ -720,7 +720,7 @@ function LancamentoModal({ form, clientes, categorias, salvando, onChange, onSub
 
 function StatCard({ label, value, icon: Icon, destaque = false, danger = false }) {
   return (
-    <div className={`lojia-surface p-4 ${destaque ? "border-[#181F24]" : ""}`}>
+    <div className={`lojia-surface p-4 ${destaque ? "border-[#020C2C]" : ""}`}>
       <p className="flex items-center gap-2 text-xs font-medium uppercase text-slate-500">
         <Icon size={15} className={danger ? "text-rose-600" : "text-[#16A36B]"} />
         {label}
@@ -738,7 +738,7 @@ function LancamentoItem({ item, onPagar, onRemover }) {
     <div className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex min-w-0 items-start gap-3">
         <div className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${
-          saida ? "bg-rose-50 text-rose-600" : "bg-[#16A36B]/10 text-[#11875A]"
+          saida ? "bg-rose-50 text-rose-600" : "bg-[#16A36B]/10 text-[#020C2C]"
         }`}>
           <Icon size={17} />
         </div>
@@ -763,7 +763,7 @@ function LancamentoItem({ item, onPagar, onRemover }) {
           <button
             type="button"
             onClick={() => onPagar(item.id)}
-            className="inline-flex h-8 items-center gap-1 rounded-lg border border-[#16A36B]/30 px-2 text-xs font-semibold text-[#11875A]"
+            className="inline-flex h-8 items-center gap-1 rounded-lg border border-[#16A36B]/30 px-2 text-xs font-semibold text-[#020C2C]"
           >
             <CheckCircle2 size={14} /> Pago
           </button>
