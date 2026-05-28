@@ -354,17 +354,6 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
     }
   }
 
-  async function copiarLinkUploadCelular() {
-    if (!mobileUpload.uploadUrl) return;
-
-    try {
-      await navigator.clipboard.writeText(mobileUpload.uploadUrl);
-      toast.success("Link copiado.");
-    } catch (error) {
-      toast.error("Nao foi possivel copiar o link.");
-    }
-  }
-
   function validarEtapa(indice = etapaAtual) {
     if (indice === 0) {
       setTentouAvancarDados(true);
@@ -653,18 +642,6 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
                 <p className="mt-1 text-xs text-slate-500">
                   Abra o QR Code com a camera do celular, escolha a imagem e ela aparece aqui.
                 </p>
-                {mobileUpload.uploadUrl && (
-                  <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50 p-2 text-left">
-                    <p className="truncate text-[11px] text-slate-500">{mobileUpload.uploadUrl}</p>
-                    <button
-                      type="button"
-                      onClick={copiarLinkUploadCelular}
-                      className="mt-2 w-full rounded-md border border-slate-200 bg-white px-2 py-1.5 text-xs font-medium text-slate-700 transition hover:bg-slate-50"
-                    >
-                      Copiar link
-                    </button>
-                  </div>
-                )}
                 <button
                   type="button"
                   onClick={iniciarUploadCelular}
