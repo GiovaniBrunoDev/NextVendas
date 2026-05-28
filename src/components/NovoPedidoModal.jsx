@@ -166,9 +166,10 @@ export default function NovoPedidoModal({ carrinho, aoFechar, aoConfirmar }) {
 
         if (item.manual || !item.variacaoId || String(item.variacaoId).startsWith("manual-")) {
           return {
+            tipo: "manual",
             manual: true,
-            nome: item.nome,
-            numeracao: item.numeracao || null,
+            nomeManual: item.nome,
+            numeracaoManual: item.numeracao || null,
             quantidade: item.qtd,
             precoUnitario: item.preco,
             custoUnitario: item.custoUnitario || 0,
@@ -196,7 +197,14 @@ export default function NovoPedidoModal({ carrinho, aoFechar, aoConfirmar }) {
         itens,
       });
 
-      toast.success("Pedido criado. Itens de estoque foram reservados.");
+      const temItemDeEstoque = carrinho.some(
+        (item) => !item.manual && item.variacaoId && !String(item.variacaoId).startsWith("manual-")
+      );
+      toast.success(
+        temItemDeEstoque
+          ? "Pedido criado. Itens de estoque foram reservados."
+          : "Pedido criado com item avulso."
+      );
       aoConfirmar(data.pedido);
       aoFechar();
     } catch (err) {
@@ -432,10 +440,10 @@ export default function NovoPedidoModal({ carrinho, aoFechar, aoConfirmar }) {
   };
 
   return (
-    <div className="fixed inset-0 z-[10000] flex items-end justify-center bg-slate-950/50 px-0 py-0 backdrop-blur-sm sm:items-center sm:px-3 sm:py-4">
+    <div className="fixed inset-0 z-[10000] flex h-[100svh] items-end justify-center overflow-hidden bg-slate-950/50 px-0 py-0 backdrop-blur-sm sm:items-center sm:px-3 sm:py-4">
       <div
         id="novo-pedido-modal"
-        className="relative flex h-[100dvh] w-full max-w-2xl flex-col overflow-hidden rounded-none border border-slate-200/80 bg-[#FFFEFA] shadow-[0_28px_80px_rgba(24,31,36,0.24)] sm:h-auto sm:max-h-[92vh] sm:rounded-[24px]"
+        className="relative flex h-[100svh] max-h-[100svh] w-full max-w-2xl flex-col overflow-hidden rounded-none border border-slate-200/80 bg-[#FFFEFA] shadow-[0_28px_80px_rgba(24,31,36,0.24)] sm:h-auto sm:max-h-[92vh] sm:rounded-[24px]"
       >
         <div className="shrink-0 border-b border-slate-200/80 bg-[#FFFEFA] px-4 pb-4 pt-4 sm:px-6 sm:pt-6">
           <div className="flex items-start justify-between gap-4">
@@ -462,7 +470,7 @@ export default function NovoPedidoModal({ carrinho, aoFechar, aoConfirmar }) {
           </div>
         </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto bg-[#F7F5EF]/50 px-3 py-4 sm:px-6 sm:py-5">
+        <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain bg-[#F7F5EF]/50 px-3 py-4 sm:px-6 sm:py-5">
           <div className="mb-4 sm:mb-5">
             <h3 className="mt-1 text-lg font-semibold text-slate-950">{etapa.title}</h3>
           </div>

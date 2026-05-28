@@ -47,6 +47,20 @@ const formatCurrency = (valor) =>
     currency: "BRL",
   }).format(Number(valor || 0));
 
+function numeroFormulario(valor) {
+  if (valor === null || valor === undefined || valor === "") return null;
+  const numero = Number(String(valor).replace(",", "."));
+  return Number.isFinite(numero) ? numero : null;
+}
+
+function campoComErro(baseClass, temErro) {
+  return `${baseClass} ${
+    temErro
+      ? "!border-rose-300 !bg-rose-50/70 focus:!border-rose-400 focus:!ring-2 focus:!ring-rose-100"
+      : ""
+  }`;
+}
+
 function montarUrlMidia(url) {
   if (!url) return "";
   if (/^(https?:|data:|blob:)/i.test(url)) return url;
@@ -72,6 +86,8 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
     custoUnitario: "",
     outrosCustos: "",
   });
+  const [camposTocados, setCamposTocados] = useState({});
+  const [tentouAvancarDados, setTentouAvancarDados] = useState(false);
   const [fornecedores, setFornecedores] = useState([]);
   const [mostrarNovoFornecedor, setMostrarNovoFornecedor] = useState(false);
   const [novoFornecedor, setNovoFornecedor] = useState({ nome: "", telefone: "", observacao: "" });
@@ -87,6 +103,7 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
     carregando: false,
   });
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState("");
+  const [qrCodeErro, setQrCodeErro] = useState(false);
   const [videoFile, setVideoFile] = useState(null);
   const [videoPreview, setVideoPreview] = useState(null);
 
@@ -96,6 +113,17 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
   const etapa = etapas[etapaAtual];
   const progresso = ((etapaAtual + 1) / etapas.length) * 100;
   const fornecedorSelecionado = fornecedores.find((item) => String(item.id) === String(form.fornecedorId));
+  const errosDados = useMemo(() => {
+    const erros = {};
+    const preco = numeroFormulario(form.preco);
+    const custo = numeroFormulario(form.custoUnitario);
+
+    if (!form.nome.trim()) erros.nome = "Informe o nome do produto.";
+    if (preco === null || preco <= 0) erros.preco = "Informe o preco de venda.";
+    if (custo === null || custo < 0) erros.custoUnitario = "Informe o custo unitario.";
+
+    return erros;
+  }, [form.custoUnitario, form.nome, form.preco]);
   const variacoesValidas = useMemo(
     () =>
       variacoes
@@ -152,24 +180,34 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
     async function gerarQrCode() {
       if (!mobileUpload.uploadUrl) {
         setQrCodeDataUrl("");
+        setQrCodeErro(false);
         return;
       }
 
       try {
-        const dataUrl = await QRCode.toDataURL(mobileUpload.uploadUrl, {
+        const gerador = QRCode?.default || QRCode;
+        const gerarDataUrl = gerador?.toDataURL;
+        const gerarSvg = gerador?.toString;
+        if (!gerarDataUrl && !gerarSvg) throw new Error("Gerador de QR Code indisponivel.");
+
+        const opcoes = {
           width: 180,
           margin: 1,
-          color: {
-            dark: "#181F24",
-            light: "#FFFFFF",
-          },
-        });
+          color: { dark: "#181F24", light: "#FFFFFF" },
+        };
+        const dataUrl = gerarDataUrl
+          ? await gerarDataUrl(mobileUpload.uploadUrl, opcoes)
+          : `data:image/svg+xml;charset=utf-8,${encodeURIComponent(
+              await gerarSvg(mobileUpload.uploadUrl, { ...opcoes, type: "svg" })
+            )}`;
         if (ativo) setQrCodeDataUrl(dataUrl);
+        if (ativo) setQrCodeErro(false);
       } catch (error) {
         console.error("Erro ao gerar QR Code:", error);
         if (ativo) {
           setQrCodeDataUrl("");
-          toast.error("Nao foi possivel gerar o QR Code. Tente novamente.");
+          setQrCodeErro(true);
+          toast.error("Nao foi possivel gerar o QR Code. Use o link ou tente novamente.");
         }
       }
     }
@@ -193,6 +231,14 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
 
   function handleChange(event) {
     setForm((prev) => ({ ...prev, [event.target.name]: event.target.value }));
+  }
+
+  function marcarCampoTocado(campo) {
+    setCamposTocados((prev) => ({ ...prev, [campo]: true }));
+  }
+
+  function mostrarErroCampo(campo) {
+    return Boolean(errosDados[campo] && (tentouAvancarDados || camposTocados[campo]));
   }
 
   function handleVariacaoChange(index, campo, valor) {
@@ -288,6 +334,8 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
 
   async function iniciarUploadCelular() {
     try {
+      setQrCodeDataUrl("");
+      setQrCodeErro(false);
       setMobileUpload((prev) => ({ ...prev, carregando: true }));
       const { data } = await api.post("/mobile-upload/sessoes", { origin: window.location.origin });
       setMobileUpload({
@@ -303,10 +351,23 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
     }
   }
 
+  async function copiarLinkUploadCelular() {
+    if (!mobileUpload.uploadUrl) return;
+
+    try {
+      await navigator.clipboard.writeText(mobileUpload.uploadUrl);
+      toast.success("Link copiado.");
+    } catch (error) {
+      toast.error("Nao foi possivel copiar o link.");
+    }
+  }
+
   function validarEtapa(indice = etapaAtual) {
     if (indice === 0) {
-      if (!form.nome.trim()) {
-        toast.error("Informe o nome do produto.");
+      setTentouAvancarDados(true);
+      const primeiroErro = Object.values(errosDados)[0];
+      if (primeiroErro) {
+        toast.error(primeiroErro);
         return false;
       }
       if (!form.preco || Number(form.preco) < 0) {
@@ -317,7 +378,8 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
         toast.error("Informe o custo corretamente.");
         return false;
       }
-      if (form.outrosCustos !== "" && Number(form.outrosCustos) < 0) {
+      const outrosCustos = numeroFormulario(form.outrosCustos);
+      if (form.outrosCustos !== "" && (outrosCustos === null || outrosCustos < 0)) {
         toast.error("Informe outros custos corretamente.");
         return false;
       }
@@ -350,6 +412,9 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
       let imagemUrl = "";
       let videoUrl = "";
       let gifUrl = "";
+      const preco = numeroFormulario(form.preco) || 0;
+      const custoUnitario = numeroFormulario(form.custoUnitario) || 0;
+      const outrosCustos = numeroFormulario(form.outrosCustos) || 0;
 
       if (imagemUrlRemota) imagemUrl = imagemUrlRemota;
       else if (imagemFile) imagemUrl = await fazerUploadImgBB();
@@ -374,9 +439,9 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
         marca: form.marca.trim() || null,
         genero: form.genero,
         fornecedorId: form.fornecedorId || null,
-        preco: Number(form.preco || 0),
-        custoUnitario: Number(form.custoUnitario || 0),
-        outrosCustos: Number(form.outrosCustos || 0),
+        preco,
+        custoUnitario,
+        outrosCustos,
         imagemUrl,
         videoUrl,
         gifUrl,
@@ -404,9 +469,11 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
             placeholder="Ex: Sandalia salto bloco"
             value={form.nome}
             onChange={handleChange}
-            className={inputClass}
+            onBlur={() => marcarCampoTocado("nome")}
+            className={campoComErro(inputClass, mostrarErroCampo("nome"))}
             autoFocus
           />
+          {mostrarErroCampo("nome") && <ErroCampo>{errosDados.nome}</ErroCampo>}
         </label>
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
@@ -513,8 +580,10 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
               placeholder="0,00"
               value={form.preco}
               onChange={handleChange}
-              className={inputClass}
+              onBlur={() => marcarCampoTocado("preco")}
+              className={campoComErro(inputClass, mostrarErroCampo("preco"))}
             />
+            {mostrarErroCampo("preco") && <ErroCampo>{errosDados.preco}</ErroCampo>}
           </label>
           <label>
             <span className={labelClass}>Custo unitario</span>
@@ -525,8 +594,10 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
               placeholder="0,00"
               value={form.custoUnitario}
               onChange={handleChange}
-              className={inputClass}
+              onBlur={() => marcarCampoTocado("custoUnitario")}
+              className={campoComErro(inputClass, mostrarErroCampo("custoUnitario"))}
             />
+            {mostrarErroCampo("custoUnitario") && <ErroCampo>{errosDados.custoUnitario}</ErroCampo>}
           </label>
           <label>
             <span className={labelClass}>Outros custos</span>
@@ -565,6 +636,11 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
                     alt="QR Code para enviar imagem"
                     className="mx-auto h-32 w-32 rounded-lg border border-slate-200 bg-white p-2"
                   />
+                ) : qrCodeErro ? (
+                  <div className="mx-auto flex h-32 w-32 flex-col items-center justify-center rounded-lg border border-rose-200 bg-rose-50 px-3 text-xs font-medium text-rose-700">
+                    QR indisponivel
+                    <span className="mt-1 font-normal">Use o link abaixo.</span>
+                  </div>
                 ) : (
                   <div className="mx-auto flex h-32 w-32 items-center justify-center rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-500">
                     Gerando QR...
@@ -574,6 +650,18 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
                 <p className="mt-1 text-xs text-slate-500">
                   Abra o QR Code com a camera do celular, escolha a imagem e ela aparece aqui.
                 </p>
+                {mobileUpload.uploadUrl && (
+                  <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50 p-2 text-left">
+                    <p className="truncate text-[11px] text-slate-500">{mobileUpload.uploadUrl}</p>
+                    <button
+                      type="button"
+                      onClick={copiarLinkUploadCelular}
+                      className="mt-2 w-full rounded-md border border-slate-200 bg-white px-2 py-1.5 text-xs font-medium text-slate-700 transition hover:bg-slate-50"
+                    >
+                      Copiar link
+                    </button>
+                  </div>
+                )}
                 <button
                   type="button"
                   onClick={iniciarUploadCelular}
@@ -857,6 +945,10 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
       </div>
     </div>
   );
+}
+
+function ErroCampo({ children }) {
+  return <p className="mt-1.5 text-xs font-medium text-rose-600">{children}</p>;
 }
 
 function ResumoItem({ icon: Icon, label, value }) {
