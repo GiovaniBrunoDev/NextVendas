@@ -1,38 +1,62 @@
-import { useEffect, useState } from "react";
-import { WifiOff } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { RefreshCw, WifiOff } from "lucide-react";
 
 export default function ConnectionStatus() {
   const [online, setOnline] = useState(() =>
     typeof navigator === "undefined" ? true : navigator.onLine
   );
+  const [recarregando, setRecarregando] = useState(false);
+  const ficouOffline = useRef(typeof navigator !== "undefined" ? !navigator.onLine : false);
 
   useEffect(() => {
-    const atualizar = () => setOnline(navigator.onLine);
+    const offline = () => {
+      ficouOffline.current = true;
+      setRecarregando(false);
+      setOnline(false);
+    };
 
-    window.addEventListener("online", atualizar);
-    window.addEventListener("offline", atualizar);
-    atualizar();
+    const onlineNovamente = () => {
+      setOnline(true);
+
+      if (!ficouOffline.current) return;
+
+      setRecarregando(true);
+      window.setTimeout(() => {
+        window.location.reload();
+      }, 700);
+    };
+
+    window.addEventListener("online", onlineNovamente);
+    window.addEventListener("offline", offline);
+
+    if (navigator.onLine) onlineNovamente();
+    else offline();
 
     return () => {
-      window.removeEventListener("online", atualizar);
-      window.removeEventListener("offline", atualizar);
+      window.removeEventListener("online", onlineNovamente);
+      window.removeEventListener("offline", offline);
     };
   }, []);
 
-  if (online) return null;
+  if (online && !recarregando) return null;
+
+  const Icon = recarregando ? RefreshCw : WifiOff;
 
   return (
-    <div className="fixed inset-x-3 top-3 z-[20000] mx-auto max-w-xl rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950 shadow-[0_18px_40px_rgba(24,31,36,0.18)] sm:top-4">
-      <div className="flex items-start gap-3">
-        <span className="mt-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-100 text-amber-700">
-          <WifiOff size={17} />
+    <div className="fixed inset-0 z-[20000] grid place-items-center bg-[#020C2C]/42 px-4 backdrop-blur-md">
+      <div className="w-full max-w-sm rounded-[24px] border border-white/70 bg-[#FFFEFA]/95 p-6 text-center shadow-[0_28px_90px_rgba(2,12,44,0.28)]">
+        <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#16A36B]/10 text-[#020C2C]">
+          <Icon size={24} className={recarregando ? "animate-spin" : ""} />
         </span>
-        <div>
-          <p className="font-semibold">Sem conexão com a internet</p>
-          <p className="mt-0.5 text-amber-800">
-            Verifique sua rede. O sistema volta a carregar normalmente quando a conexão retornar.
-          </p>
-        </div>
+
+        <p className="mt-5 text-lg font-semibold text-slate-950">
+          {recarregando ? "Conexao restabelecida" : "Sem conexao com a internet"}
+        </p>
+        <p className="mt-2 text-sm leading-6 text-slate-500">
+          {recarregando
+            ? "Estamos atualizando esta tela para sincronizar as informacoes."
+            : "Verifique sua rede. Assim que a conexao voltar, esta pagina sera atualizada automaticamente."}
+        </p>
       </div>
     </div>
   );

@@ -79,7 +79,15 @@ function LoadingScreen() {
 function ProtectedApp() {
   const location = useLocation();
   const { autenticado, carregando, usuario } = useAuth();
-  const [tela, setTela] = useState("dashboard");
+  const [tela, setTelaState] = useState(() => {
+    if (typeof window === "undefined") return "dashboard";
+    return localStorage.getItem("lojia_tela_ativa") || "dashboard";
+  });
+
+  const setTela = (proximaTela) => {
+    localStorage.setItem("lojia_tela_ativa", proximaTela);
+    setTelaState(proximaTela);
+  };
 
   if (carregando) {
     return <LoadingScreen />;

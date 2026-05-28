@@ -9,6 +9,10 @@ const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
+  if (typeof navigator !== "undefined" && !navigator.onLine) {
+    return new Promise(() => {});
+  }
+
   const token = localStorage.getItem("pdv_token");
   const lojaId = localStorage.getItem("pdv_loja_id");
 
@@ -17,5 +21,16 @@ api.interceptors.request.use((config) => {
 
   return config;
 });
+
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (typeof navigator !== "undefined" && !navigator.onLine) {
+      return new Promise(() => {});
+    }
+
+    return Promise.reject(error);
+  }
+);
 
 export default api;

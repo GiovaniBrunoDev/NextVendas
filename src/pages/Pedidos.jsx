@@ -10,6 +10,7 @@ import {
   ExternalLink,
   MapPin,
   PackageX,
+  PencilLine,
   ReceiptText,
   Search,
   ShoppingBag,
@@ -18,6 +19,7 @@ import {
 } from "lucide-react";
 import ReciboModal from "../components/ReciboModal";
 import ConfirmarPedidoVendaModal from "../components/ConfirmarPedidoVendaModal";
+import EditarPedidoModal from "../components/EditarPedidoModal";
 
 function moeda(valor) {
   return Number(valor || 0).toLocaleString("pt-BR", {
@@ -81,6 +83,7 @@ export default function Pedidos() {
   const [busca, setBusca] = useState("");
   const [recibo, setRecibo] = useState(null);
   const [pedidoParaConfirmar, setPedidoParaConfirmar] = useState(null);
+  const [pedidoParaEditar, setPedidoParaEditar] = useState(null);
 
   const carregarPedidos = async () => {
     try {
@@ -119,6 +122,24 @@ export default function Pedidos() {
     } catch (err) {
       console.error(err);
       toast.error(err.response?.data?.error || "Erro ao cancelar pedido.");
+    } finally {
+      setPedidoProcessando(null);
+    }
+  };
+
+  const editarPedido = async (pedido, dadosPedido) => {
+    try {
+      setPedidoProcessando(pedido.id);
+      const { data } = await api.put(`/pedidos/${pedido.id}`, dadosPedido);
+      toast.success(`Pedido #${pedido.id} atualizado.`);
+      setPedidoParaEditar(null);
+      await carregarPedidos();
+      if (data?.pedido) {
+        setPedidos((atuais) => atuais.map((item) => (item.id === data.pedido.id ? data.pedido : item)));
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error(err.response?.data?.error || "Erro ao editar pedido.");
     } finally {
       setPedidoProcessando(null);
     }
@@ -332,6 +353,14 @@ export default function Pedidos() {
               <ReceiptText size={16} />
             </button>
             <button
+              onClick={() => setPedidoParaEditar(pedido)}
+              disabled={processando || cancelado}
+              title="Editar pedido"
+              className="lojia-ghost-action inline-flex items-center justify-center px-3 py-2 text-slate-600 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <PencilLine size={16} />
+            </button>
+            <button
               onClick={() => setPedidoParaConfirmar(pedido)}
               disabled={processando || !podeFinalizar}
               className="lojia-primary-action inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-50"
@@ -457,6 +486,15 @@ export default function Pedidos() {
           carregando={pedidoProcessando === pedidoParaConfirmar.id}
           aoFechar={() => setPedidoParaConfirmar(null)}
           aoConfirmar={(dadosVenda) => confirmarPedido(pedidoParaConfirmar, dadosVenda)}
+        />
+      )}
+
+      {pedidoParaEditar && (
+        <EditarPedidoModal
+          pedido={pedidoParaEditar}
+          carregando={pedidoProcessando === pedidoParaEditar.id}
+          aoFechar={() => setPedidoParaEditar(null)}
+          aoSalvar={(dadosPedido) => editarPedido(pedidoParaEditar, dadosPedido)}
         />
       )}
     </div>

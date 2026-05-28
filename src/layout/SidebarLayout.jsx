@@ -38,7 +38,10 @@ function formatDate(value) {
 
 export default function SidebarLayout({ children, setTela }) {
   const [isMobile, setIsMobile] = useState(false);
-  const [telaAtiva, setTelaAtiva] = useState("dashboard");
+  const [telaAtiva, setTelaAtiva] = useState(() => {
+    if (typeof window === "undefined") return "dashboard";
+    return localStorage.getItem("lojia_tela_ativa") || "dashboard";
+  });
   const { usuario, lojaAtual, logout } = useAuth();
   const papel = lojaAtual?.papel;
   const assinatura = lojaAtual?.loja?.assinatura;
@@ -52,6 +55,7 @@ export default function SidebarLayout({ children, setTela }) {
   }, []);
 
   const trocarTela = (tela) => {
+    localStorage.setItem("lojia_tela_ativa", tela);
     setTela(tela);
     setTelaAtiva(tela);
   };
@@ -177,7 +181,7 @@ export default function SidebarLayout({ children, setTela }) {
               src="/lojia-logo.png"
               alt="Lojia"
               className="h-16
-               w-full scale-[1.75] object-contain"
+               w-full scale-[0.8] object-contain"
             />
           </div>
 
