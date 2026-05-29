@@ -42,6 +42,12 @@ const formatDate = (data) =>
 const ordenarGrade = (itens) =>
   itens.slice().sort((a, b) => Number(a.numeracao || 0) - Number(b.numeracao || 0));
 
+const numeroFormulario = (valor) => {
+  if (valor === "" || valor === null || valor === undefined) return null;
+  const numero = Number(String(valor).replace(",", "."));
+  return Number.isFinite(numero) ? numero : null;
+};
+
 export default function EntradaEstoque() {
   const [produtos, setProdutos] = useState([]);
   const [entradas, setEntradas] = useState([]);
@@ -119,7 +125,7 @@ export default function EntradaEstoque() {
 
   const totalGrade = gradeValida.reduce((soma, item) => soma + item.quantidade, 0);
   const custoPrevisto =
-    totalGrade * (Number(form.custoUnitario || 0) + Number(form.outrosCustos || 0));
+    totalGrade * ((numeroFormulario(form.custoUnitario) || 0) + (numeroFormulario(form.outrosCustos) || 0));
 
   function selecionarProduto(produto) {
     setProdutoId(produto.id);
@@ -166,13 +172,26 @@ export default function EntradaEstoque() {
       return;
     }
 
+    const custoUnitario = numeroFormulario(form.custoUnitario);
+    const outrosCustos = numeroFormulario(form.outrosCustos);
+
+    if (form.custoUnitario !== "" && custoUnitario === null) {
+      toast.error("Informe um custo unitário válido.");
+      return;
+    }
+
+    if (form.outrosCustos !== "" && outrosCustos === null) {
+      toast.error("Informe outros custos corretamente.");
+      return;
+    }
+
     try {
       setSalvando(true);
       await api.post("/estoque/entradas/grade", {
         produtoId: produtoSelecionado.id,
         itens: gradeValida,
-        custoUnitario: form.custoUnitario,
-        outrosCustos: form.outrosCustos,
+        custoUnitario,
+        outrosCustos,
         fornecedor: form.fornecedor,
         observacao: form.observacao,
         atualizarCustosProduto: form.atualizarCustosProduto,
@@ -401,8 +420,8 @@ export default function EntradaEstoque() {
                 <h3 className="text-sm font-semibold text-slate-950">Dados da compra</h3>
                 <div className="mt-4 space-y-3">
                   <Campo label="Fornecedor" value={form.fornecedor} onChange={(value) => setForm((prev) => ({ ...prev, fornecedor: value }))} />
-                  <Campo label="Custo unitário" type="number" step="0.01" value={form.custoUnitario} onChange={(value) => setForm((prev) => ({ ...prev, custoUnitario: value }))} />
-                  <Campo label="Outros custos" type="number" step="0.01" value={form.outrosCustos} onChange={(value) => setForm((prev) => ({ ...prev, outrosCustos: value }))} />
+                  <Campo label="Custo unitário" inputMode="decimal" value={form.custoUnitario} onChange={(value) => setForm((prev) => ({ ...prev, custoUnitario: value }))} />
+                  <Campo label="Outros custos" inputMode="decimal" value={form.outrosCustos} onChange={(value) => setForm((prev) => ({ ...prev, outrosCustos: value }))} />
                   <label>
                     <span className="text-xs font-medium uppercase tracking-wide text-slate-500">Observação</span>
                     <textarea
@@ -479,13 +498,14 @@ export default function EntradaEstoque() {
   );
 }
 
-function Campo({ label, value, onChange, type = "text", step }) {
+function Campo({ label, value, onChange, type = "text", step, inputMode }) {
   return (
     <label>
       <span className="text-xs font-medium uppercase tracking-wide text-slate-500">{label}</span>
       <input
         type={type}
         step={step}
+        inputMode={inputMode}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-slate-400"
