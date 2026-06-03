@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import api from "../services/api";
 import { toast } from "react-toastify";
 import { FaBoxOpen, FaPlus, FaSearch, FaTrashAlt } from "react-icons/fa";
+import { CheckCircle2, X } from "lucide-react";
+import useModalPresence from "../hooks/useModalPresence";
 
 const gradesPadrao = {
   baixa: [
@@ -48,9 +50,28 @@ const numeroFormulario = (valor) => {
   return Number.isFinite(numero) ? numero : null;
 };
 
+const tiposMovimento = {
+  reposicao: "Reposição",
+  venda: "Venda",
+  cancelamento_venda: "Cancelamento de venda",
+  reserva_pedido: "Reserva de pedido",
+  edicao_pedido_retorno: "Edição de pedido",
+  edicao_pedido_reserva: "Nova reserva",
+  cancelamento_pedido: "Cancelamento de pedido",
+  troca_retorno: "Retorno de troca",
+  troca_saida: "Saída de troca",
+  ajuste_manual: "Ajuste manual",
+  cadastro_produto: "Cadastro do produto",
+  cadastro_variacao: "Cadastro de numeração",
+};
+
+const imagemProduto = (produto) => produto?.imagemUrlCompleta || produto?.imagemUrl || "";
+
 export default function EntradaEstoque() {
   const [produtos, setProdutos] = useState([]);
   const [entradas, setEntradas] = useState([]);
+  const [movimentos, setMovimentos] = useState([]);
+  const [fornecedores, setFornecedores] = useState([]);
   const [busca, setBusca] = useState("");
   const [produtoId, setProdutoId] = useState("");
   const [grade, setGrade] = useState(gradesPadrao.baixa);
@@ -58,12 +79,13 @@ export default function EntradaEstoque() {
   const [form, setForm] = useState({
     custoUnitario: "",
     outrosCustos: "",
-    fornecedor: "",
+    fornecedorId: "",
     observacao: "",
     atualizarCustosProduto: true,
   });
   const [carregando, setCarregando] = useState(true);
   const [salvando, setSalvando] = useState(false);
+  const [conferenciaAberta, setConferenciaAberta] = useState(false);
 
   useEffect(() => {
     carregarDados();
@@ -72,12 +94,16 @@ export default function EntradaEstoque() {
   async function carregarDados() {
     try {
       setCarregando(true);
-      const [resProdutos, resEntradas] = await Promise.all([
+      const [resProdutos, resEntradas, resMovimentos, resFornecedores] = await Promise.all([
         api.get("/produtos"),
         api.get("/estoque/entradas"),
+        api.get("/estoque/movimentos"),
+        api.get("/fornecedores"),
       ]);
       setProdutos(resProdutos.data);
       setEntradas(resEntradas.data);
+      setMovimentos(resMovimentos.data);
+      setFornecedores(resFornecedores.data);
     } catch (error) {
       console.error("Erro ao carregar entrada de estoque:", error);
       toast.error("Erro ao carregar entradas de estoque.");
@@ -133,6 +159,7 @@ export default function EntradaEstoque() {
       ...prev,
       custoUnitario: produto.custoUnitario ?? "",
       outrosCustos: produto.outrosCustos ?? "",
+      fornecedorId: produto.fornecedorId ? String(produto.fornecedorId) : "",
     }));
   }
 
@@ -161,15 +188,15 @@ export default function EntradaEstoque() {
     });
   }
 
-  async function salvarEntrada() {
+  function validarEntrada() {
     if (!produtoSelecionado) {
       toast.error("Selecione um produto.");
-      return;
+      return false;
     }
 
     if (gradeValida.length === 0) {
       toast.error("Informe ao menos uma numeração com quantidade.");
-      return;
+      return false;
     }
 
     const custoUnitario = numeroFormulario(form.custoUnitario);
@@ -177,13 +204,28 @@ export default function EntradaEstoque() {
 
     if (form.custoUnitario !== "" && custoUnitario === null) {
       toast.error("Informe um custo unitário válido.");
-      return;
+      return false;
     }
 
     if (form.outrosCustos !== "" && outrosCustos === null) {
       toast.error("Informe outros custos corretamente.");
-      return;
+      return false;
     }
+
+    return true;
+  }
+
+  function abrirConferencia() {
+    if (!validarEntrada()) return;
+    setConferenciaAberta(true);
+  }
+
+  async function salvarEntrada() {
+    if (!validarEntrada()) return;
+
+    const custoUnitario = numeroFormulario(form.custoUnitario);
+    const outrosCustos = numeroFormulario(form.outrosCustos);
+    const fornecedorSelecionado = fornecedores.find((item) => String(item.id) === String(form.fornecedorId));
 
     try {
       setSalvando(true);
@@ -192,7 +234,7 @@ export default function EntradaEstoque() {
         itens: gradeValida,
         custoUnitario,
         outrosCustos,
-        fornecedor: form.fornecedor,
+        fornecedor: fornecedorSelecionado?.nome || "",
         observacao: form.observacao,
         atualizarCustosProduto: form.atualizarCustosProduto,
       });
@@ -200,9 +242,10 @@ export default function EntradaEstoque() {
       toast.success("Entrada por grade registrada!");
       setForm((prev) => ({
         ...prev,
-        fornecedor: "",
+        fornecedorId: "",
         observacao: "",
       }));
+      setConferenciaAberta(false);
       await carregarDados();
     } catch (error) {
       console.error("Erro ao salvar entrada:", error);
@@ -272,8 +315,12 @@ export default function EntradaEstoque() {
                       selecionado ? "bg-slate-100" : "hover:bg-slate-50"
                     }`}
                   >
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-500">
-                      <FaBoxOpen />
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-slate-100 text-slate-500">
+                      {imagemProduto(produto) ? (
+                        <img src={imagemProduto(produto)} alt="" className="h-full w-full object-cover" />
+                      ) : (
+                        <FaBoxOpen />
+                      )}
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-semibold text-slate-950">{produto.nome}</p>
@@ -419,7 +466,21 @@ export default function EntradaEstoque() {
               <aside className="rounded-lg border border-slate-200 bg-slate-50 p-4">
                 <h3 className="text-sm font-semibold text-slate-950">Dados da compra</h3>
                 <div className="mt-4 space-y-3">
-                  <Campo label="Fornecedor" value={form.fornecedor} onChange={(value) => setForm((prev) => ({ ...prev, fornecedor: value }))} />
+                  <label>
+                    <span className="text-xs font-medium uppercase tracking-wide text-slate-500">Fornecedor</span>
+                    <select
+                      value={form.fornecedorId}
+                      onChange={(event) => setForm((prev) => ({ ...prev, fornecedorId: event.target.value }))}
+                      className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-slate-400"
+                    >
+                      <option value="">Sem fornecedor</option>
+                      {fornecedores.map((fornecedor) => (
+                        <option key={fornecedor.id} value={fornecedor.id}>
+                          {fornecedor.nome}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
                   <Campo label="Custo unitário" inputMode="decimal" value={form.custoUnitario} onChange={(value) => setForm((prev) => ({ ...prev, custoUnitario: value }))} />
                   <Campo label="Outros custos" inputMode="decimal" value={form.outrosCustos} onChange={(value) => setForm((prev) => ({ ...prev, outrosCustos: value }))} />
                   <label>
@@ -444,11 +505,11 @@ export default function EntradaEstoque() {
 
                 <button
                   type="button"
-                  onClick={salvarEntrada}
+                  onClick={abrirConferencia}
                   disabled={salvando || !produtoSelecionado}
                   className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-slate-700 disabled:opacity-60"
                 >
-                  <FaPlus className="text-xs" /> {salvando ? "Salvando..." : "Registrar grade"}
+                  <CheckCircle2 size={16} /> Conferir reposição
                 </button>
               </aside>
             </div>
@@ -465,26 +526,31 @@ export default function EntradaEstoque() {
                     <th className="px-4 py-3">Data</th>
                     <th className="px-4 py-3">Produto</th>
                     <th className="px-4 py-3">Numeração</th>
-                    <th className="px-4 py-3">Qtd.</th>
-                    <th className="px-4 py-3">Fornecedor</th>
-                    <th className="px-4 py-3">Custo</th>
+                    <th className="px-4 py-3">Operação</th>
+                    <th className="px-4 py-3">Movimento</th>
+                    <th className="px-4 py-3">Saldo</th>
+                    <th className="px-4 py-3">Usuário</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {entradas.map((entrada) => (
-                    <tr key={entrada.id} className="hover:bg-slate-50">
-                      <td className="px-4 py-3 text-slate-500">{formatDate(entrada.criadoEm)}</td>
-                      <td className="px-4 py-3 font-medium text-slate-900">{entrada.variacaoProduto?.produto?.nome}</td>
-                      <td className="px-4 py-3 text-slate-700">{entrada.variacaoProduto?.numeracao}</td>
-                      <td className="px-4 py-3 font-semibold text-slate-950">{entrada.quantidade}</td>
-                      <td className="px-4 py-3 text-slate-700">{entrada.fornecedor || "-"}</td>
-                      <td className="px-4 py-3 text-slate-700">{formatCurrency(entrada.custoUnitario)}</td>
+                  {movimentos.map((movimento) => (
+                    <tr key={movimento.id} className="hover:bg-slate-50">
+                      <td className="px-4 py-3 text-slate-500">{formatDate(movimento.criadoEm)}</td>
+                      <td className="px-4 py-3 font-medium text-slate-900">{movimento.variacaoProduto?.produto?.nome}</td>
+                      <td className="px-4 py-3 text-slate-700">{movimento.variacaoProduto?.numeracao}</td>
+                      <td className="px-4 py-3 text-slate-700">{tiposMovimento[movimento.tipo] || movimento.tipo}</td>
+                      <td className={`px-4 py-3 font-semibold ${movimento.quantidade >= 0 ? "text-emerald-700" : "text-rose-700"}`}>
+                        {movimento.quantidade >= 0 ? "+" : ""}
+                        {movimento.quantidade}
+                      </td>
+                      <td className="px-4 py-3 text-slate-700">{movimento.saldoAnterior} → {movimento.saldoFinal}</td>
+                      <td className="px-4 py-3 text-slate-700">{movimento.criadoPor?.nome || "-"}</td>
                     </tr>
                   ))}
-                  {entradas.length === 0 && (
+                  {movimentos.length === 0 && (
                     <tr>
-                      <td colSpan="6" className="px-4 py-10 text-center text-slate-500">
-                        Nenhuma entrada registrada ainda.
+                      <td colSpan="7" className="px-4 py-10 text-center text-slate-500">
+                        Nenhuma movimentação registrada ainda.
                       </td>
                     </tr>
                   )}
@@ -494,6 +560,20 @@ export default function EntradaEstoque() {
           </div>
         </section>
       </div>
+
+      {conferenciaAberta && (
+        <ConferenciaReposicao
+          produto={produtoSelecionado}
+          grade={gradeValida}
+          mapaVariacoes={mapaVariacoes}
+          fornecedor={fornecedores.find((item) => String(item.id) === String(form.fornecedorId))}
+          custoPrevisto={custoPrevisto}
+          totalGrade={totalGrade}
+          salvando={salvando}
+          onFechar={() => setConferenciaAberta(false)}
+          onConfirmar={salvarEntrada}
+        />
+      )}
     </div>
   );
 }
@@ -519,6 +599,108 @@ function ResumoPill({ label, value }) {
     <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
       <p className="text-[11px] font-medium uppercase tracking-wide text-slate-500">{label}</p>
       <p className="mt-0.5 truncate font-semibold text-slate-950">{value}</p>
+    </div>
+  );
+}
+
+function ConferenciaReposicao({
+  produto,
+  grade,
+  mapaVariacoes,
+  fornecedor,
+  custoPrevisto,
+  totalGrade,
+  salvando,
+  onFechar,
+  onConfirmar,
+}) {
+  useModalPresence();
+
+  return (
+    <div className="fixed inset-0 z-[10000] flex items-end justify-center bg-slate-950/50 backdrop-blur-sm sm:items-center sm:p-4">
+      <div className="flex max-h-[94dvh] w-full flex-col overflow-hidden rounded-t-2xl border border-slate-200 bg-white shadow-2xl sm:max-w-xl sm:rounded-2xl">
+        <div className="flex items-start justify-between gap-4 border-b border-slate-200 px-4 py-4 sm:px-5">
+          <div>
+            <h2 className="text-lg font-semibold text-slate-950">Conferir reposição</h2>
+            <p className="mt-1 text-sm text-slate-500">Revise as quantidades antes de atualizar o estoque.</p>
+          </div>
+          <button
+            type="button"
+            onClick={onFechar}
+            className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-slate-200 text-slate-500 transition hover:bg-slate-50 hover:text-slate-950"
+            aria-label="Fechar conferência"
+          >
+            <X size={17} />
+          </button>
+        </div>
+
+        <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4 sm:px-5">
+          <div className="flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 p-3">
+            <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-white text-slate-500">
+              {imagemProduto(produto) ? (
+                <img src={imagemProduto(produto)} alt="" className="h-full w-full object-cover" />
+              ) : (
+                <FaBoxOpen />
+              )}
+            </div>
+            <div className="min-w-0">
+              <p className="truncate text-sm font-semibold text-slate-950">{produto?.nome}</p>
+              <p className="mt-1 text-xs text-slate-500">{fornecedor?.nome || "Sem fornecedor informado"}</p>
+            </div>
+          </div>
+
+          <div className="mt-4 overflow-hidden rounded-lg border border-slate-200">
+            <table className="w-full text-sm">
+              <thead className="border-b border-slate-200 bg-slate-50 text-left text-xs uppercase text-slate-500">
+                <tr>
+                  <th className="px-3 py-2.5">Numeração</th>
+                  <th className="px-3 py-2.5">Atual</th>
+                  <th className="px-3 py-2.5">Entrada</th>
+                  <th className="px-3 py-2.5">Novo saldo</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {grade.map((item) => {
+                  const estoqueAtual = Number(mapaVariacoes[item.numeracao]?.estoque || 0);
+                  return (
+                    <tr key={item.numeracao}>
+                      <td className="px-3 py-2.5 font-medium text-slate-950">{item.numeracao}</td>
+                      <td className="px-3 py-2.5 text-slate-600">{estoqueAtual}</td>
+                      <td className="px-3 py-2.5 font-semibold text-emerald-700">+{item.quantidade}</td>
+                      <td className="px-3 py-2.5 font-semibold text-slate-950">{estoqueAtual + item.quantidade}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="mt-4 grid grid-cols-2 gap-2">
+            <ResumoPill label="Total de pares" value={totalGrade} />
+            <ResumoPill label="Custo previsto" value={formatCurrency(custoPrevisto)} />
+          </div>
+        </div>
+
+        <div className="flex flex-col-reverse gap-2 border-t border-slate-200 bg-white px-4 py-4 sm:flex-row sm:justify-end sm:px-5">
+          <button
+            type="button"
+            onClick={onFechar}
+            disabled={salvando}
+            className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:opacity-60"
+          >
+            Voltar
+          </button>
+          <button
+            type="button"
+            onClick={onConfirmar}
+            disabled={salvando}
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#020C2C] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#081743] disabled:opacity-60"
+          >
+            <CheckCircle2 size={16} />
+            {salvando ? "Registrando..." : "Confirmar reposição"}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

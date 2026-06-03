@@ -58,7 +58,7 @@ export default function TrocaModal({ aberto, venda, aoFechar, aoConfirmarTroca }
   };
 
   return (
-    <Dialog open={aberto} onClose={aoFechar} className="relative z-50">
+    <Dialog open={aberto} onClose={() => {}} className="relative z-50">
       <div className="fixed inset-0 bg-slate-950/50 backdrop-blur-sm" aria-hidden="true" />
       <div className="fixed inset-0 flex items-center justify-center overflow-y-auto p-3 sm:p-4">
         <Dialog.Panel className="w-full max-w-3xl overflow-hidden rounded-xl border border-slate-200 bg-white shadow-2xl">

@@ -74,7 +74,7 @@ export default function ReciboModal({ aberto, tipo = "venda", registro, aoFechar
 
   return (
     <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-slate-950/50 px-3 py-4 backdrop-blur-sm">
-      <div className="no-print absolute inset-0" onClick={aoFechar} />
+      <div className="no-print absolute inset-0" aria-hidden="true" />
 
       <div className="relative flex max-h-[94vh] w-full max-w-2xl flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-2xl">
         <div className="no-print flex items-center justify-between border-b border-slate-200 px-5 py-4">

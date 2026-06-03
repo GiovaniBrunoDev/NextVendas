@@ -75,7 +75,7 @@ export default function VendaDetalhesModal({
   };
 
   return (
-    <Dialog open={aberto} onClose={aoFechar} className="relative z-50">
+    <Dialog open={aberto} onClose={() => {}} className="relative z-50">
       <div className="fixed inset-0 bg-slate-950/50 backdrop-blur-sm" aria-hidden="true" />
       <div className="fixed inset-0 flex items-stretch justify-center overflow-hidden sm:items-center sm:overflow-y-auto sm:p-4">
         <Dialog.Panel className="flex h-[100dvh] w-full flex-col overflow-hidden border-0 bg-white shadow-2xl sm:h-auto sm:max-h-[calc(100dvh-2rem)] sm:max-w-4xl sm:rounded-xl sm:border sm:border-slate-200">

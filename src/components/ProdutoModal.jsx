@@ -264,9 +264,10 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
       alta: ["38", "39", "40", "41", "42", "43"],
     };
 
+    const quantidades = ["1", "2", "3", "3", "2", "1"];
     const gradePronta = grades[tipo].map((numeracao, index) => ({
       numeracao,
-      estoque: index === 2 || index === 3 ? "3" : "1",
+      estoque: quantidades[index],
     }));
 
     setVariacoes(gradePronta);
@@ -837,11 +838,9 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
   return (
     <div
       className="fixed inset-0 z-[10000] flex items-end justify-center bg-slate-950/50 px-0 py-0 backdrop-blur-sm sm:items-center sm:px-3 sm:py-4"
-      onClick={aoFechar}
     >
       <div
         className="relative flex h-[100dvh] w-full max-w-3xl flex-col overflow-hidden rounded-none border border-slate-200/80 bg-[#FFFEFA] shadow-[0_28px_80px_rgba(24,31,36,0.24)] sm:h-auto sm:max-h-[92vh] sm:rounded-[24px] lg:max-w-4xl"
-        onClick={(event) => event.stopPropagation()}
       >
         <div className="shrink-0 border-b border-slate-200/80 bg-[#FFFEFA] px-4 pb-4 pt-4 sm:px-6 sm:pt-6">
           <div className="flex items-start justify-between gap-4">
