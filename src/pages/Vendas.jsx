@@ -52,7 +52,8 @@ export default function Vendas() {
       .filter(
         (produto) =>
           produto.nome.toLowerCase().includes(termo) ||
-          (produto.codigo && produto.codigo.toLowerCase().includes(termo))
+          (produto.codigo && produto.codigo.toLowerCase().includes(termo)) ||
+          (produto.variacoes || []).some((variacao) => variacao.codigoBarras === termo)
       )
       .sort((a, b) => a.nome.localeCompare(b.nome));
   }, [produtos, busca]);
@@ -77,6 +78,35 @@ export default function Vendas() {
       return [...prev, { ...produto, qtd: produto.qtd || 1 }];
     });
     setBusca("");
+  }
+
+  function adicionarPorCodigoBarras(event) {
+    if (event.key !== "Enter") return;
+    const codigo = busca.trim();
+    if (!codigo) return;
+
+    for (const produto of produtos) {
+      const variacao = (produto.variacoes || []).find((item) => item.codigoBarras === codigo);
+      if (!variacao) continue;
+      event.preventDefault();
+
+      if (variacao.estoque <= 0) {
+        toast.info(`${produto.nome} tam. ${variacao.numeracao} está sem estoque.`);
+        return;
+      }
+
+      adicionarAoCarrinho({
+        produtoId: produto.id,
+        variacaoId: variacao.id,
+        nome: produto.nome,
+        preco: produto.preco,
+        numeracao: variacao.numeracao,
+        qtd: 1,
+        estoque: variacao.estoque,
+      });
+      toast.success(`${produto.nome} tam. ${variacao.numeracao} adicionado.`);
+      return;
+    }
   }
 
   function removerUltimoAdicionado() {
@@ -154,8 +184,10 @@ export default function Vendas() {
                 type="text"
                 value={busca}
                 onChange={(e) => setBusca(e.target.value)}
-                placeholder="Digite nome ou código"
-                className="w-full rounded-lg border border-[#E5DED2] bg-[#FFFEFA] py-3 pl-10 pr-3 text-sm outline-none transition placeholder:text-slate-400 focus:border-[#16A36B] focus:bg-white"
+                onKeyDown={adicionarPorCodigoBarras}
+                autoComplete="off"
+                placeholder="Digite nome, código ou leia a etiqueta"
+                className="w-full rounded-lg border border-[#E5DED2] bg-[#FFFEFA] py-3 pl-10 pr-3 text-sm outline-none transition placeholder:text-slate-400 focus:border-[#16A34A] focus:bg-white"
               />
             </div>
 
@@ -166,7 +198,7 @@ export default function Vendas() {
                 className="flex w-full items-center justify-between gap-3 text-left text-sm font-semibold text-slate-900"
               >
                 <span>Produto fora de estoque</span>
-                <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-[#16A36B]/10 text-[#020C2C]">
+                <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-[#16A34A]/10 text-[#0B1115]">
                   <FaPlus size={12} />
                 </span>
               </button>
@@ -180,7 +212,7 @@ export default function Vendas() {
                       value={itemManual.nome}
                       onChange={(e) => setItemManual((prev) => ({ ...prev, nome: e.target.value }))}
                       placeholder="Ex: Tênis Adidas"
-                      className="w-full rounded-lg border border-[#E5DED2] bg-white px-3 py-2.5 text-base outline-none transition placeholder:text-slate-400 focus:border-[#16A36B] sm:text-sm"
+                      className="w-full rounded-lg border border-[#E5DED2] bg-white px-3 py-2.5 text-base outline-none transition placeholder:text-slate-400 focus:border-[#16A34A] sm:text-sm"
                     />
                   </label>
                   <label>
@@ -190,7 +222,7 @@ export default function Vendas() {
                       value={itemManual.tamanho}
                       onChange={(e) => setItemManual((prev) => ({ ...prev, tamanho: e.target.value }))}
                       placeholder="Ex: 36"
-                      className="w-full rounded-lg border border-[#E5DED2] bg-white px-3 py-2.5 text-base outline-none transition placeholder:text-slate-400 focus:border-[#16A36B] sm:text-sm"
+                      className="w-full rounded-lg border border-[#E5DED2] bg-white px-3 py-2.5 text-base outline-none transition placeholder:text-slate-400 focus:border-[#16A34A] sm:text-sm"
                     />
                   </label>
                   <label>
@@ -202,7 +234,7 @@ export default function Vendas() {
                       value={itemManual.custo}
                       onChange={(e) => setItemManual((prev) => ({ ...prev, custo: e.target.value }))}
                       placeholder="0,00"
-                      className="w-full rounded-lg border border-[#E5DED2] bg-white px-3 py-2.5 text-base outline-none transition placeholder:text-slate-400 focus:border-[#16A36B] sm:text-sm"
+                      className="w-full rounded-lg border border-[#E5DED2] bg-white px-3 py-2.5 text-base outline-none transition placeholder:text-slate-400 focus:border-[#16A34A] sm:text-sm"
                     />
                   </label>
                   <label>
@@ -214,7 +246,7 @@ export default function Vendas() {
                       value={itemManual.preco}
                       onChange={(e) => setItemManual((prev) => ({ ...prev, preco: e.target.value }))}
                       placeholder="0,00"
-                      className="w-full rounded-lg border border-[#E5DED2] bg-white px-3 py-2.5 text-base outline-none transition placeholder:text-slate-400 focus:border-[#16A36B] sm:text-sm"
+                      className="w-full rounded-lg border border-[#E5DED2] bg-white px-3 py-2.5 text-base outline-none transition placeholder:text-slate-400 focus:border-[#16A34A] sm:text-sm"
                     />
                   </label>
                   <button
@@ -233,7 +265,7 @@ export default function Vendas() {
             {busca.trim() === "" ? (
               <div className="flex min-h-[360px] items-center justify-center rounded-lg border border-dashed border-[#E5DED2] bg-[#FFFEFA]/70 p-8 text-center">
                 <div>
-                  <FaSearch className="mx-auto text-2xl text-[#16A36B]" />
+                  <FaSearch className="mx-auto text-2xl text-[#16A34A]" />
                   <p className="mt-3 text-sm font-medium text-slate-900">Comece buscando um produto</p>
                   <p className="mt-1 text-sm text-slate-500">
                     Os resultados aparecerão aqui com as numerações disponíveis.
@@ -254,7 +286,7 @@ export default function Vendas() {
             ) : produtosFiltrados.length > 0 ? (
               <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
                 {produtosFiltrados.map((produto) => (
-                  <div key={produto.id} className="rounded-lg border border-[#E5DED2] bg-white/80 p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-[#16A36B]/35 hover:shadow-[0_16px_34px_rgba(36,48,43,0.1)]">
+                  <div key={produto.id} className="rounded-lg border border-[#E5DED2] bg-white/80 p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-[#16A34A]/35 hover:shadow-[0_16px_34px_rgba(36,48,43,0.1)]">
                     <div className="flex items-start gap-3">
                       <img
                         src={produto.imagemUrl || "https://cdn-icons-png.flaticon.com/512/771/771543.png"}
@@ -294,7 +326,7 @@ export default function Vendas() {
                               className={`rounded-lg border px-3 py-2 text-sm font-medium transition ${
                                 variacao.estoque === 0
                                   ? "cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400 line-through"
-                                  : "border-[#E5DED2] bg-white text-slate-800 hover:border-[#16A36B] hover:bg-[#16A36B]/5 hover:text-[#020C2C]"
+                                  : "border-[#E5DED2] bg-white text-slate-800 hover:border-[#16A34A] hover:bg-[#16A34A]/5 hover:text-[#0B1115]"
                               }`}
                             >
                               {variacao.numeracao}
@@ -322,7 +354,7 @@ export default function Vendas() {
             <div className="flex items-start justify-between gap-3">
               <div>
                 <h2 className="flex items-center gap-2 text-base font-semibold text-slate-950">
-                  <FaShoppingCart className="text-[#16A36B]" /> Carrinho
+                  <FaShoppingCart className="text-[#16A34A]" /> Carrinho
                 </h2>
                 <p className="mt-1 text-sm text-slate-500">
                   {totalItens} itens em {carrinho.length} lançamentos

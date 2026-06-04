@@ -3,14 +3,14 @@
 @tailwind utilities;
 
 :root {
-  --lojia-green: #16A36B;
-  --lojia-green-dark: #020C2C;
-  --lojia-primary: #020C2C;
-  --lojia-primary-soft: #081743;
-  --lojia-charcoal: #020C2C;
-  --lojia-charcoal-soft: #081743;
-  --lojia-teal: #020C2C;
-  --lojia-teal-dark: #020C2C;
+  --lojia-green: #16A34A;
+  --lojia-green-dark: #0B1115;
+  --lojia-primary: #0B1115;
+  --lojia-primary-soft: #131C22;
+  --lojia-charcoal: #0B1115;
+  --lojia-charcoal-soft: #131C22;
+  --lojia-teal: #0B1115;
+  --lojia-teal-dark: #0B1115;
   --lojia-orange: #F4A62A;
   --lojia-cream: #F7F5EF;
   --lojia-paper: #FFFEFA;
@@ -44,7 +44,7 @@
     overflow-x: hidden;
     overscroll-behavior-x: none;
     background:
-      radial-gradient(circle at 16% 4%, rgba(22, 163, 107, 0.08), transparent 26%),
+      radial-gradient(circle at 16% 4%, rgba(22, 163, 74, 0.08), transparent 26%),
       linear-gradient(180deg, #fffefa 0%, var(--lojia-cream) 64%);
     color: var(--lojia-charcoal);
     font-family: var(--lojia-font-sans);
@@ -102,7 +102,7 @@
   }
 
   ::selection {
-    background: rgba(22, 163, 107, 0.22);
+    background: rgba(22, 163, 74, 0.22);
     color: var(--lojia-charcoal);
   }
 
@@ -139,15 +139,15 @@
     min-height: 100vh;
     overflow-x: hidden;
     background:
-      radial-gradient(circle at top left, rgba(22, 163, 107, 0.09), transparent 28rem),
+      radial-gradient(circle at top left, rgba(22, 163, 74, 0.09), transparent 28rem),
       linear-gradient(180deg, #fffefa 0%, var(--lojia-cream) 72%);
     color: var(--lojia-charcoal);
   }
 
   .lojia-gradient {
     background:
-      linear-gradient(145deg, rgba(2, 12, 44, 0.99), rgba(8, 23, 67, 0.98)),
-      radial-gradient(circle at top left, rgba(22, 163, 107, 0.18), transparent 18rem);
+      linear-gradient(145deg, rgba(11, 17, 21, 0.99), rgba(19, 28, 34, 0.98)),
+      radial-gradient(circle at top left, rgba(22, 163, 74, 0.18), transparent 18rem);
   }
 
   .lojia-card {
@@ -170,7 +170,7 @@
     justify-content: center;
     gap: 0.5rem;
     border-radius: 8px;
-    background: #0f172a;
+    background: var(--lojia-primary);
     color: white;
     font-weight: 540;
     transition: background-color 150ms ease, transform 150ms ease, box-shadow 150ms ease;
@@ -178,7 +178,7 @@
   }
 
   .lojia-button-primary:hover {
-    background: #334155;
+    background: var(--lojia-primary-soft);
     transform: translateY(-1px);
   }
 
@@ -205,7 +205,7 @@
     border: 1px solid #e2e8f0;
     border-radius: 8px;
     background: #f8fafc;
-    color: #0f172a;
+    color: var(--lojia-primary);
     outline: none;
     transition: border-color 150ms ease, box-shadow 150ms ease;
   }
@@ -247,12 +247,12 @@
     align-items: center;
     justify-content: center;
     border-radius: 10px;
-    background: linear-gradient(160deg, #20BD7A 0%, var(--lojia-green) 56%, #020C2C 100%);
+    background: linear-gradient(160deg, #22C55E 0%, var(--lojia-green) 56%, #0B1115 100%);
     color: white;
     font-size: 1.55rem;
     font-weight: 820;
     line-height: 1;
-    box-shadow: inset 0 -10px 18px rgba(0, 0, 0, 0.12), 0 14px 28px rgba(22, 163, 107, 0.25);
+    box-shadow: inset 0 -10px 18px rgba(0, 0, 0, 0.12), 0 14px 28px rgba(22, 163, 74, 0.25);
   }
 
   .lojia-table-surface {
@@ -270,50 +270,50 @@
     min-height: 100vh;
     overflow-x: hidden;
     background:
-      radial-gradient(circle at 12% 0%, rgba(22, 163, 107, 0.09), transparent 24rem),
-      radial-gradient(circle at 96% 8%, rgba(2, 12, 44, 0.06), transparent 22rem),
+      radial-gradient(circle at 12% 0%, rgba(22, 163, 74, 0.09), transparent 24rem),
+      radial-gradient(circle at 96% 8%, rgba(11, 17, 21, 0.06), transparent 22rem),
       linear-gradient(180deg, #fffefa 0%, #f7f5ef 68%);
   }
 
   .lojia-hero-panel {
-    border: 1px solid rgba(2, 12, 44, 0.1);
+    border: 1px solid rgba(11, 17, 21, 0.1);
     border-radius: 8px;
     background:
-      linear-gradient(135deg, rgba(2, 12, 44, 0.99), rgba(8, 23, 67, 0.98)),
-      radial-gradient(circle at top right, rgba(22, 163, 107, 0.18), transparent 18rem);
+      linear-gradient(135deg, rgba(11, 17, 21, 0.99), rgba(19, 28, 34, 0.98)),
+      radial-gradient(circle at top right, rgba(22, 163, 74, 0.18), transparent 18rem);
     color: white;
-    box-shadow: 0 18px 46px rgba(2, 12, 44, 0.16);
+    box-shadow: 0 18px 46px rgba(11, 17, 21, 0.16);
   }
 
   .lojia-surface {
-    border: 1px solid rgba(2, 12, 44, 0.1);
+    border: 1px solid rgba(11, 17, 21, 0.1);
     border-radius: 8px;
     background: rgba(255, 254, 250, 0.92);
-    box-shadow: 0 14px 36px rgba(2, 12, 44, 0.07);
+    box-shadow: 0 14px 36px rgba(11, 17, 21, 0.07);
   }
 
   .lojia-soft-surface {
-    border: 1px solid rgba(2, 12, 44, 0.09);
+    border: 1px solid rgba(11, 17, 21, 0.09);
     border-radius: 8px;
     background: rgba(255, 254, 250, 0.72);
   }
 
   .lojia-primary-action {
     border-radius: 8px;
-    background: linear-gradient(135deg, #16A36B, #020C2C);
+    background: linear-gradient(135deg, #16A34A, #0B1115);
     color: white;
-    box-shadow: 0 12px 26px rgba(22, 163, 107, 0.22);
+    box-shadow: 0 12px 26px rgba(22, 163, 74, 0.22);
     transition: transform 150ms ease, box-shadow 150ms ease, filter 150ms ease;
   }
 
   .lojia-primary-action:hover {
     filter: brightness(1.02);
     transform: translateY(-1px);
-    box-shadow: 0 16px 30px rgba(22, 163, 107, 0.26);
+    box-shadow: 0 16px 30px rgba(22, 163, 74, 0.26);
   }
 
   .lojia-ghost-action {
-    border: 1px solid rgba(2, 12, 44, 0.12);
+    border: 1px solid rgba(11, 17, 21, 0.12);
     border-radius: 8px;
     background: rgba(255, 254, 250, 0.72);
     color: var(--lojia-charcoal);
@@ -321,7 +321,7 @@
   }
 
   .lojia-ghost-action:hover {
-    border-color: rgba(2, 12, 44, 0.24);
+    border-color: rgba(11, 17, 21, 0.24);
     background: #ffffff;
   }
 
@@ -434,7 +434,7 @@
   .bg-slate-100,
   .bg-zinc-100,
   .bg-gray-100 {
-    background-color: rgba(2, 12, 44, 0.06) !important;
+    background-color: rgba(11, 17, 21, 0.06) !important;
   }
 
   .bg-slate-900,
@@ -488,26 +488,35 @@
   .bg-emerald-600,
   .bg-emerald-500,
   .bg-green-600,
-  .bg-green-500,
+  .bg-green-500 {
+    background-color: var(--lojia-green) !important;
+  }
+
   .bg-blue-600,
   .bg-blue-500,
   .bg-cyan-700 {
-    background-color: #0f172a !important;
+    background-color: var(--lojia-primary) !important;
   }
 
   .hover\:bg-emerald-700:hover,
-  .hover\:bg-green-700:hover,
+  .hover\:bg-green-700:hover {
+    background-color: #15803D !important;
+  }
+
   .hover\:bg-blue-700:hover,
   .hover\:bg-cyan-800:hover {
-    background-color: #334155 !important;
+    background-color: var(--lojia-primary-soft) !important;
   }
 
   .text-emerald-700,
   .text-green-700,
+  .text-emerald-600,
+  .text-green-600 {
+    color: var(--lojia-green) !important;
+  }
+
   .text-blue-700,
   .text-cyan-700,
-  .text-emerald-600,
-  .text-green-600,
   .text-blue-600,
   .text-cyan-600 {
     color: #475569 !important;
@@ -515,10 +524,13 @@
 
   .bg-emerald-50,
   .bg-green-50,
+  .bg-emerald-100,
+  .bg-green-100 {
+    background-color: rgba(22, 163, 74, 0.1) !important;
+  }
+
   .bg-blue-50,
   .bg-cyan-50,
-  .bg-emerald-100,
-  .bg-green-100,
   .bg-blue-100,
   .bg-cyan-100 {
     background-color: #f8fafc !important;
@@ -526,7 +538,10 @@
 
   .border-emerald-200,
   .border-green-300,
-  .border-green-200,
+  .border-green-200 {
+    border-color: rgba(22, 163, 74, 0.24) !important;
+  }
+
   .border-blue-300,
   .border-blue-200,
   .border-cyan-200 {

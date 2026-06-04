@@ -55,15 +55,15 @@ export default function AceitarConvite() {
   }
 
   if (carregando) {
-    return <main className="lojia-shell grid min-h-screen place-items-center font-bold text-[#020C2C]">Carregando convite...</main>;
+    return <main className="lojia-shell grid min-h-screen place-items-center font-bold text-[#0B1115]">Carregando convite...</main>;
   }
 
   if (!convite) {
-    return <main className="lojia-shell grid min-h-screen place-items-center font-bold text-[#020C2C]">Convite indisponivel.</main>;
+    return <main className="lojia-shell grid min-h-screen place-items-center font-bold text-[#0B1115]">Convite indisponivel.</main>;
   }
 
   return (
-    <main className="lojia-shell grid min-h-screen px-4 py-8 text-[#020C2C] lg:grid-cols-[420px_1fr] lg:px-10">
+    <main className="lojia-shell grid min-h-screen px-4 py-8 text-[#0B1115] lg:grid-cols-[420px_1fr] lg:px-10">
       <aside className="lojia-gradient mb-5 rounded-lg border border-white/10 p-5 text-white shadow-2xl lg:mb-0 lg:self-center">
         <div className="mb-8 overflow-hidden rounded-xl border border-white/10 bg-white/[0.96] p-3 shadow-2xl">
           <img src="/lojia-logo.png" alt="Lojia" className="h-20 w-full scale-[1.35] object-contain" />
@@ -86,8 +86,8 @@ export default function AceitarConvite() {
       <section className="flex items-center justify-center">
         <form onSubmit={enviar} className="lojia-card w-full max-w-lg p-6">
           <div className="mb-6">
-            <p className="mb-1 text-xs font-bold uppercase text-[#020C2C]">Criar acesso</p>
-            <h2 className="text-2xl font-black text-[#020C2C]">Finalize seu cadastro</h2>
+            <p className="mb-1 text-xs font-bold uppercase text-[#0B1115]">Criar acesso</p>
+            <h2 className="text-2xl font-black text-[#0B1115]">Finalize seu cadastro</h2>
             <p className="mt-1 text-sm text-[#66736D]">Este usuario sera vinculado a loja convidada.</p>
           </div>
 

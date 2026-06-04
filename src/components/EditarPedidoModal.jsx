@@ -5,7 +5,7 @@ import api from "../services/api";
 import useModalPresence from "../hooks/useModalPresence";
 
 const inputClass =
-  "w-full rounded-lg border border-[#E5DED2] bg-[#FFFEFA] px-3 py-2.5 text-base outline-none transition placeholder:text-slate-400 focus:border-[#16A36B] focus:bg-white sm:text-sm";
+  "w-full rounded-lg border border-[#E5DED2] bg-[#FFFEFA] px-3 py-2.5 text-base outline-none transition placeholder:text-slate-400 focus:border-[#16A34A] focus:bg-white sm:text-sm";
 
 const labelClass = "mb-1.5 block text-xs font-medium uppercase text-slate-500";
 
@@ -182,7 +182,7 @@ export default function EditarPedidoModal({ pedido, aoFechar, aoSalvar, carregan
     <div className="fixed inset-0 z-[10000] flex items-end justify-center bg-slate-950/50 px-0 py-0 backdrop-blur-sm sm:items-center sm:px-4 sm:py-5">
       <form
         onSubmit={handleSubmit}
-        className="flex h-[100dvh] w-full max-w-5xl flex-col overflow-hidden rounded-none border border-slate-200/80 bg-[#FFFEFA] shadow-[0_28px_80px_rgba(2,12,44,0.24)] sm:h-auto sm:max-h-[92vh] sm:rounded-[24px]"
+        className="flex h-[100dvh] w-full max-w-5xl flex-col overflow-hidden rounded-none border border-slate-200/80 bg-[#FFFEFA] shadow-[0_28px_80px_rgba(11,17,21,0.24)] sm:h-auto sm:max-h-[92vh] sm:rounded-[24px]"
       >
         <div className="shrink-0 border-b border-slate-200/80 px-4 py-4 sm:px-6">
           <div className="flex items-start justify-between gap-4">
@@ -263,7 +263,7 @@ export default function EditarPedidoModal({ pedido, aoFechar, aoSalvar, carregan
                           onClick={() => atualizarForm("tipoEntrega", item.value)}
                           className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border px-3 text-sm font-medium transition ${
                             ativo
-                              ? "border-[#020C2C] bg-[#020C2C] text-white"
+                              ? "border-[#0B1115] bg-[#0B1115] text-white"
                               : "border-[#E5DED2] bg-white text-slate-600 hover:bg-slate-50"
                           }`}
                         >
@@ -321,7 +321,7 @@ export default function EditarPedidoModal({ pedido, aoFechar, aoSalvar, carregan
                 <button
                   type="button"
                   onClick={() => setItens((prev) => [...prev, novoItemManual()])}
-                  className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-[#16A36B]/30 bg-[#16A36B]/10 px-3 text-xs font-semibold text-[#020C2C] transition hover:bg-[#16A36B]/15"
+                  className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-[#16A34A]/30 bg-[#16A34A]/10 px-3 text-xs font-semibold text-[#0B1115] transition hover:bg-[#16A34A]/15"
                 >
                   <Plus size={14} /> Item avulso
                 </button>
@@ -444,7 +444,7 @@ export default function EditarPedidoModal({ pedido, aoFechar, aoSalvar, carregan
               <button
                 type="submit"
                 disabled={carregando}
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#020C2C] px-5 py-3 text-sm font-medium text-white shadow-[0_14px_26px_rgba(2,12,44,0.16)] transition hover:bg-[#081743] disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#0B1115] px-5 py-3 text-sm font-medium text-white shadow-[0_14px_26px_rgba(11,17,21,0.16)] transition hover:bg-[#131C22] disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {carregando ? "Salvando..." : "Salvar alteracoes"}
                 {!carregando && <Save size={15} />}

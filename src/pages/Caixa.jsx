@@ -33,7 +33,7 @@ const dataHora = (valor) => {
 };
 
 const inputClass =
-  "w-full rounded-lg border border-[#E5DED2] bg-[#FFFEFA] px-3 py-2.5 text-base outline-none transition placeholder:text-slate-400 focus:border-[#16A36B] focus:bg-white sm:text-sm";
+  "w-full rounded-lg border border-[#E5DED2] bg-[#FFFEFA] px-3 py-2.5 text-base outline-none transition placeholder:text-slate-400 focus:border-[#16A34A] focus:bg-white sm:text-sm";
 
 function StatCard({ label, value, icon: Icon }) {
   return (
@@ -169,7 +169,7 @@ export default function Caixa() {
         <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,520px)_1fr]">
           <form onSubmit={abrirCaixa} className="lojia-surface p-5">
             <div className="mb-5 flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#16A36B]/10 text-[#020C2C]">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#16A34A]/10 text-[#0B1115]">
                 <Banknote size={20} />
               </div>
               <div>
@@ -239,7 +239,7 @@ export default function Caixa() {
                         onClick={() => setMovimentoForm((prev) => ({ ...prev, tipo: item.value }))}
                         className={`rounded-md px-2 py-2 text-sm font-medium transition ${
                           movimentoForm.tipo === item.value
-                            ? "bg-[#020C2C] text-white"
+                            ? "bg-[#0B1115] text-white"
                             : "text-slate-600 hover:bg-white"
                         }`}
                       >
@@ -309,7 +309,7 @@ export default function Caixa() {
                           movimento.tipo === "saida"
                             ? "bg-rose-50 text-rose-600"
                             : movimento.tipo === "venda"
-                              ? "bg-[#16A36B]/10 text-[#020C2C]"
+                              ? "bg-[#16A34A]/10 text-[#0B1115]"
                               : "bg-slate-100 text-slate-600"
                         }`}>
                           {movimento.tipo === "saida" ? <ArrowUpRight size={17} /> : <ArrowDownLeft size={17} />}
@@ -342,7 +342,7 @@ export default function Caixa() {
           <aside className="space-y-6">
             <section className="lojia-surface p-5">
               <div className="mb-4 flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#16A36B]/10 text-[#020C2C]">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#16A34A]/10 text-[#0B1115]">
                   <CheckCircle2 size={20} />
                 </div>
                 <div>
@@ -412,7 +412,7 @@ export default function Caixa() {
               <button
                 type="submit"
                 disabled={salvando}
-                className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[#020C2C] px-4 py-3 text-sm font-medium text-white transition hover:bg-[#081743] disabled:opacity-60"
+                className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[#0B1115] px-4 py-3 text-sm font-medium text-white transition hover:bg-[#131C22] disabled:opacity-60"
               >
                 <LockKeyhole size={17} /> Fechar caixa
               </button>

@@ -12,9 +12,11 @@ import MobileHome from "./pages/MobileHome";
 import BuscarProdutos from "./pages/BuscarProdutos";
 import Metas from "./pages/Metas";
 import Pedidos from "./pages/Pedidos";
-import EntradaEstoque from "./pages/EntradaEstoque";
 import Caixa from "./pages/Caixa";
 import Financeiro from "./pages/Financeiro";
+import Relatorios from "./pages/Relatorios";
+import Inventario from "./pages/Inventario";
+import Etiquetas from "./pages/Etiquetas";
 import Login from "./pages/Login";
 import CadastroLojista from "./pages/CadastroLojista";
 import AceitarConvite from "./pages/AceitarConvite";
@@ -55,7 +57,7 @@ function LoadingScreen() {
 
         <div className="mt-4 h-1 w-40 overflow-hidden rounded-full bg-white/12">
           <motion.div
-            className="h-full origin-left rounded-full bg-[#16A36B]"
+            className="h-full origin-left rounded-full bg-[#16A34A]"
             animate={{ scaleX: [0.18, 1, 0.18], x: ["-10%", "0%", "82%"] }}
             transition={{ duration: 1.45, repeat: Infinity, ease: "easeInOut" }}
           />
@@ -81,7 +83,8 @@ function ProtectedApp() {
   const { autenticado, carregando, usuario } = useAuth();
   const [tela, setTelaState] = useState(() => {
     if (typeof window === "undefined") return "dashboard";
-    return localStorage.getItem("lojia_tela_ativa") || "dashboard";
+    const telaSalva = localStorage.getItem("lojia_tela_ativa") || "dashboard";
+    return telaSalva === "entradas" ? "estoque" : telaSalva;
   });
 
   const setTela = (proximaTela) => {
@@ -104,7 +107,11 @@ function ProtectedApp() {
       case "historico":
         return <VendasListadas />;
       case "estoque":
-        return <Estoque aoAdicionarReposicao={() => setTela("entradas")} />;
+        return <Estoque onNavigate={setTela} />;
+      case "inventario":
+        return <Inventario onNavigate={setTela} />;
+      case "etiquetas":
+        return <Etiquetas onNavigate={setTela} />;
       case "clientes":
         return <Clientes />;
       case "produtos":
@@ -117,8 +124,8 @@ function ProtectedApp() {
         return <Caixa />;
       case "financeiro":
         return <Financeiro />;
-      case "entradas":
-        return <EntradaEstoque />;
+      case "relatorios":
+        return <Relatorios />;
       case "superadmin":
         return usuario?.superadmin ? <SuperAdmin /> : <Dashboard />;
       case "minha-conta":

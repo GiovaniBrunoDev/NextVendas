@@ -694,7 +694,7 @@ function ConferenciaReposicao({
             type="button"
             onClick={onConfirmar}
             disabled={salvando}
-            className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#020C2C] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#081743] disabled:opacity-60"
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#0B1115] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#131C22] disabled:opacity-60"
           >
             <CheckCircle2 size={16} />
             {salvando ? "Registrando..." : "Confirmar reposição"}

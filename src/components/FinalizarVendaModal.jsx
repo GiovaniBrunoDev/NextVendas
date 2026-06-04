@@ -14,7 +14,7 @@ const formatCurrency = (valor) =>
   }).format(Number(valor || 0));
 
 const inputClass =
-  "w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-base text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-[#16A36B] focus:ring-3 focus:ring-[#16A36B]/10 sm:text-sm";
+  "w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-base text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-[#16A34A] focus:ring-3 focus:ring-[#16A34A]/10 sm:text-sm";
 
 const fieldLabelClass = "mb-1.5 block text-xs font-semibold uppercase text-slate-500";
 
@@ -26,10 +26,10 @@ const selectStyles = {
     ...base,
     minHeight: 44,
     borderRadius: 8,
-    borderColor: state.isFocused ? "#16A36B" : "#e2e8f0",
+    borderColor: state.isFocused ? "#16A34A" : "#e2e8f0",
     boxShadow: "none",
     fontSize: 16,
-    "&:hover": { borderColor: "#16A36B" },
+    "&:hover": { borderColor: "#16A34A" },
   }),
   menu: (base) => ({ ...base, zIndex: 10001 }),
   menuPortal: (base) => ({ ...base, zIndex: 10001 }),
@@ -290,7 +290,7 @@ export default function FinalizarVendaModal({ carrinho, aoFechar, aoFinalizar })
             onClick={() => setTipoEntrega(opcao.value)}
             className={`rounded-xl border px-4 py-3 text-sm font-medium transition ${
               tipoEntrega === opcao.value
-                ? "border-[#020C2C] bg-[#020C2C] text-white shadow-[0_12px_24px_rgba(24,31,36,0.12)]"
+                ? "border-[#0B1115] bg-[#0B1115] text-white shadow-[0_12px_24px_rgba(24,31,36,0.12)]"
                 : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50"
             }`}
           >
@@ -350,7 +350,7 @@ export default function FinalizarVendaModal({ carrinho, aoFechar, aoFinalizar })
             onClick={() => setFormaPagamento(opcao.value)}
             className={`flex items-center justify-center gap-2 rounded-lg px-2 py-2.5 text-xs font-medium transition ${
               formaPagamento === opcao.value
-                ? "bg-[#020C2C] text-white shadow-[0_10px_20px_rgba(24,31,36,0.12)]"
+                ? "bg-[#0B1115] text-white shadow-[0_10px_20px_rgba(24,31,36,0.12)]"
                 : "text-slate-600 hover:bg-slate-50 hover:text-slate-950"
             }`}
           >
@@ -437,7 +437,7 @@ export default function FinalizarVendaModal({ carrinho, aoFechar, aoFinalizar })
         </div>
       </div>
 
-      <div className="rounded-2xl border border-slate-200/80 bg-[#020C2C] p-4 text-sm text-white shadow-[0_16px_34px_rgba(24,31,36,0.14)]">
+      <div className="rounded-2xl border border-slate-200/80 bg-[#0B1115] p-4 text-sm text-white shadow-[0_16px_34px_rgba(24,31,36,0.14)]">
         <div className="flex justify-between text-slate-600">
           <span className="text-white/62">Produtos</span>
           <span>{formatCurrency(totalProdutos)}</span>
@@ -492,7 +492,7 @@ export default function FinalizarVendaModal({ carrinho, aoFechar, aoFinalizar })
           <div className="mt-5">
             <div className="h-1.5 overflow-hidden rounded-full bg-slate-200/80">
               <div
-                className="h-full rounded-full bg-gradient-to-r from-[#16A36B] to-[#20BD7A] transition-all duration-300"
+                className="h-full rounded-full bg-gradient-to-r from-[#16A34A] to-[#22C55E] transition-all duration-300"
                 style={{ width: `${progresso}%` }}
               />
             </div>
@@ -532,7 +532,7 @@ export default function FinalizarVendaModal({ carrinho, aoFechar, aoFinalizar })
                 type="button"
                 onClick={handleFinalizar}
                 disabled={carregando}
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#16A36B] px-5 py-3 text-sm font-medium text-white shadow-[0_14px_26px_rgba(22,163,107,0.22)] transition hover:bg-[#020C2C] disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#16A34A] px-5 py-3 text-sm font-medium text-white shadow-[0_14px_26px_rgba(22,163,74,0.22)] transition hover:bg-[#0B1115] disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {carregando ? "Processando..." : "Confirmar venda"}
                 {!carregando && <FaCheckCircle />}
@@ -541,7 +541,7 @@ export default function FinalizarVendaModal({ carrinho, aoFechar, aoFinalizar })
               <button
                 type="button"
                 onClick={avancar}
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#020C2C] px-5 py-3 text-sm font-medium text-white shadow-[0_14px_26px_rgba(24,31,36,0.16)] transition hover:bg-[#081743]"
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#0B1115] px-5 py-3 text-sm font-medium text-white shadow-[0_14px_26px_rgba(24,31,36,0.16)] transition hover:bg-[#131C22]"
               >
                 Proximo <FaArrowRight size={12} />
               </button>

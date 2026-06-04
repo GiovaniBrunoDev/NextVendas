@@ -296,7 +296,7 @@ export default function Pedidos() {
                   href={googleMapsUrl(enderecoEntrega)}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="mt-1 inline-flex max-w-full items-center gap-2 text-sm font-medium text-slate-950 underline decoration-slate-300 underline-offset-4 transition hover:text-[#020C2C] hover:decoration-[#16A36B]"
+                  className="mt-1 inline-flex max-w-full items-center gap-2 text-sm font-medium text-slate-950 underline decoration-slate-300 underline-offset-4 transition hover:text-[#0B1115] hover:decoration-[#16A34A]"
                   title="Abrir no Google Maps"
                 >
                   <span className="truncate">{enderecoEntrega}</span>
@@ -433,8 +433,8 @@ export default function Pedidos() {
                   onClick={() => setFiltro(item.id)}
                   className={`flex min-w-max items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition ${
                     ativo
-                      ? "border-[#16A36B] bg-[#16A36B] text-white"
-                      : "border-[#E5DED2] bg-white text-slate-700 hover:border-[#16A36B]/40 hover:bg-[#16A36B]/5"
+                      ? "border-[#16A34A] bg-[#16A34A] text-white"
+                      : "border-[#E5DED2] bg-white text-slate-700 hover:border-[#16A34A]/40 hover:bg-[#16A34A]/5"
                   }`}
                 >
                   <Icon size={16} />
@@ -451,7 +451,7 @@ export default function Pedidos() {
               value={busca}
               onChange={(e) => setBusca(e.target.value)}
               placeholder="Buscar pedido, cliente ou produto"
-              className="w-full rounded-lg border border-[#E5DED2] bg-[#FFFEFA] py-2.5 pl-10 pr-3 text-sm outline-none transition placeholder:text-slate-400 focus:border-[#16A36B] focus:bg-white"
+              className="w-full rounded-lg border border-[#E5DED2] bg-[#FFFEFA] py-2.5 pl-10 pr-3 text-sm outline-none transition placeholder:text-slate-400 focus:border-[#16A34A] focus:bg-white"
             />
           </label>
         </div>

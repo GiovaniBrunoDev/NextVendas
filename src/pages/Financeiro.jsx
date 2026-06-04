@@ -67,7 +67,7 @@ const dataHora = (valor) => {
 };
 
 const inputClass =
-  "w-full rounded-lg border border-[#E5DED2] bg-[#FFFEFA] px-3 py-2.5 text-base outline-none transition placeholder:text-slate-400 focus:border-[#16A36B] focus:bg-white sm:text-sm";
+  "w-full rounded-lg border border-[#E5DED2] bg-[#FFFEFA] px-3 py-2.5 text-base outline-none transition placeholder:text-slate-400 focus:border-[#16A34A] focus:bg-white sm:text-sm";
 
 const periodos = [
   { value: "hoje", label: "Hoje" },
@@ -81,7 +81,7 @@ const categoriasEntrada = ["recebimento", "venda externa", "ajuste", "reembolso"
 const categoriasSaida = ["fornecedor", "aluguel", "frete", "taxa", "funcionario", "marketing", "outro"];
 
 const statusClasses = {
-  pago: "bg-[#16A36B]/10 text-[#020C2C]",
+  pago: "bg-[#16A34A]/10 text-[#0B1115]",
   pendente: "bg-amber-50 text-amber-700",
   vencido: "bg-rose-50 text-rose-700",
 };
@@ -240,7 +240,7 @@ export default function Financeiro() {
   if (carregando && !dados) {
     return (
       <div className="flex h-screen flex-col items-center justify-center bg-[#F7F5EF]">
-        <div className="h-11 w-11 animate-spin rounded-full border-4 border-slate-200 border-t-[#020C2C]" />
+        <div className="h-11 w-11 animate-spin rounded-full border-4 border-slate-200 border-t-[#0B1115]" />
         <p className="mt-5 text-sm font-medium text-slate-600">Carregando financeiro...</p>
       </div>
     );
@@ -315,7 +315,7 @@ export default function Financeiro() {
                 <button
                   type="button"
                   onClick={() => abrirLancamento("saida")}
-                  className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-[#020C2C] px-4 text-sm font-semibold text-white transition hover:bg-[#081743]"
+                  className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-[#0B1115] px-4 text-sm font-semibold text-white transition hover:bg-[#131C22]"
                 >
                   <Plus size={17} /> Despesa
                 </button>
@@ -417,7 +417,7 @@ function FinanceiroResumo({ resumo, lancamentos, contasReceber, pagamentos, onPa
                       <button
                         type="button"
                         onClick={() => onPagar(item.id)}
-                        className="inline-flex h-8 items-center rounded-lg bg-[#16A36B] px-3 text-xs font-semibold text-white"
+                        className="inline-flex h-8 items-center rounded-lg bg-[#16A34A] px-3 text-xs font-semibold text-white"
                       >
                         Recebido
                       </button>
@@ -461,7 +461,7 @@ function LucroResumo({ dados, carregando }) {
     return (
       <div className="lojia-surface flex min-h-[320px] items-center justify-center p-8">
         <div className="text-center">
-          <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-[#020C2C]" />
+          <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-[#0B1115]" />
           <p className="mt-4 text-sm font-medium text-slate-600">Calculando lucro bruto...</p>
         </div>
       </div>
@@ -498,12 +498,12 @@ function LucroResumo({ dados, carregando }) {
                   border: "1px solid #cbd5e1",
                   borderRadius: "8px",
                   boxShadow: "0 10px 30px rgba(15, 23, 42, 0.08)",
-                  color: "#0f172a",
+                  color: "#0B1115",
                   fontSize: "12px",
                 }}
                 formatter={(value) => moeda(value)}
               />
-              <Bar dataKey="lucro" fill="#020C2C" radius={[6, 6, 0, 0]} />
+              <Bar dataKey="lucro" fill="#0B1115" radius={[6, 6, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </section>
@@ -608,7 +608,7 @@ function LancamentoModal({ form, clientes, categorias, salvando, onChange, onSub
                   type="button"
                   onClick={() => onChange("tipo", item.value)}
                   className={`rounded-md px-2 py-2 text-sm font-semibold transition ${
-                    form.tipo === item.value ? "bg-[#020C2C] text-white" : "text-slate-600 hover:bg-white"
+                    form.tipo === item.value ? "bg-[#0B1115] text-white" : "text-slate-600 hover:bg-white"
                   }`}
                 >
                   {item.label}
@@ -720,9 +720,9 @@ function LancamentoModal({ form, clientes, categorias, salvando, onChange, onSub
 
 function StatCard({ label, value, icon: Icon, destaque = false, danger = false }) {
   return (
-    <div className={`lojia-surface p-4 ${destaque ? "border-[#020C2C]" : ""}`}>
+    <div className={`lojia-surface p-4 ${destaque ? "border-[#0B1115]" : ""}`}>
       <p className="flex items-center gap-2 text-xs font-medium uppercase text-slate-500">
-        <Icon size={15} className={danger ? "text-rose-600" : "text-[#16A36B]"} />
+        <Icon size={15} className={danger ? "text-rose-600" : "text-[#16A34A]"} />
         {label}
       </p>
       <p className="mt-2 text-xl font-semibold text-slate-950">{value}</p>
@@ -738,7 +738,7 @@ function LancamentoItem({ item, onPagar, onRemover }) {
     <div className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex min-w-0 items-start gap-3">
         <div className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${
-          saida ? "bg-rose-50 text-rose-600" : "bg-[#16A36B]/10 text-[#020C2C]"
+          saida ? "bg-rose-50 text-rose-600" : "bg-[#16A34A]/10 text-[#0B1115]"
         }`}>
           <Icon size={17} />
         </div>
@@ -763,7 +763,7 @@ function LancamentoItem({ item, onPagar, onRemover }) {
           <button
             type="button"
             onClick={() => onPagar(item.id)}
-            className="inline-flex h-8 items-center gap-1 rounded-lg border border-[#16A36B]/30 px-2 text-xs font-semibold text-[#020C2C]"
+            className="inline-flex h-8 items-center gap-1 rounded-lg border border-[#16A34A]/30 px-2 text-xs font-semibold text-[#0B1115]"
           >
             <CheckCircle2 size={14} /> Pago
           </button>

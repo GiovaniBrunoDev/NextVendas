@@ -17,10 +17,12 @@ import {
   FaCreditCard,
   FaMoneyBillWave,
   FaReceipt,
+  FaRegHandPaper,
   FaShoppingCart,
   FaSmile,
   FaTruck,
 } from "react-icons/fa";
+import { useAuth } from "../contexts/AuthContext";
 
 const periodos = [
   { value: "dia", label: "Hoje" },
@@ -59,15 +61,15 @@ function MetricCard({ titulo, valor, isCurrency = false, icon }) {
   const format = isCurrency ? formatCurrency : (v) => Math.round(v);
 
   return (
-    <div className="lojia-surface p-3.5 transition hover:-translate-y-0.5 hover:shadow-[0_18px_38px_rgba(36,48,43,0.1)]">
+    <div className="lojia-surface rounded-xl border-slate-200/80 bg-white/90 p-4 shadow-[0_10px_28px_rgba(11,17,21,0.045)] transition hover:-translate-y-0.5 hover:shadow-[0_16px_34px_rgba(11,17,21,0.075)]">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="truncate text-xs font-medium uppercase text-slate-500">{titulo}</p>
-          <p className="mt-1.5 truncate text-xl font-semibold text-slate-950">
+          <p className="truncate text-xs font-semibold text-slate-500">{titulo}</p>
+          <p className="mt-2 truncate text-xl font-semibold tracking-tight text-slate-950">
             {isNumeric ? <AnimatedNumber value={valor} format={format} /> : valor}
           </p>
         </div>
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#16A36B]/10 text-sm text-[#020C2C]">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-50 text-sm text-[#0B1115] ring-1 ring-slate-200/80">
           {icon}
         </div>
       </div>
@@ -75,10 +77,10 @@ function MetricCard({ titulo, valor, isCurrency = false, icon }) {
   );
 }
 
-function FeaturedMetricCard({ titulo, valor }) {
+function FeaturedMetricCard({ titulo, valor, periodoAtual }) {
   return (
-    <div className="lojia-hero-panel p-5">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <div className="lojia-hero-panel overflow-hidden p-5">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="text-sm font-medium text-white/70">{titulo}</p>
           <p className="mt-1.5 text-3xl font-semibold text-white sm:text-4xl">
@@ -91,8 +93,8 @@ function FeaturedMetricCard({ titulo, valor }) {
             <FaMoneyBillWave />
           </div>
           <div>
-            <p className="text-xs text-white/62">Período</p>
-            <p className="mt-0.5 text-sm font-medium text-white/85">Selecionado acima</p>
+            <p className="text-xs text-white/62">Resumo</p>
+            <p className="mt-0.5 text-sm font-medium text-white/85">{periodoAtual}</p>
           </div>
         </div>
       </div>
@@ -101,6 +103,7 @@ function FeaturedMetricCard({ titulo, valor }) {
 }
 
 export default function Dashboard() {
+  const { usuario } = useAuth();
   const [vendas, setVendas] = useState([]);
   const [pedidos, setPedidos] = useState([]);
   const [dadosGrafico, setDadosGrafico] = useState([]);
@@ -123,6 +126,11 @@ export default function Dashboard() {
     () => periodos.find((item) => item.value === periodo)?.label || "Período",
     [periodo]
   );
+
+  const primeiroNome = useMemo(() => {
+    const nome = String(usuario?.nome || "lojista").trim();
+    return nome.split(/\s+/)[0] || "lojista";
+  }, [usuario?.nome]);
 
   useEffect(() => {
     async function carregarDados() {
@@ -273,14 +281,17 @@ export default function Dashboard() {
 
   return (
     <div className="lojia-page min-h-screen space-y-4 p-4 sm:p-6">
-      <div className="lojia-surface p-4">
+      <div className="lojia-surface rounded-xl bg-white/90 p-4 shadow-[0_12px_30px_rgba(11,17,21,0.05)]">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div>
-            <p className="text-xs font-medium uppercase text-slate-500">Visao geral</p>
-            <h2 className="mt-1 text-2xl font-semibold text-slate-950">Dashboard</h2>
-            <p className="mt-1 text-sm text-slate-500">
-              {vendasFiltradas.length} vendas analisadas em {periodoAtual.toLowerCase()}.
-            </p>
+          <div className="flex min-w-0 items-start gap-3">
+            <span className="mt-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#16A34A]/10 text-[#0B1115] ring-1 ring-[#16A34A]/15">
+              <FaRegHandPaper />
+            </span>
+            <div className="min-w-0">
+              <p className="text-xs font-medium uppercase text-slate-500">Dashboard</p>
+              <h2 className="mt-1 text-2xl font-semibold text-slate-950">Olá, {primeiroNome}</h2>
+              <p className="mt-1 text-sm text-slate-500">Aqui está o resumo da sua operação.</p>
+            </div>
           </div>
 
           <div className="grid w-full grid-cols-4 gap-1 rounded-lg border border-[#E5DED2] bg-[#F7F5EF] p-1 sm:inline-flex sm:w-auto">
@@ -292,7 +303,7 @@ export default function Dashboard() {
                   onClick={() => setPeriodo(item.value)}
                   className={`min-h-9 min-w-0 rounded-md px-1 text-[10px] font-medium transition sm:flex-none sm:px-3 sm:text-sm ${
                     ativo
-                      ? "bg-white text-[#020C2C] shadow-sm"
+                      ? "bg-white text-[#0B1115] shadow-sm"
                       : "text-slate-600 hover:bg-white/70 hover:text-slate-900"
                   }`}
                 >
@@ -305,54 +316,20 @@ export default function Dashboard() {
       </div>
 
       <FeaturedMetricCard
-        titulo="Faturamento"
+        titulo="Sua loja vendeu"
         valor={total}
+        periodoAtual={periodoAtual}
       />
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <MetricCard
-          titulo="Vendas"
-          valor={vendasFiltradas.length}
-          icon={<FaShoppingCart />}
-        />
-        <MetricCard
-          titulo="Produtos"
-          valor={qtdProdutos}
-          icon={<FaBoxOpen />}
-        />
-        <MetricCard
-          titulo="Ticket médio"
-          valor={ticketMedio}
-          isCurrency
-          icon={<FaReceipt />}
-        />
-        <MetricCard
-          titulo="Lucro bruto"
-          valor={lucro}
-          isCurrency
-          icon={<FaChartLine />}
-        />
-        <MetricCard
-          titulo="Clientes"
-          valor={clientesAtendidos}
-          icon={<FaSmile />}
-        />
-        <MetricCard
-          titulo="Entregas"
-          valor={taxasEntrega}
-          isCurrency
-          icon={<FaTruck />}
-        />
-        <MetricCard
-          titulo="Pedidos"
-          valor={pedidos.length}
-          icon={<FaClipboardList />}
-        />
-        <MetricCard
-          titulo="Pagamento"
-          valor={formaPagamentoMaisUsada}
-          icon={<FaCreditCard />}
-        />
+        <MetricCard titulo="Vendas" valor={vendasFiltradas.length} icon={<FaShoppingCart />} />
+        <MetricCard titulo="Produtos" valor={qtdProdutos} icon={<FaBoxOpen />} />
+        <MetricCard titulo="Ticket médio" valor={ticketMedio} isCurrency icon={<FaReceipt />} />
+        <MetricCard titulo="Lucro bruto" valor={lucro} isCurrency icon={<FaChartLine />} />
+        <MetricCard titulo="Clientes" valor={clientesAtendidos} icon={<FaSmile />} />
+        <MetricCard titulo="Entregas" valor={taxasEntrega} isCurrency icon={<FaTruck />} />
+        <MetricCard titulo="Pedidos" valor={pedidos.length} icon={<FaClipboardList />} />
+        <MetricCard titulo="Pagamento" valor={formaPagamentoMaisUsada} icon={<FaCreditCard />} />
       </div>
 
       <div className="lojia-surface p-4">
@@ -393,7 +370,7 @@ export default function Dashboard() {
                   border: "1px solid #cbd5e1",
                   borderRadius: "8px",
                   boxShadow: "0 10px 30px rgba(15, 23, 42, 0.08)",
-                  color: "#0f172a",
+                  color: "#0B1115",
                   fontSize: "12px",
                 }}
                 formatter={(value) => formatCurrency(value)}
@@ -401,10 +378,10 @@ export default function Dashboard() {
               <Line
                 type="monotone"
                 dataKey="total"
-                stroke="#16A36B"
+                stroke="#16A34A"
                 strokeWidth={2.4}
-                dot={{ r: 3, stroke: "#16A36B", strokeWidth: 2, fill: "#ffffff" }}
-                activeDot={{ r: 5, stroke: "#16A36B", strokeWidth: 2, fill: "#ffffff" }}
+                dot={{ r: 3, stroke: "#16A34A", strokeWidth: 2, fill: "#ffffff" }}
+                activeDot={{ r: 5, stroke: "#16A34A", strokeWidth: 2, fill: "#ffffff" }}
               />
             </LineChart>
           </ResponsiveContainer>

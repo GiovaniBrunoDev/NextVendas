@@ -9,17 +9,17 @@ const defaultSelectStyles = {
     ...base,
     minHeight: 44,
     borderRadius: 8,
-    borderColor: state.isFocused ? "#16A36B" : "#e2e8f0",
+    borderColor: state.isFocused ? "#16A34A" : "#e2e8f0",
     boxShadow: "none",
     fontSize: 16,
-    "&:hover": { borderColor: "#16A36B" },
+    "&:hover": { borderColor: "#16A34A" },
   }),
   menu: (base) => ({ ...base, zIndex: 10001 }),
   menuPortal: (base) => ({ ...base, zIndex: 10001 }),
 };
 
 const inputClass =
-  "w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-base text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-[#16A36B] focus:ring-3 focus:ring-[#16A36B]/10 sm:text-sm";
+  "w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-base text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-[#16A34A] focus:ring-3 focus:ring-[#16A34A]/10 sm:text-sm";
 
 function formatTelefone(value) {
   return value
@@ -104,7 +104,7 @@ export default function EntregadorSelect({ value, onChange, selectStyles = defau
         <button
           type="button"
           onClick={() => setNovoAberto((aberto) => !aberto)}
-          className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 transition hover:border-[#16A36B]/40 hover:bg-slate-50"
+          className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 transition hover:border-[#16A34A]/40 hover:bg-slate-50"
         >
           {novoAberto ? <X size={16} /> : <Plus size={16} />}
           Novo
@@ -138,7 +138,7 @@ export default function EntregadorSelect({ value, onChange, selectStyles = defau
               type="button"
               onClick={salvarEntregador}
               disabled={salvando}
-              className="min-h-11 rounded-xl bg-[#020C2C] px-4 text-sm font-semibold text-white transition hover:bg-[#081743] disabled:opacity-60"
+              className="min-h-11 rounded-xl bg-[#0B1115] px-4 text-sm font-semibold text-white transition hover:bg-[#131C22] disabled:opacity-60"
             >
               {salvando ? "Salvando..." : "Salvar"}
             </button>

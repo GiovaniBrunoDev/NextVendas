@@ -43,9 +43,9 @@ export default function ConnectionStatus() {
   const Icon = recarregando ? RefreshCw : WifiOff;
 
   return (
-    <div className="fixed inset-0 z-[20000] grid place-items-center bg-[#020C2C]/42 px-4 backdrop-blur-md">
-      <div className="w-full max-w-sm rounded-[24px] border border-white/70 bg-[#FFFEFA]/95 p-6 text-center shadow-[0_28px_90px_rgba(2,12,44,0.28)]">
-        <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#16A36B]/10 text-[#020C2C]">
+    <div className="fixed inset-0 z-[20000] grid place-items-center bg-[#0B1115]/42 px-4 backdrop-blur-md">
+      <div className="w-full max-w-sm rounded-[24px] border border-white/70 bg-[#FFFEFA]/95 p-6 text-center shadow-[0_28px_90px_rgba(11,17,21,0.28)]">
+        <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#16A34A]/10 text-[#0B1115]">
           <Icon size={24} className={recarregando ? "animate-spin" : ""} />
         </span>
 

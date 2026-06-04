@@ -37,7 +37,7 @@ const generos = [
 ];
 
 const inputClass =
-  "w-full rounded-lg border border-[#E5DED2] bg-[#FFFEFA] px-3 py-2.5 text-base outline-none transition placeholder:text-slate-400 focus:border-[#16A36B] focus:bg-white sm:text-sm";
+  "w-full rounded-lg border border-[#E5DED2] bg-[#FFFEFA] px-3 py-2.5 text-base outline-none transition placeholder:text-slate-400 focus:border-[#16A34A] focus:bg-white sm:text-sm";
 
 const labelClass = "mb-1.5 block text-xs font-medium uppercase text-slate-500";
 
@@ -197,7 +197,7 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
         const opcoes = {
           width: 180,
           margin: 1,
-          color: { dark: "#020C2C", light: "#FFFFFF" },
+          color: { dark: "#0B1115", light: "#FFFFFF" },
         };
         const dataUrl = gerarDataUrl
           ? await gerarDataUrl(mobileUpload.uploadUrl, opcoes)
@@ -614,7 +614,7 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
       <div className="space-y-4">
         <div className={`grid grid-cols-1 gap-3 ${podeAdicionarVideo ? "lg:grid-cols-3" : "lg:grid-cols-2"}`}>
           <label className="rounded-lg border border-dashed border-[#E5DED2] bg-[#FFFEFA]/70 p-4 text-center transition hover:bg-white">
-            <ImagePlus className="mx-auto text-[#16A36B]" />
+            <ImagePlus className="mx-auto text-[#16A34A]" />
             <span className="mt-2 block text-sm font-semibold text-slate-950">Enviar deste computador</span>
             <span className="mt-1 block text-xs text-slate-500">Escolha uma foto salva aqui.</span>
             <input type="file" accept="image/*" onChange={handleSelecionarImagem} className="hidden" />
@@ -653,7 +653,7 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
               </div>
             ) : mobileUpload.status === "recebido" ? (
               <div className="flex h-full min-h-[156px] flex-col items-center justify-center">
-                <CheckCircle2 className="text-[#16A36B]" size={28} />
+                <CheckCircle2 className="text-[#16A34A]" size={28} />
                 <p className="mt-3 text-sm font-semibold text-slate-950">Foto recebida do celular</p>
                 <p className="mt-1 text-xs text-slate-500">Ela ja foi colocada na previa do produto.</p>
                 <button
@@ -666,7 +666,7 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
               </div>
             ) : (
               <div className="flex h-full min-h-[156px] flex-col items-center justify-center">
-                <Smartphone className="text-[#16A36B]" size={26} />
+                <Smartphone className="text-[#16A34A]" size={26} />
                 <p className="mt-3 text-sm font-semibold text-slate-950">Usar foto do celular</p>
                 <p className="mt-1 text-xs text-slate-500">
                   Gere um QR Code para fotografar ou escolher a imagem pelo celular.
@@ -675,7 +675,7 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
                   type="button"
                   onClick={iniciarUploadCelular}
                   disabled={mobileUpload.carregando}
-                  className="mt-3 inline-flex items-center justify-center gap-2 rounded-lg bg-[#020C2C] px-3 py-2 text-xs font-medium text-white transition hover:bg-[#081743] disabled:cursor-not-allowed disabled:opacity-60"
+                  className="mt-3 inline-flex items-center justify-center gap-2 rounded-lg bg-[#0B1115] px-3 py-2 text-xs font-medium text-white transition hover:bg-[#131C22] disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {mobileUpload.carregando ? <RefreshCw size={13} className="animate-spin" /> : <QrCode size={13} />}
                   Adicionar imagem do celular
@@ -686,7 +686,7 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
 
           {podeAdicionarVideo && (
             <label className="rounded-lg border border-dashed border-[#E5DED2] bg-[#FFFEFA]/70 p-4 text-center transition hover:bg-white">
-              <ImagePlus className="mx-auto text-[#16A36B]" />
+              <ImagePlus className="mx-auto text-[#16A34A]" />
               <span className="mt-2 block text-sm font-semibold text-slate-950">Video do catalogo</span>
               <span className="mt-1 block text-xs text-slate-500">Disponivel para a loja principal</span>
               <input type="file" accept="video/*" onChange={handleSelecionarVideo} className="hidden" />
@@ -798,7 +798,7 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
                   {fornecedorSelecionado?.nome || "Sem fornecedor"}
                 </span>
                 {videoFile && podeAdicionarVideo && (
-                  <span className="rounded-full bg-[#16A36B]/10 px-2 py-1 text-[#020C2C]">Com vídeo</span>
+                  <span className="rounded-full bg-[#16A34A]/10 px-2 py-1 text-[#0B1115]">Com vídeo</span>
                 )}
               </div>
             </div>
@@ -861,14 +861,14 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
           <div className="mt-5">
             <div className="mb-2 grid grid-cols-4 gap-1 text-[11px] font-medium text-slate-500">
               {etapas.map((item, index) => (
-                <span key={item.key} className={index <= etapaAtual ? "text-[#020C2C]" : ""}>
+                <span key={item.key} className={index <= etapaAtual ? "text-[#0B1115]" : ""}>
                   {item.label}
                 </span>
               ))}
             </div>
             <div className="h-1.5 overflow-hidden rounded-full bg-slate-200/80">
               <div
-                className="h-full rounded-full bg-gradient-to-r from-[#16A36B] to-[#20BD7A] transition-all duration-300"
+                className="h-full rounded-full bg-gradient-to-r from-[#16A34A] to-[#22C55E] transition-all duration-300"
                 style={{ width: `${progresso}%` }}
               />
             </div>
@@ -904,7 +904,7 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
                 <button
                   type="submit"
                   disabled={carregando}
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#16A36B] px-5 py-3 text-sm font-medium text-white shadow-[0_14px_26px_rgba(22,163,107,0.22)] transition hover:bg-[#020C2C] disabled:cursor-not-allowed disabled:opacity-60"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#16A34A] px-5 py-3 text-sm font-medium text-white shadow-[0_14px_26px_rgba(22,163,74,0.22)] transition hover:bg-[#0B1115] disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {carregando ? "Salvando..." : "Salvar produto"}
                   {!carregando && <Save size={15} />}
@@ -913,7 +913,7 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
                 <button
                   type="button"
                   onClick={avancar}
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#020C2C] px-5 py-3 text-sm font-medium text-white shadow-[0_14px_26px_rgba(24,31,36,0.16)] transition hover:bg-[#081743]"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#0B1115] px-5 py-3 text-sm font-medium text-white shadow-[0_14px_26px_rgba(24,31,36,0.16)] transition hover:bg-[#131C22]"
                 >
                   Proximo <ArrowRight size={14} />
                 </button>

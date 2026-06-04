@@ -312,7 +312,7 @@ export default function BuscaProdutos() {
       <div className="flex h-screen flex-col items-center justify-center bg-[#F7F5EF]">
         <div className="relative h-14 w-14">
           <div className="absolute inset-0 rounded-full border-4 border-slate-200"></div>
-          <div className="absolute inset-0 animate-spin rounded-full border-4 border-transparent border-r-[#16A36B] border-t-[#020C2C]"></div>
+          <div className="absolute inset-0 animate-spin rounded-full border-4 border-transparent border-r-[#16A34A] border-t-[#0B1115]"></div>
         </div>
         <p className="mt-5 text-sm font-medium text-slate-600">Consultando produtos...</p>
       </div>
@@ -326,7 +326,7 @@ export default function BuscaProdutos() {
           <div className="grid gap-4 p-4 sm:p-5 lg:grid-cols-[1fr_auto] lg:items-center">
             <div>
               <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold uppercase text-slate-600">
-                <PackageSearch size={14} className="text-[#16A36B]" />
+                <PackageSearch size={14} className="text-[#16A34A]" />
                 Consultar
               </div>
               <h1 className="text-2xl font-semibold tracking-tight text-slate-950 sm:text-3xl">
@@ -340,7 +340,7 @@ export default function BuscaProdutos() {
             <button
               type="button"
               onClick={() => setModalCompartilharAberto(true)}
-              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-[#020C2C] px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-700"
+              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-[#0B1115] px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-700"
             >
               <Share2 size={17} />
               Compartilhar imagens
@@ -462,7 +462,7 @@ function CompartilharImagensModal({
 }) {
   const podeBaixar = numeracaoSelecionada && produtosComImagem > 0 && !baixando;
   const feedbackClasses = {
-    sucesso: "border-[#16A36B]/30 bg-[#16A36B]/10 text-[#020C2C]",
+    sucesso: "border-[#16A34A]/30 bg-[#16A34A]/10 text-[#0B1115]",
     aviso: "border-amber-200 bg-amber-50 text-amber-800",
     erro: "border-rose-200 bg-rose-50 text-rose-700",
   };
@@ -552,7 +552,7 @@ function CompartilharImagensModal({
               </div>
               <div className="h-2 overflow-hidden rounded-full bg-slate-100">
                 <div
-                  className="h-full rounded-full bg-[#16A36B] transition-all"
+                  className="h-full rounded-full bg-[#16A34A] transition-all"
                   style={{ width: `${Math.round((progresso.atual / progresso.total) * 100)}%` }}
                 />
               </div>
@@ -572,7 +572,7 @@ function CompartilharImagensModal({
               Nenhum produto com imagem nessa seleção. Você pode limpar os filtros ou conferir as fotos no estoque.
             </div>
           ) : (
-            <div className="rounded-lg border border-[#16A36B]/25 bg-[#16A36B]/10 p-3 text-xs text-[#020C2C]">
+            <div className="rounded-lg border border-[#16A34A]/25 bg-[#16A34A]/10 p-3 text-xs text-[#0B1115]">
               Pronto para baixar {produtosComImagem} imagem{produtosComImagem === 1 ? "" : "s"}.
             </div>
           )}
@@ -605,7 +605,7 @@ function CompartilharImagensModal({
             type="button"
             onClick={onBaixarImagens}
             disabled={!podeBaixar}
-            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-[#020C2C] px-4 text-sm font-semibold text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-55"
+            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-[#0B1115] px-4 text-sm font-semibold text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-55"
           >
             <Download size={16} />
             {baixando
@@ -629,7 +629,7 @@ function CompartilharImagensModal({
           <button
             type="button"
             onClick={onFechar}
-            className="inline-flex min-h-11 items-center justify-center rounded-lg bg-[#16A36B] px-4 text-sm font-semibold text-white transition hover:bg-[#020C2C]"
+            className="inline-flex min-h-11 items-center justify-center rounded-lg bg-[#16A34A] px-4 text-sm font-semibold text-white transition hover:bg-[#0B1115]"
           >
             Concluir
           </button>
@@ -688,7 +688,7 @@ function ProdutoConsultaCard({ produto }) {
             </div>
             <span
               className={`shrink-0 rounded-full px-2 py-1 text-[11px] font-semibold ${
-                estoqueTotal > 0 ? "bg-[#16A36B]/10 text-[#020C2C]" : "bg-slate-100 text-slate-500"
+                estoqueTotal > 0 ? "bg-[#16A34A]/10 text-[#0B1115]" : "bg-slate-100 text-slate-500"
               }`}
             >
               {estoqueTotal} un.

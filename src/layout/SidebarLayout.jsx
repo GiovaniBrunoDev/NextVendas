@@ -1,16 +1,14 @@
 import React, { useEffect, useMemo, useState } from "react";
 import {
-  AlertTriangle,
   BadgeDollarSign,
+  BarChart3,
   Boxes,
-  CheckCircle2,
   ClipboardList,
   LayoutDashboard,
   LogOut,
   PackageCheck,
   Search,
   ShieldCheck,
-  UserCog,
   Wallet,
   UsersRound,
 } from "lucide-react";
@@ -24,28 +22,38 @@ const acessoPorPerfil = {
   clientes: ["admin", "gerente", "vendedor"],
   produtos: ["admin", "gerente", "vendedor"],
   estoque: ["admin", "gerente"],
-  entradas: ["admin", "gerente"],
+  inventario: ["admin", "gerente"],
+  etiquetas: ["admin", "gerente"],
   caixa: ["admin", "gerente", "vendedor"],
   financeiro: ["admin", "gerente"],
+  relatorios: ["admin", "gerente"],
   "minha-conta": ["admin", "gerente", "vendedor"],
   metas: ["admin", "gerente"],
 };
 
-function formatDate(value) {
-  if (!value) return "-";
-  return new Date(value).toLocaleDateString("pt-BR");
+function getInitials(nome) {
+  const partes = String(nome || "Usuário")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+
+  return partes
+    .slice(0, 2)
+    .map((parte) => parte[0])
+    .join("")
+    .toUpperCase();
 }
 
 export default function SidebarLayout({ children, setTela }) {
   const [isMobile, setIsMobile] = useState(false);
   const [telaAtiva, setTelaAtiva] = useState(() => {
     if (typeof window === "undefined") return "dashboard";
-    return localStorage.getItem("lojia_tela_ativa") || "dashboard";
+    const telaSalva = localStorage.getItem("lojia_tela_ativa") || "dashboard";
+    return ["entradas", "inventario", "etiquetas"].includes(telaSalva) ? "estoque" : telaSalva;
   });
   const { usuario, lojaAtual, logout } = useAuth();
   const papel = lojaAtual?.papel;
-  const assinatura = lojaAtual?.loja?.assinatura;
-  const assinaturaAtiva = lojaAtual?.loja?.assinaturaAtiva;
+  const fotoPerfil = usuario?.fotoUrl || usuario?.avatarUrl || usuario?.imagemUrl;
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth <= 768);
@@ -70,7 +78,7 @@ export default function SidebarLayout({ children, setTela }) {
       { key: "estoque", label: "Estoque", group: "Gestão", icon: Boxes },
       { key: "produtos", label: "Consultar", group: "Gestão", icon: Search },
       { key: "financeiro", label: "Financeiro", group: "Gestão", icon: Wallet },
-      { key: "minha-conta", label: "Minha conta", group: "Sistema", icon: UserCog },
+      { key: "relatorios", label: "Relatórios", group: "Gestão", icon: BarChart3 },
       ...(usuario?.superadmin ? [{ key: "superadmin", label: "Admin", group: "Sistema", icon: ShieldCheck }] : []),
     ],
     [usuario?.superadmin]
@@ -81,72 +89,35 @@ export default function SidebarLayout({ children, setTela }) {
     return acessoPorPerfil[item.key]?.includes(papel);
   });
 
-  const telaAtual = itensPermitidos.find((item) => item.key === telaAtiva);
+  const contaAtiva = telaAtiva === "minha-conta";
 
   const itensMobile = ["dashboard", "vendas", "pedidos", "historico", "estoque", "produtos"]
     .map((key) => itensPermitidos.find((item) => item.key === key))
     .filter(Boolean);
 
-  const statusPlano = assinaturaAtiva
-    ? {
-      label: `${assinatura?.status || "ativa"} ate ${formatDate(assinatura?.venceEm)}`,
-      className: "border-white/[0.1] bg-white/[0.055] text-white/[0.82]",
-      icon: CheckCircle2,
-    }
-    : {
-      label: "Assinatura vencida",
-      className: "border-[#F4A62A]/40 bg-[#F4A62A]/[0.15] text-[#FFE4AA]",
-      icon: AlertTriangle,
-    };
-
-  const StatusIcon = statusPlano.icon;
-
-  const planoBox = (
-    <div className={`mb-3 rounded-lg border p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] ${statusPlano.className}`}>
-      <div className="flex items-start gap-2">
-        <StatusIcon size={16} className="mt-0.5 shrink-0" />
-        <div className="min-w-0">
-          <p className="text-xs font-bold uppercase opacity-70">Plano da loja</p>
-          <p className="mt-1 text-sm font-bold">{statusPlano.label}</p>
-          {!assinaturaAtiva && (
-            <p className="mt-2 text-xs leading-5 opacity-85">
-              Consultas liberadas. Vendas, pedidos, estoque e cadastros ficam bloqueados ate renovar.
-            </p>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-
   const renderMenu = () => (
-    <nav className="lojia-sidebar-scroll mt-4 min-h-0 flex-1 space-y-0.5 overflow-y-auto pr-1">
+    <nav className="lojia-sidebar-scroll mt-5 min-h-0 flex-1 space-y-1 overflow-y-auto pr-1">
       {itensPermitidos.map(({ key, label, icon: Icon }) => {
         const ativo = telaAtiva === key;
-        const destaque = key === "vendas";
 
         return (
           <button
             key={key}
             onClick={() => trocarTela(key)}
-            className={`group relative flex w-full items-center rounded-lg px-2.5 py-2 text-left transition ${ativo
-                ? "bg-[#FFFEFA] text-[#020C2C] shadow-[0_12px_26px_rgba(0,0,0,0.12)]"
-                : destaque
-                  ? "border border-[#16A36B]/[0.26] bg-[#16A36B]/[0.13] text-white/[0.92] hover:bg-[#16A36B]/[0.2]"
-                  : "text-white/[0.72] hover:bg-white/[0.085] hover:text-white"
+            className={`group relative flex w-full items-center rounded-[14px] px-3.5 py-3 text-left transition-all duration-200 ${ativo
+                ? "bg-[#16A34A] text-white shadow-[0_10px_22px_rgba(0,0,0,0.18)]"
+                : "text-[#8F989E] hover:bg-white/[0.045] hover:text-white"
               }`}
           >
             <span
-              className={`mr-2.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md transition ${ativo
-                  ? "bg-[#16A36B]/10 text-[#16A36B]"
-                  : destaque
-                    ? "bg-[#16A36B]/[0.16] text-[#D8F7E8]"
-                    : "bg-white/[0.055] text-white/[0.54] group-hover:text-white/[0.86]"
+              className={`mr-3 flex h-6 w-6 shrink-0 items-center justify-center transition ${ativo
+                  ? "text-white"
+                  : "text-[#79838A] group-hover:text-white/[0.86]"
                 }`}
             >
-              <Icon size={16} />
+              <Icon size={17} strokeWidth={1.8} />
             </span>
             <span className="block min-w-0 truncate text-[13px] font-semibold">{label}</span>
-            {ativo && <span className="ml-auto h-2 w-2 rounded-full bg-[#16A36B]" />}
           </button>
         );
       })}
@@ -155,12 +126,12 @@ export default function SidebarLayout({ children, setTela }) {
 
   const renderBottomNav = () => (
     <>
-      <div className="lojia-mobile-nav fixed inset-x-3 bottom-4 z-50 flex max-w-[calc(100vw-1.5rem)] justify-around rounded-lg border border-white/10 bg-[#020C2C] py-1.5 text-white shadow-xl">
+      <div className="lojia-mobile-nav fixed inset-x-3 bottom-4 z-50 flex max-w-[calc(100vw-1.5rem)] justify-around rounded-2xl border border-white/[0.08] bg-[#0B1115] px-1 py-1.5 text-white shadow-[0_18px_42px_rgba(5,8,10,0.34)]">
         {itensMobile.map(({ key, label, icon: Icon }) => (
           <button
             key={key}
             onClick={() => trocarTela(key)}
-            className={`flex min-w-0 flex-1 flex-col items-center px-1.5 text-[10px] transition ${telaAtiva === key ? "text-[#71E2A9]" : "text-white/[0.78]"
+            className={`flex min-w-0 flex-1 flex-col items-center rounded-xl px-1.5 py-1 text-[10px] transition ${telaAtiva === key ? "bg-[#16A34A] text-white" : "text-[#9AA2A7]"
               }`}
           >
             <Icon size={18} className="mb-0.5" />
@@ -175,7 +146,7 @@ export default function SidebarLayout({ children, setTela }) {
   return (
     <div className="lojia-shell flex min-h-screen w-full min-w-0 flex-col overflow-x-hidden pb-20 md:h-screen md:min-h-0 md:overflow-hidden md:pb-0 md:flex-row">
       {!isMobile && (
-        <aside className="lojia-gradient flex w-72 shrink-0 flex-col overflow-hidden p-4 text-white shadow-[18px_0_42px_rgba(36,48,43,0.12)] md:sticky md:top-0 md:h-screen">
+        <aside className="flex w-72 shrink-0 flex-col overflow-hidden rounded-r-[28px] border-r border-white/[0.07] bg-[#0B1115] p-5 text-white shadow-[18px_0_42px_rgba(5,8,10,0.22)] md:sticky md:top-0 md:h-screen">
           <div className="mb-4 shrink-0 px-1">
             <img
               src="/lojia-logo.png"
@@ -185,25 +156,40 @@ export default function SidebarLayout({ children, setTela }) {
             />
           </div>
 
-          <div className="shrink-0 border-t border-white/[0.1]" />
+          <div className="shrink-0 border-t border-white/[0.07]" />
 
           {renderMenu()}
 
-          <div className="mt-4 shrink-0 border-t border-white/[0.08] pt-4">
-            {planoBox}
+          <div className="mt-4 shrink-0 border-t border-white/[0.07] pt-4">
             <button
               type="button"
               onClick={() => trocarTela("minha-conta")}
-              className="mb-3 w-full rounded-lg bg-white/[0.045] px-3 py-2 text-left transition hover:bg-white/[0.075]"
+              aria-current={contaAtiva ? "page" : undefined}
+              className={`mb-3 flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition ${
+                contaAtiva
+                  ? "bg-[#16A34A] text-white shadow-[0_10px_22px_rgba(0,0,0,0.18)]"
+                  : "bg-white/[0.035] text-white hover:bg-white/[0.06]"
+              }`}
             >
-              <p className="truncate text-sm font-bold text-white">{usuario?.nome}</p>
-              <p className="mt-0.5 text-xs font-semibold capitalize text-white/[0.48]">
-                {papel || (usuario?.superadmin ? "superadmin" : "sem perfil")}
-              </p>
+              <span className={`flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border ${
+                contaAtiva ? "border-white/40 bg-white/15" : "border-white/[0.08] bg-white/[0.06]"
+              }`}>
+                {fotoPerfil ? (
+                  <img src={fotoPerfil} alt="" className="h-full w-full object-cover" />
+                ) : (
+                  <span className="text-sm font-bold text-white">{getInitials(usuario?.nome)}</span>
+                )}
+              </span>
+              <span className="min-w-0">
+                <span className="block truncate text-sm font-bold text-white">{usuario?.nome}</span>
+                <span className={`mt-0.5 block text-xs font-semibold capitalize ${contaAtiva ? "text-white/80" : "text-white/[0.48]"}`}>
+                  {papel || (usuario?.superadmin ? "superadmin" : "sem perfil")}
+                </span>
+              </span>
             </button>
             <button
               onClick={logout}
-              className="flex w-full items-center rounded-lg px-3 py-2.5 text-sm font-bold text-white/[0.68] transition hover:bg-white/[0.075] hover:text-white"
+              className="flex w-full items-center rounded-xl px-3 py-2.5 text-sm font-bold text-white/[0.58] transition hover:bg-white/[0.055] hover:text-white"
             >
               <LogOut size={18} className="mr-3" /> Sair
             </button>

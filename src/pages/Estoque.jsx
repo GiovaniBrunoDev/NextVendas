@@ -1,9 +1,26 @@
 import { useEffect, useMemo, useState } from "react";
 import api from "../services/api";
 import ProdutoModal from "../components/ProdutoModal";
+import ReposicaoEstoqueModal from "../components/ReposicaoEstoqueModal";
 import { toast } from "react-toastify";
 import { FaPlus, FaPen, FaTrashAlt } from "react-icons/fa";
-import { PackagePlus } from "lucide-react";
+import {
+  BadgePercent,
+  Barcode,
+  Boxes,
+  CircleDollarSign,
+  ChevronDown,
+  ClipboardCheck,
+  Hash,
+  Image,
+  Info,
+  Layers3,
+  PackagePlus,
+  Pencil,
+  Tag,
+  Truck,
+  Video,
+} from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 
 const API_KEY = "6371650aa50b8af82e574e8022553613";
@@ -14,18 +31,21 @@ const formatCurrency = (valor) =>
     currency: "BRL",
   }).format(Number(valor || 0));
 
-export default function Estoque({ aoAdicionarReposicao }) {
+export default function Estoque({ onNavigate }) {
   const { lojaAtual } = useAuth();
   const podeAdicionarVideo = Number(lojaAtual?.loja?.id) === 1;
   const [produtos, setProdutos] = useState([]);
   const [fornecedores, setFornecedores] = useState([]);
   const [carregando, setCarregando] = useState(true);
   const [mostrarModal, setMostrarModal] = useState(false);
+  const [mostrarReposicaoModal, setMostrarReposicaoModal] = useState(false);
   const [estoquesEditados, setEstoquesEditados] = useState({});
   const [produtoSelecionado, setProdutoSelecionado] = useState(null);
   const [busca, setBusca] = useState("");
   const [novaVariacao, setNovaVariacao] = useState({ numeracao: "", estoque: "" });
   const [mostrarFormularioVariacao, setMostrarFormularioVariacao] = useState(false);
+  const [gerenciandoVariacoes, setGerenciandoVariacoes] = useState(false);
+  const [mostrarDetalhesProduto, setMostrarDetalhesProduto] = useState(false);
   const [mostrarBotaoFlutuante, setMostrarBotaoFlutuante] = useState(true);
   const [estoqueEditandoId, setEstoqueEditandoId] = useState(null);
   const [editandoProduto, setEditandoProduto] = useState(false);
@@ -90,6 +110,8 @@ export default function Estoque({ aoAdicionarReposicao }) {
       outrosCustos: produtoSelecionado.outrosCustos ?? "",
     });
     setEditandoProduto(false);
+    setGerenciandoVariacoes(false);
+    setMostrarDetalhesProduto(false);
     setMostrarFormularioVariacao(false);
     setEstoqueEditandoId(null);
   }, [produtoSelecionado?.id]);
@@ -136,6 +158,33 @@ export default function Estoque({ aoAdicionarReposicao }) {
       .slice()
       .sort((a, b) => Number(a.numeracao) - Number(b.numeracao));
   }, [produtoSelecionado]);
+
+  const detalhesProduto = useMemo(() => {
+    if (!produtoSelecionado) return null;
+    const estoque = calcularEstoqueTotal(produtoSelecionado);
+    const custoTotalUnitario =
+      Number(produtoSelecionado.custoUnitario || 0) + Number(produtoSelecionado.outrosCustos || 0);
+    const lucroUnitario = Number(produtoSelecionado.preco || 0) - custoTotalUnitario;
+    const preco = Number(produtoSelecionado.preco || 0);
+    const variacoesComEstoque = variacoesOrdenadas.filter((variacao) => variacao.estoque > 0).length;
+    const variacoesSemEstoque = variacoesOrdenadas.length - variacoesComEstoque;
+    const codigosBarras = variacoesOrdenadas.filter((variacao) => variacao.codigoBarras).length;
+
+    return {
+      estoque,
+      custoTotalUnitario,
+      lucroUnitario,
+      margemPercentual: preco > 0 ? (lucroUnitario / preco) * 100 : 0,
+      valorVendaEstoque: estoque * preco,
+      valorCustoEstoque: estoque * custoTotalUnitario,
+      variacoesComEstoque,
+      variacoesSemEstoque,
+      codigosBarras,
+      menorNumeracao: variacoesOrdenadas[0]?.numeracao || "—",
+      maiorNumeracao: variacoesOrdenadas[variacoesOrdenadas.length - 1]?.numeracao || "—",
+      statusEstoque: estoque <= 0 ? "Sem estoque" : estoque <= 5 ? "Estoque baixo" : "Disponível",
+    };
+  }, [produtoSelecionado, variacoesOrdenadas]);
 
   const atualizarProdutoNaTela = (produtoAtualizado) => {
     setProdutoSelecionado(produtoAtualizado);
@@ -386,10 +435,24 @@ export default function Estoque({ aoAdicionarReposicao }) {
             {produtos.length} produtos cadastrados, {relatorio.quantidadeTotal} pares em estoque.
           </p>
         </div>
-        <div className="flex flex-col gap-2 sm:flex-row">
+        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:justify-end">
           <button
             type="button"
-            onClick={aoAdicionarReposicao}
+            onClick={() => onNavigate?.("inventario")}
+            className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50"
+          >
+            <ClipboardCheck size={16} /> Inventário
+          </button>
+          <button
+            type="button"
+            onClick={() => onNavigate?.("etiquetas")}
+            className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50"
+          >
+            <Barcode size={16} /> Etiquetas
+          </button>
+          <button
+            type="button"
+            onClick={() => setMostrarReposicaoModal(true)}
             className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50"
           >
             <PackagePlus size={16} /> Adicionar reposição
@@ -419,7 +482,7 @@ export default function Estoque({ aoAdicionarReposicao }) {
       </div>
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-[420px_minmax(0,1fr)]">
-        <section className="rounded-lg border border-slate-200 bg-white shadow-sm">
+        <section className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-[0_12px_32px_rgba(15,23,42,0.06)]">
           <div className="border-b border-slate-200 p-4">
             <div className="flex items-center justify-between gap-3">
               <div>
@@ -447,7 +510,9 @@ export default function Estoque({ aoAdicionarReposicao }) {
                     type="button"
                     onClick={() => setProdutoSelecionado(produto)}
                     className={`flex w-full items-center gap-3 p-3 text-left transition ${
-                      selecionado ? "bg-slate-100" : "hover:bg-slate-50"
+                      selecionado
+                        ? "bg-slate-50 shadow-[inset_3px_0_0_#0B1115]"
+                        : "hover:bg-slate-50"
                     }`}
                   >
                     {produto.imagemUrl ? (
@@ -501,7 +566,7 @@ export default function Estoque({ aoAdicionarReposicao }) {
           </ul>
         </section>
 
-        <section className="rounded-lg border border-slate-200 bg-white shadow-sm">
+        <section className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-[0_18px_44px_rgba(15,23,42,0.06)]">
           {!produtoSelecionado ? (
             <div className="flex min-h-[520px] items-center justify-center p-8 text-center">
               <div>
@@ -513,22 +578,39 @@ export default function Estoque({ aoAdicionarReposicao }) {
             </div>
           ) : (
             <div>
-              <div className="border-b border-slate-200 p-4">
-                <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
-                  <div className="relative h-24 w-24 shrink-0">
+              <div className="relative border-b border-slate-100 bg-white p-4 sm:p-5 lg:p-6">
+                <button
+                  onClick={() => excluirProduto(produtoSelecionado.id)}
+                  className="absolute right-4 top-4 inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200/80 bg-white text-slate-400 transition hover:border-rose-200 hover:bg-rose-50 hover:text-rose-700 sm:right-5 sm:top-5"
+                  title="Excluir produto"
+                  aria-label="Excluir produto"
+                >
+                  <FaTrashAlt size={12} />
+                </button>
+                <div className="flex flex-col gap-5 lg:flex-row lg:items-start">
+                  <div className="relative h-36 w-36 shrink-0 rounded-2xl border border-slate-200/80 bg-slate-50/80 p-3 sm:h-40 sm:w-40">
                     {produtoSelecionado.imagemUrl ? (
                       <img
                         src={produtoSelecionado.imagemUrl}
                         alt={produtoSelecionado.nome}
-                        className="h-24 w-24 rounded-lg object-cover"
+                        className="h-full w-full rounded-xl object-contain"
                       />
                     ) : (
-                      <div className="flex h-24 w-24 items-center justify-center rounded-lg bg-slate-100 text-xs text-slate-400">
+                      <div className="flex h-full w-full items-center justify-center rounded-xl text-xs text-slate-400">
                         Sem imagem
                       </div>
                     )}
+                    <span
+                      className={`absolute left-3 top-3 rounded-full border px-2.5 py-1 text-[10px] font-semibold shadow-sm ${
+                        detalhesProduto?.estoque > 0
+                          ? "border-emerald-200 bg-white/95 text-emerald-700"
+                          : "border-rose-200 bg-white/95 text-rose-700"
+                      }`}
+                    >
+                      {detalhesProduto?.statusEstoque}
+                    </span>
                     <button
-                      className="absolute bottom-2 right-2 rounded-md bg-white p-2 text-slate-700 shadow-sm ring-1 ring-slate-200 hover:bg-slate-50"
+                      className="absolute bottom-3 right-3 rounded-xl bg-white p-2 text-slate-600 shadow-sm ring-1 ring-slate-200 transition hover:text-slate-950"
                       title="Trocar imagem"
                       onClick={() => document.getElementById("uploadImagemCard")?.click()}
                     >
@@ -544,59 +626,107 @@ export default function Estoque({ aoAdicionarReposicao }) {
                   </div>
 
                   <div className="min-w-0 flex-1">
-                    <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-                      <div className="min-w-0">
-                        <h2 className="truncate text-xl font-semibold text-slate-950">
+                    <div className="flex flex-col gap-4">
+                      <div className="min-w-0 pr-12">
+                        <div className="mb-2 inline-flex items-center gap-1.5 rounded-full bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-500">
+                          <Hash size={13} />
+                          <span>Produto {produtoSelecionado.id}</span>
+                        </div>
+                        <h2 className="text-xl font-semibold leading-tight tracking-tight text-slate-950 sm:text-2xl">
                           {produtoSelecionado.nome}
                         </h2>
-                        <div className="mt-2 flex flex-wrap gap-2 text-xs">
-                          <span className="rounded-full bg-slate-100 px-2.5 py-1 font-medium text-slate-700">
-                            {formatCurrency(produtoSelecionado.preco)}
-                          </span>
-                          <span className="rounded-full bg-slate-100 px-2.5 py-1 font-medium text-slate-700">
-                            Custo {formatCurrency(produtoSelecionado.custoUnitario)}
-                          </span>
-                          <span className="rounded-full bg-slate-100 px-2.5 py-1 font-medium text-slate-700">
-                            Outros {formatCurrency(produtoSelecionado.outrosCustos)}
-                          </span>
-                          <span className="rounded-full bg-slate-100 px-2.5 py-1 font-medium text-slate-700">
-                            {calcularEstoqueTotal(produtoSelecionado)} pares
-                          </span>
-                          <span className="rounded-full bg-slate-100 px-2.5 py-1 font-medium capitalize text-slate-700">
-                            {produtoSelecionado.genero || "unissex"}
-                          </span>
-                          <span className="rounded-full bg-slate-100 px-2.5 py-1 font-medium text-slate-700">
-                            {produtoSelecionado.marca || "Sem marca"}
-                          </span>
-                          <span className="rounded-full bg-slate-100 px-2.5 py-1 font-medium text-slate-700">
-                            {produtoSelecionado.fornecedor?.nome || "Sem fornecedor"}
-                          </span>
+                        <div className="mt-3 flex flex-wrap gap-1.5 text-xs">
+                          <ProductTag icon={Tag} value={produtoSelecionado.marca || "Sem marca"} />
+                          <ProductTag value={capitalize(produtoSelecionado.genero || "unissex")} />
+                          <ProductTag icon={Truck} value={produtoSelecionado.fornecedor?.nome || "Sem fornecedor"} />
                         </div>
                       </div>
 
-                      <button
-                        onClick={() => excluirProduto(produtoSelecionado.id)}
-                        className="inline-flex items-center justify-center gap-2 rounded-lg border border-rose-200 px-3 py-2 text-sm font-medium text-rose-700 transition hover:bg-rose-50"
-                      >
-                        <FaTrashAlt size={12} /> Excluir
-                      </button>
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const proximoEstado = !mostrarDetalhesProduto;
+                            setMostrarDetalhesProduto(proximoEstado);
+                            if (proximoEstado) {
+                              setGerenciandoVariacoes(false);
+                              setMostrarFormularioVariacao(false);
+                              setEstoqueEditandoId(null);
+                            }
+                          }}
+                          className={`inline-flex items-center justify-center gap-2 rounded-xl border px-3 py-2 text-sm font-medium transition ${
+                            mostrarDetalhesProduto
+                              ? "border-[#0B1115] bg-[#0B1115] text-white"
+                              : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+                          }`}
+                        >
+                          <Info size={15} />
+                          {mostrarDetalhesProduto ? "Ocultar detalhes" : "Ver detalhes"}
+                          <ChevronDown
+                            size={15}
+                            className={`transition-transform ${mostrarDetalhesProduto ? "rotate-180" : ""}`}
+                          />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setEditandoProduto((valor) => !valor)}
+                          className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                        >
+                          <Pencil size={15} />
+                          {editandoProduto ? "Fechar edição" : "Editar produto"}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const proximoEstado = !gerenciandoVariacoes;
+                            setGerenciandoVariacoes(proximoEstado);
+                            if (proximoEstado) setMostrarDetalhesProduto(false);
+                            if (!proximoEstado) {
+                              setMostrarFormularioVariacao(false);
+                              setEstoqueEditandoId(null);
+                            }
+                          }}
+                          className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#0B1115] px-3 py-2 text-sm font-medium text-white transition hover:bg-[#131C22]"
+                        >
+                          <Layers3 size={16} />
+                          {gerenciandoVariacoes ? "Concluir edição" : "Gerenciar variações"}
+                        </button>
+                      </div>
                     </div>
 
-                    <div className="mt-4 flex flex-wrap gap-2 text-sm">
-                      <button
-                        type="button"
-                        onClick={() => setEditandoProduto((valor) => !valor)}
-                        className="rounded-lg border border-slate-300 px-3 py-2 font-medium text-slate-700 hover:bg-slate-50"
-                      >
-                        {editandoProduto ? "Fechar edição" : "Editar valores"}
-                      </button>
+                    <div className="mt-5 grid gap-3 sm:grid-cols-3">
+                      <SummaryStat
+                        icon={CircleDollarSign}
+                        label="Preço de venda"
+                        value={formatCurrency(produtoSelecionado.preco)}
+                        detail={`Custo total ${formatCurrency(detalhesProduto?.custoTotalUnitario)}`}
+                      />
+                      <SummaryStat
+                        icon={BadgePercent}
+                        label="Lucro bruto/un."
+                        value={formatCurrency(detalhesProduto?.lucroUnitario)}
+                        detail={`${formatPercent(detalhesProduto?.margemPercentual)} de margem`}
+                      />
+                      <SummaryStat
+                        icon={Boxes}
+                        label="Estoque total"
+                        value={`${detalhesProduto?.estoque || 0} pares`}
+                        detail={`${detalhesProduto?.variacoesComEstoque || 0} tamanhos disponíveis`}
+                      />
+                    </div>
+
+                    <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-slate-500">
+                      <MediaBadge icon={Image} active={Boolean(produtoSelecionado.imagemUrl)} label="Imagem" />
+                      <MediaBadge icon={Video} active={Boolean(produtoSelecionado.videoUrl)} label="Vídeo" />
+                      <MediaBadge icon={Image} active={Boolean(produtoSelecionado.gifUrl)} label="GIF" />
                       {podeAdicionarVideo && (
                         <button
                           type="button"
                           onClick={() => document.getElementById("uploadVideoCard")?.click()}
                           disabled={atualizandoVideo}
-                          className="rounded-lg border border-slate-300 px-3 py-2 font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60"
+                          className="ml-auto inline-flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50 disabled:opacity-60"
                         >
+                          <Video size={15} />
                           {atualizandoVideo
                             ? "Processando vídeo..."
                             : produtoSelecionado.videoUrl
@@ -609,7 +739,7 @@ export default function Estoque({ aoAdicionarReposicao }) {
                           href={produtoSelecionado.videoUrl}
                           target="_blank"
                           rel="noreferrer"
-                          className="rounded-lg border border-slate-300 px-3 py-2 font-medium text-slate-700 hover:bg-slate-50"
+                          className="rounded-xl px-2 py-2 text-sm font-medium text-slate-500 transition hover:bg-slate-50 hover:text-slate-900"
                         >
                           Ver vídeo
                         </a>
@@ -619,7 +749,7 @@ export default function Estoque({ aoAdicionarReposicao }) {
                           href={produtoSelecionado.gifUrl}
                           target="_blank"
                           rel="noreferrer"
-                          className="rounded-lg border border-slate-300 px-3 py-2 font-medium text-slate-700 hover:bg-slate-50"
+                          className="rounded-xl px-2 py-2 text-sm font-medium text-slate-500 transition hover:bg-slate-50 hover:text-slate-900"
                         >
                           Ver GIF
                         </a>
@@ -639,6 +769,60 @@ export default function Estoque({ aoAdicionarReposicao }) {
                     </div>
                   </div>
                 </div>
+
+                {mostrarDetalhesProduto && (
+                <div className="mt-5 rounded-2xl border border-slate-100 bg-slate-50/60 p-4 sm:p-5">
+                  <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+                    <div>
+                      <h3 className="text-sm font-semibold text-slate-950">Detalhes do produto</h3>
+                      <p className="mt-0.5 text-xs text-slate-500">
+                        Informações comerciais, disponibilidade e identificação.
+                      </p>
+                    </div>
+                    <span className="text-xs font-medium text-slate-500">
+                      Valor potencial {formatCurrency(detalhesProduto?.valorVendaEstoque)}
+                    </span>
+                  </div>
+
+                  <div className="mt-4 grid gap-3 sm:grid-cols-2 2xl:grid-cols-4">
+                    <DetailGroup title="Cadastro">
+                      <DetailRow label="Referência" value={`Produto ${produtoSelecionado.id}`} />
+                      <DetailRow label="Marca" value={produtoSelecionado.marca || "Não informada"} />
+                      <DetailRow label="Gênero" value={capitalize(produtoSelecionado.genero || "unissex")} />
+                      <DetailRow label="Fornecedor" value={produtoSelecionado.fornecedor?.nome || "Não informado"} />
+                    </DetailGroup>
+
+                    <DetailGroup title="Custos e margem">
+                      <DetailRow label="Custo unitário" value={formatCurrency(produtoSelecionado.custoUnitario)} />
+                      <DetailRow label="Outros custos" value={formatCurrency(produtoSelecionado.outrosCustos)} />
+                      <DetailRow label="Custo total" value={formatCurrency(detalhesProduto?.custoTotalUnitario)} />
+                      <DetailRow label="Margem bruta" value={formatPercent(detalhesProduto?.margemPercentual)} />
+                    </DetailGroup>
+
+                    <DetailGroup title="Disponibilidade">
+                      <DetailRow
+                        label="Grade cadastrada"
+                        value={`${detalhesProduto?.menorNumeracao} a ${detalhesProduto?.maiorNumeracao}`}
+                      />
+                      <DetailRow label="Tamanhos disponíveis" value={detalhesProduto?.variacoesComEstoque || 0} />
+                      <DetailRow label="Tamanhos esgotados" value={detalhesProduto?.variacoesSemEstoque || 0} />
+                      <DetailRow
+                        label="Códigos de barras"
+                        value={`${detalhesProduto?.codigosBarras || 0} de ${variacoesOrdenadas.length}`}
+                      />
+                    </DetailGroup>
+
+                    <DetailGroup title="Valor do estoque">
+                      <DetailRow label="Pares disponíveis" value={detalhesProduto?.estoque || 0} />
+                      <DetailRow label="Custo armazenado" value={formatCurrency(detalhesProduto?.valorCustoEstoque)} />
+                      <DetailRow label="Venda potencial" value={formatCurrency(detalhesProduto?.valorVendaEstoque)} />
+                      <DetailRow label="Lucro potencial" value={formatCurrency(
+                        detalhesProduto?.valorVendaEstoque - detalhesProduto?.valorCustoEstoque
+                      )} />
+                    </DetailGroup>
+                  </div>
+                </div>
+                )}
 
                 {editandoProduto && (
                   <div className="mt-5 rounded-lg border border-slate-200 bg-slate-50 p-4">
@@ -754,129 +938,178 @@ export default function Estoque({ aoAdicionarReposicao }) {
                 )}
               </div>
 
-              <div className="p-4">
-                <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="p-4 sm:p-5">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                   <div>
-                    <h3 className="text-base font-semibold text-slate-950">Variações</h3>
-                    <p className="text-sm text-slate-500">Numeração e estoque por grade</p>
+                    <h3 className="text-base font-semibold text-slate-950">Grade atual</h3>
+                    <p className="mt-0.5 text-sm text-slate-500">
+                      Visão rápida da numeração e quantidade disponível.
+                    </p>
                   </div>
-                  <button
-                    className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
-                    onClick={() => setMostrarFormularioVariacao((valor) => !valor)}
-                  >
-                    <FaPlus className="text-xs" /> Adicionar variação
-                  </button>
+                  {!gerenciandoVariacoes && (
+                    <p className="text-xs font-medium text-slate-500">
+                      {variacoesOrdenadas.length} variações · {detalhesProduto?.estoque || 0} pares
+                    </p>
+                  )}
                 </div>
 
-                {mostrarFormularioVariacao && (
-                  <div className="mb-4 rounded-lg border border-slate-200 bg-slate-50 p-4">
-                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_1fr_auto]">
-                      <input
-                        type="text"
-                        placeholder="Numeração"
-                        className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-slate-400"
-                        value={novaVariacao.numeracao}
-                        onChange={(e) =>
-                          setNovaVariacao((v) => ({ ...v, numeracao: e.target.value }))
-                        }
-                      />
-                      <input
-                        type="number"
-                        placeholder="Estoque"
-                        className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-slate-400"
-                        value={novaVariacao.estoque}
-                        onChange={(e) =>
-                          setNovaVariacao((v) => ({ ...v, estoque: e.target.value }))
-                        }
-                      />
-                      <button
-                        onClick={adicionarVariacao}
-                        className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700"
+                {variacoesOrdenadas.length > 0 ? (
+                  <div className="mt-4 grid grid-cols-[repeat(auto-fill,minmax(84px,1fr))] gap-2">
+                    {variacoesOrdenadas.map((variacao) => (
+                      <div
+                        key={variacao.id}
+                        className="flex min-h-16 flex-col justify-between rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5"
                       >
-                        Adicionar
-                      </button>
-                    </div>
-                    <div className="mt-3 flex flex-wrap gap-2 text-xs">
-                      <button
-                        type="button"
-                        onClick={() => adicionarGradeCompleta("baixa")}
-                        className="rounded-full border border-slate-300 px-3 py-1 font-medium text-slate-600 hover:bg-white"
-                      >
-                        Grade baixa 34-39
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => adicionarGradeCompleta("alta")}
-                        className="rounded-full border border-slate-300 px-3 py-1 font-medium text-slate-600 hover:bg-white"
-                      >
-                        Grade alta 38-43
-                      </button>
-                    </div>
+                        <span className="text-base font-semibold text-slate-950">{variacao.numeracao}</span>
+                        <span className={`text-xs font-medium ${variacao.estoque > 0 ? "text-slate-500" : "text-rose-600"}`}>
+                          {variacao.estoque} {variacao.estoque === 1 ? "par" : "pares"}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="mt-4 rounded-lg border border-dashed border-slate-300 px-4 py-8 text-center text-sm text-slate-500">
+                    Este produto ainda não possui variações.
                   </div>
                 )}
 
-                <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                  {variacoesOrdenadas.map((variacao) => {
-                    const emEdicao = estoqueEditandoId === variacao.id;
+                {gerenciandoVariacoes && (
+                  <div className="mt-5 border-t border-slate-200 pt-5">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                      <div>
+                        <h4 className="text-sm font-semibold text-slate-950">Editar grade e estoque</h4>
+                        <p className="mt-0.5 text-xs text-slate-500">
+                          Adicione numerações ou ajuste as quantidades existentes.
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                        onClick={() => setMostrarFormularioVariacao((valor) => !valor)}
+                      >
+                        <FaPlus className="text-xs" />
+                        {mostrarFormularioVariacao ? "Fechar inclusão" : "Adicionar variação"}
+                      </button>
+                    </div>
 
-                    return (
-                      <div key={variacao.id} className="rounded-lg border border-slate-200 p-3">
-                        <div className="flex items-start justify-between gap-3">
-                          <div>
-                            <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Numeração</p>
-                            <p className="text-lg font-semibold text-slate-950">{variacao.numeracao}</p>
-                          </div>
+                    {mostrarFormularioVariacao && (
+                      <div className="mt-4 rounded-lg border border-slate-200 bg-slate-50 p-4">
+                        <div className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_1fr_auto]">
+                          <input
+                            type="text"
+                            placeholder="Numeração"
+                            className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-slate-400"
+                            value={novaVariacao.numeracao}
+                            onChange={(e) =>
+                              setNovaVariacao((v) => ({ ...v, numeracao: e.target.value }))
+                            }
+                          />
+                          <input
+                            type="number"
+                            placeholder="Quantidade"
+                            className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-slate-400"
+                            value={novaVariacao.estoque}
+                            onChange={(e) =>
+                              setNovaVariacao((v) => ({ ...v, estoque: e.target.value }))
+                            }
+                          />
                           <button
-                            onClick={() => excluirVariacao(variacao.id)}
-                            className="rounded-md border border-rose-200 p-2 text-rose-700 hover:bg-rose-50"
-                            title="Excluir variação"
+                            onClick={adicionarVariacao}
+                            className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-700"
                           >
-                            <FaTrashAlt size={12} />
+                            Adicionar
                           </button>
                         </div>
-
-                        <div className="mt-3 flex items-center justify-between gap-3">
-                          {emEdicao ? (
-                            <input
-                              type="number"
-                              className="w-24 rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-slate-400"
-                              value={estoquesEditados[variacao.id] ?? variacao.estoque}
-                              onChange={(e) => handleEstoqueChange(variacao.id, e.target.value)}
-                            />
-                          ) : (
-                            <p className="text-sm text-slate-600">
-                              Estoque: <span className="font-semibold text-slate-950">{variacao.estoque}</span>
-                            </p>
-                          )}
-
-                          {emEdicao ? (
-                            <div className="flex gap-2">
-                              <button
-                                onClick={() => salvarEstoque(variacao.id)}
-                                className="rounded-lg bg-slate-900 px-3 py-2 text-sm font-medium text-white hover:bg-slate-700"
-                              >
-                                Salvar
-                              </button>
-                              <button
-                                onClick={() => setEstoqueEditandoId(null)}
-                                className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
-                              >
-                                Cancelar
-                              </button>
-                            </div>
-                          ) : (
-                            <button
-                              onClick={() => setEstoqueEditandoId(variacao.id)}
-                              className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
-                            >
-                              Editar estoque
-                            </button>
-                          )}
+                        <div className="mt-3 flex flex-wrap gap-2 text-xs">
+                          <button
+                            type="button"
+                            onClick={() => adicionarGradeCompleta("baixa")}
+                            className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 font-medium text-slate-600 transition hover:border-slate-400"
+                          >
+                            Usar grade baixa 34-39
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => adicionarGradeCompleta("alta")}
+                            className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 font-medium text-slate-600 transition hover:border-slate-400"
+                          >
+                            Usar grade alta 38-43
+                          </button>
                         </div>
                       </div>
-                    );
-                  })}
-                </div>
+                    )}
+
+                    <div className="mt-4 divide-y divide-slate-100 rounded-lg border border-slate-200">
+                      {variacoesOrdenadas.map((variacao) => {
+                        const emEdicao = estoqueEditandoId === variacao.id;
+
+                        return (
+                          <div
+                            key={variacao.id}
+                            className="flex flex-col gap-3 px-3 py-3 sm:flex-row sm:items-center sm:justify-between"
+                          >
+                            <div className="flex items-center justify-between gap-4 sm:min-w-40 sm:justify-start">
+                              <div>
+                                <p className="text-xs font-medium text-slate-500">Numeração</p>
+                                <p className="text-base font-semibold text-slate-950">{variacao.numeracao}</p>
+                              </div>
+                              {!emEdicao && (
+                                <p className="text-sm text-slate-500">
+                                  <span className="font-semibold text-slate-950">{variacao.estoque}</span>{" "}
+                                  {variacao.estoque === 1 ? "par" : "pares"}
+                                </p>
+                              )}
+                            </div>
+
+                            <div className="flex items-center justify-end gap-2">
+                              {emEdicao ? (
+                                <>
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    aria-label={`Estoque da numeração ${variacao.numeracao}`}
+                                    className="min-w-0 flex-1 rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-slate-400 sm:w-24 sm:flex-none"
+                                    value={estoquesEditados[variacao.id] ?? variacao.estoque}
+                                    onChange={(e) => handleEstoqueChange(variacao.id, e.target.value)}
+                                  />
+                                  <button
+                                    onClick={() => salvarEstoque(variacao.id)}
+                                    className="rounded-lg bg-slate-900 px-3 py-2 text-sm font-medium text-white transition hover:bg-slate-700"
+                                  >
+                                    Salvar
+                                  </button>
+                                  <button
+                                    onClick={() => setEstoqueEditandoId(null)}
+                                    className="rounded-lg px-2 py-2 text-sm font-medium text-slate-500 transition hover:bg-slate-50 hover:text-slate-900"
+                                  >
+                                    Cancelar
+                                  </button>
+                                </>
+                              ) : (
+                                <>
+                                  <button
+                                    onClick={() => setEstoqueEditandoId(variacao.id)}
+                                    className="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
+                                  >
+                                    <Pencil size={14} /> Alterar
+                                  </button>
+                                  <button
+                                    onClick={() => excluirVariacao(variacao.id)}
+                                    className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 transition hover:bg-rose-50 hover:text-rose-700"
+                                    title="Excluir variação"
+                                    aria-label={`Excluir numeração ${variacao.numeracao}`}
+                                  >
+                                    <FaTrashAlt size={12} />
+                                  </button>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -905,6 +1138,85 @@ export default function Estoque({ aoAdicionarReposicao }) {
           }}
         />
       )}
+
+      {mostrarReposicaoModal && (
+        <ReposicaoEstoqueModal
+          produtos={produtos}
+          fornecedores={fornecedores}
+          produtoInicialId={produtoSelecionado?.id}
+          onClose={() => setMostrarReposicaoModal(false)}
+          onSaved={carregarProdutos}
+        />
+      )}
+    </div>
+  );
+}
+
+function capitalize(value) {
+  const texto = String(value || "");
+  return texto ? `${texto.charAt(0).toUpperCase()}${texto.slice(1)}` : "";
+}
+
+function formatPercent(value) {
+  return `${Number(value || 0).toLocaleString("pt-BR", {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+  })}%`;
+}
+
+function ProductTag({ icon: Icon, value }) {
+  return (
+    <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200/80 bg-slate-50 px-2.5 py-1 font-medium text-slate-600">
+      {Icon && <Icon size={12} />}
+      {value}
+    </span>
+  );
+}
+
+function SummaryStat({ icon: Icon, label, value, detail }) {
+  return (
+    <div className="min-w-0 rounded-2xl border border-slate-200/80 bg-slate-50/70 p-4">
+      <div className="flex items-center gap-1.5 text-[11px] font-medium text-slate-500">
+        <Icon size={14} />
+        <span>{label}</span>
+      </div>
+      <p className="mt-2 text-lg font-semibold tracking-tight text-slate-950">{value}</p>
+      <p className="mt-0.5 truncate text-[11px] text-slate-500" title={detail}>{detail}</p>
+    </div>
+  );
+}
+
+function MediaBadge({ icon: Icon, active, label }) {
+  return (
+    <span
+      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1.5 font-medium ${
+        active
+          ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+          : "border-slate-200 bg-slate-50 text-slate-400"
+      }`}
+    >
+      {Icon && <Icon size={12} />}
+      <span>{label}</span>
+    </span>
+  );
+}
+
+function DetailGroup({ title, children }) {
+  return (
+    <section className="min-w-0 rounded-xl border border-slate-200/80 bg-white p-3">
+      <h4 className="mb-2 text-[11px] font-semibold uppercase text-slate-400">{title}</h4>
+      <dl className="space-y-1">{children}</dl>
+    </section>
+  );
+}
+
+function DetailRow({ label, value }) {
+  return (
+    <div className="flex min-w-0 items-baseline justify-between gap-3 rounded-lg px-1 py-1">
+      <dt className="shrink-0 text-xs text-slate-500">{label}</dt>
+      <dd className="truncate text-right text-xs font-medium text-slate-800" title={String(value)}>
+        {value}
+      </dd>
     </div>
   );
 }

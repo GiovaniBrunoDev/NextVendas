@@ -180,12 +180,12 @@ export default function RelatorioLucro() {
                   border: "1px solid #cbd5e1",
                   borderRadius: "8px",
                   boxShadow: "0 10px 30px rgba(15, 23, 42, 0.08)",
-                  color: "#0f172a",
+                  color: "#0B1115",
                   fontSize: "12px",
                 }}
                 formatter={(value) => formatCurrency(value)}
               />
-              <Bar dataKey="lucro" fill="#0f172a" radius={[6, 6, 0, 0]} />
+              <Bar dataKey="lucro" fill="#0B1115" radius={[6, 6, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </section>
