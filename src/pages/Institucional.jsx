@@ -451,7 +451,7 @@ export default function LandingPage() {
             className="relative min-w-0 w-full reveal lg:justify-self-stretch"
             style={{ transitionDelay: "160ms" }}
           >
-            <div className="mx-auto w-full max-w-[860px]">
+            <div className="mx-auto w-full max-w-[1040px]">
               <LojiaHeroMockup />
             </div>
           </div>
