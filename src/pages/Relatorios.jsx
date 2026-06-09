@@ -33,6 +33,7 @@ const periodos = [
   { value: "dia", label: "Hoje" },
   { value: "7dias", label: "7 dias" },
   { value: "mes", label: "Mês" },
+  { value: "personalizado", label: "Personalizado" },
   { value: "tudo", label: "Tudo" },
 ];
 
@@ -99,6 +100,23 @@ const chaveDia = (valor) => {
   return data.toISOString().slice(0, 10);
 };
 
+const toDateInputValue = (date) => {
+  const local = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+  return local.toISOString().slice(0, 10);
+};
+
+const dataInicioDia = (value) => {
+  if (!value) return null;
+  const data = new Date(`${value}T00:00:00`);
+  return Number.isNaN(data.getTime()) ? null : data;
+};
+
+const dataFimDia = (value) => {
+  if (!value) return null;
+  const data = new Date(`${value}T23:59:59.999`);
+  return Number.isNaN(data.getTime()) ? null : data;
+};
+
 function inicioPeriodo(periodo) {
   const hoje = new Date();
   const inicioHoje = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
@@ -113,9 +131,14 @@ function inicioPeriodo(periodo) {
   return null;
 }
 
-function estaNoPeriodo(valor, periodo) {
+function estaNoPeriodo(valor, periodo, dataInicio, dataFim) {
   if (periodo === "tudo") return true;
   const data = new Date(valor);
+  if (periodo === "personalizado") {
+    const inicio = dataInicioDia(dataInicio);
+    const fim = dataFimDia(dataFim);
+    return !Number.isNaN(data.getTime()) && Boolean(inicio && fim) && data >= inicio && data <= fim;
+  }
   const inicio = inicioPeriodo(periodo);
   return !Number.isNaN(data.getTime()) && (!inicio || data >= inicio);
 }
@@ -189,6 +212,8 @@ function exportCsv(nomeArquivo, rows) {
 export default function Relatorios() {
   const [aba, setAba] = useState("resumo");
   const [periodo, setPeriodo] = useState("mes");
+  const [dataInicio, setDataInicio] = useState(() => toDateInputValue(new Date()));
+  const [dataFim, setDataFim] = useState(() => toDateInputValue(new Date()));
   const [busca, setBusca] = useState("");
   const [tipoMovimento, setTipoMovimento] = useState("todos");
   const [vendas, setVendas] = useState([]);
@@ -208,7 +233,7 @@ export default function Relatorios() {
 
   useEffect(() => {
     carregarLucro();
-  }, [periodo]);
+  }, [dataFim, dataInicio, periodo]);
 
   async function carregarBase() {
     try {
@@ -243,7 +268,11 @@ export default function Relatorios() {
   async function carregarLucro() {
     try {
       setCarregandoLucro(true);
-      const { data } = await api.get("/relatorios/lucro", { params: { periodo } });
+      const params =
+        periodo === "personalizado"
+          ? { inicio: dataInicio, fim: dataFim }
+          : { periodo };
+      const { data } = await api.get("/relatorios/lucro", { params });
       setDadosLucro(data);
     } catch (error) {
       console.error("Erro ao carregar lucro bruto:", error);
@@ -260,13 +289,23 @@ export default function Relatorios() {
   }
 
   const vendasPeriodo = useMemo(
-    () => vendas.filter((venda) => estaNoPeriodo(venda.data, periodo)),
-    [vendas, periodo]
+    () => vendas.filter((venda) => estaNoPeriodo(venda.data, periodo, dataInicio, dataFim)),
+    [dataFim, dataInicio, vendas, periodo]
   );
 
   const pedidosPeriodo = useMemo(
-    () => pedidos.filter((pedido) => estaNoPeriodo(pedido.dataCriacao || pedido.dataEntrega, periodo)),
-    [pedidos, periodo]
+    () => pedidos.filter((pedido) => estaNoPeriodo(pedido.dataCriacao || pedido.dataEntrega, periodo, dataInicio, dataFim)),
+    [dataFim, dataInicio, pedidos, periodo]
+  );
+
+  const movimentosPeriodo = useMemo(
+    () => movimentos.filter((movimento) => estaNoPeriodo(movimento.criadoEm, periodo, dataInicio, dataFim)),
+    [dataFim, dataInicio, movimentos, periodo]
+  );
+
+  const entradasPeriodo = useMemo(
+    () => entradas.filter((entrada) => estaNoPeriodo(entrada.criadoEm, periodo, dataInicio, dataFim)),
+    [dataFim, dataInicio, entradas, periodo]
   );
 
   const vendasFiltradas = useMemo(() => {
@@ -286,7 +325,7 @@ export default function Relatorios() {
 
   const movimentosFiltrados = useMemo(() => {
     const termo = busca.trim().toLowerCase();
-    return movimentos.filter((movimento) => {
+    return movimentosPeriodo.filter((movimento) => {
       if (tipoMovimento !== "todos" && movimento.tipo !== tipoMovimento) return false;
       if (!termo) return true;
       const texto = [
@@ -297,7 +336,7 @@ export default function Relatorios() {
       ].join(" ").toLowerCase();
       return texto.includes(termo);
     });
-  }, [movimentos, busca, tipoMovimento]);
+  }, [busca, movimentosPeriodo, tipoMovimento]);
 
   const resumo = useMemo(() => {
     const faturamento = vendasPeriodo.reduce((soma, venda) => soma + numero(venda.total), 0);
@@ -419,11 +458,11 @@ export default function Relatorios() {
       valor,
       custo,
       criticos,
-      entradas: movimentos.filter((item) => numero(item.quantidade) > 0).reduce((soma, item) => soma + numero(item.quantidade), 0),
-      saidas: movimentos.filter((item) => numero(item.quantidade) < 0).reduce((soma, item) => soma + Math.abs(numero(item.quantidade)), 0),
-      reposicoes: movimentos.filter((item) => item.tipo === "reposicao").length || entradas.length,
+      entradas: movimentosPeriodo.filter((item) => numero(item.quantidade) > 0).reduce((soma, item) => soma + numero(item.quantidade), 0),
+      saidas: movimentosPeriodo.filter((item) => numero(item.quantidade) < 0).reduce((soma, item) => soma + Math.abs(numero(item.quantidade)), 0),
+      reposicoes: movimentosPeriodo.filter((item) => item.tipo === "reposicao").length || entradasPeriodo.length,
     };
-  }, [produtos, movimentos, entradas]);
+  }, [produtos, movimentosPeriodo, entradasPeriodo]);
 
   const heroValor = aba === "estoque"
     ? estoqueResumo.pares
@@ -434,6 +473,17 @@ export default function Relatorios() {
         : aba === "lucro"
           ? moeda(dadosLucro?.resumo?.lucro ?? resumo.lucro)
           : moeda(resumo.faturamento);
+
+  const periodoAtual = useMemo(() => {
+    if (periodo === "personalizado") {
+      const inicio = dataInicioDia(dataInicio)?.toLocaleDateString("pt-BR");
+      const fim = dataFimDia(dataFim)?.toLocaleDateString("pt-BR");
+      if (inicio && fim) return `${inicio} até ${fim}`;
+      return "Período personalizado";
+    }
+
+    return periodos.find((item) => item.value === periodo)?.label || "Período";
+  }, [dataFim, dataInicio, periodo]);
 
   const carregando = carregandoBase && !vendas.length && !produtos.length;
 
@@ -513,7 +563,7 @@ export default function Relatorios() {
         </div>
         <div className="rounded-lg border border-white/10 bg-white/[0.08] px-4 py-3">
           <p className="text-xs font-medium uppercase text-white/62">
-            {abas.find((item) => item.value === aba)?.label || "Resumo"}
+            {(abas.find((item) => item.value === aba)?.label || "Resumo")} · {periodoAtual}
           </p>
           <p className="mt-1 text-3xl font-semibold text-white">{heroValor}</p>
         </div>
@@ -552,6 +602,23 @@ export default function Relatorios() {
                 </button>
               ))}
             </div>
+
+            {periodo === "personalizado" && (
+              <div className="grid grid-cols-2 gap-2 lg:w-72">
+                <input
+                  type="date"
+                  value={dataInicio}
+                  onChange={(event) => setDataInicio(event.target.value)}
+                  className="min-h-10 rounded-lg border border-slate-200 bg-white px-3 text-base text-slate-700 outline-none transition focus:border-slate-400 sm:text-sm"
+                />
+                <input
+                  type="date"
+                  value={dataFim}
+                  onChange={(event) => setDataFim(event.target.value)}
+                  className="min-h-10 rounded-lg border border-slate-200 bg-white px-3 text-base text-slate-700 outline-none transition focus:border-slate-400 sm:text-sm"
+                />
+              </div>
+            )}
 
             <div className="relative min-w-0 lg:w-72">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />

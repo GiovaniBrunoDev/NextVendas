@@ -6,6 +6,7 @@ import { SiPix } from "react-icons/si";
 import Select from "react-select";
 import useModalPresence from "../hooks/useModalPresence";
 import EntregadorSelect from "./EntregadorSelect";
+import useLojaConfiguracoes from "../hooks/useLojaConfiguracoes";
 
 const formatCurrency = (valor) =>
   new Intl.NumberFormat("pt-BR", {
@@ -52,11 +53,13 @@ function enderecoCompleto(cliente) {
 
 export default function FinalizarVendaModal({ carrinho, aoFechar, aoFinalizar }) {
   useModalPresence();
+  const { configuracoes } = useLojaConfiguracoes();
 
   const [etapaAtual, setEtapaAtual] = useState(0);
   const [formaPagamento, setFormaPagamento] = useState("dinheiro");
   const [tipoEntrega, setTipoEntrega] = useState("entrega");
   const [taxaEntrega, setTaxaEntrega] = useState("");
+  const [taxaEntregaManual, setTaxaEntregaManual] = useState(false);
   const [entregador, setEntregador] = useState("");
 
   const [clientes, setClientes] = useState([]);
@@ -70,6 +73,7 @@ export default function FinalizarVendaModal({ carrinho, aoFechar, aoFinalizar })
   const [carregando, setCarregando] = useState(false);
 
   const totalProdutos = carrinho.reduce((s, item) => s + item.qtd * item.preco, 0);
+  const taxaPadraoConfigurada = Number(String(configuracoes.taxaEntregaPadrao || "0").replace(",", "."));
   const valorEntrega = tipoEntrega === "entrega" ? Number(taxaEntrega || 0) : 0;
   const totalAntesDesconto = totalProdutos + valorEntrega;
   const descontoDigitado = Number(String(desconto || "0").replace(",", "."));
@@ -112,6 +116,12 @@ export default function FinalizarVendaModal({ carrinho, aoFechar, aoFinalizar })
     window.addEventListener("keydown", listener);
     return () => window.removeEventListener("keydown", listener);
   }, [aoFechar]);
+
+  useEffect(() => {
+    if (taxaEntregaManual || tipoEntrega !== "entrega") return;
+    if (!Number.isFinite(taxaPadraoConfigurada) || taxaPadraoConfigurada <= 0) return;
+    setTaxaEntrega(String(taxaPadraoConfigurada));
+  }, [taxaEntregaManual, taxaPadraoConfigurada, tipoEntrega]);
 
   async function carregarClientes() {
     try {
@@ -318,9 +328,17 @@ export default function FinalizarVendaModal({ carrinho, aoFechar, aoFinalizar })
                 type="number"
                 placeholder="0,00"
                 value={taxaEntrega}
-                onChange={(e) => setTaxaEntrega(e.target.value)}
+                onChange={(e) => {
+                  setTaxaEntregaManual(true);
+                  setTaxaEntrega(e.target.value);
+                }}
                 className={inputClass}
               />
+              {taxaPadraoConfigurada > 0 && !taxaEntregaManual && (
+                <p className="mt-1.5 text-xs text-slate-500">
+                  Taxa padrão da loja aplicada: {formatCurrency(taxaPadraoConfigurada)}
+                </p>
+              )}
             </label>
             <div>
               <span className={fieldLabelClass}>Entregador</span>

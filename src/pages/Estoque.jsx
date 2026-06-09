@@ -22,6 +22,7 @@ import {
   Video,
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
+import useLojaConfiguracoes from "../hooks/useLojaConfiguracoes";
 
 const API_KEY = "6371650aa50b8af82e574e8022553613";
 
@@ -33,7 +34,12 @@ const formatCurrency = (valor) =>
 
 export default function Estoque({ onNavigate }) {
   const { lojaAtual } = useAuth();
+  const { configuracoes } = useLojaConfiguracoes();
   const podeAdicionarVideo = Number(lojaAtual?.loja?.id) === 1;
+  const alertaEstoqueConfig = Number(configuracoes.alertaEstoque);
+  const limiteEstoqueBaixo = Number.isFinite(alertaEstoqueConfig)
+    ? Math.max(0, alertaEstoqueConfig)
+    : 2;
   const [produtos, setProdutos] = useState([]);
   const [fornecedores, setFornecedores] = useState([]);
   const [carregando, setCarregando] = useState(true);
@@ -182,9 +188,30 @@ export default function Estoque({ onNavigate }) {
       codigosBarras,
       menorNumeracao: variacoesOrdenadas[0]?.numeracao || "—",
       maiorNumeracao: variacoesOrdenadas[variacoesOrdenadas.length - 1]?.numeracao || "—",
-      statusEstoque: estoque <= 0 ? "Sem estoque" : estoque <= 5 ? "Estoque baixo" : "Disponível",
+      statusEstoque: estoque <= 0 ? "Sem estoque" : estoque <= limiteEstoqueBaixo ? "Estoque baixo" : "Disponível",
     };
-  }, [produtoSelecionado, variacoesOrdenadas]);
+  }, [limiteEstoqueBaixo, produtoSelecionado, variacoesOrdenadas]);
+
+  const produtoAlertas = useMemo(() => {
+    if (!produtoSelecionado || !detalhesProduto) return [];
+
+    const alertas = [];
+    if (!produtoSelecionado.imagemUrl) alertas.push({ label: "Sem imagem", tone: "warning" });
+    if (!produtoSelecionado.marca) alertas.push({ label: "Sem marca", tone: "neutral" });
+    if (!produtoSelecionado.fornecedor?.nome) alertas.push({ label: "Sem fornecedor", tone: "neutral" });
+    if (detalhesProduto.custoTotalUnitario <= 0) alertas.push({ label: "Sem custo", tone: "warning" });
+    if (detalhesProduto.margemPercentual > 0 && detalhesProduto.margemPercentual < 25) {
+      alertas.push({ label: "Margem baixa", tone: "warning" });
+    }
+    if (detalhesProduto.estoque <= 0) {
+      alertas.push({ label: "Produto zerado", tone: "danger" });
+    } else if (detalhesProduto.estoque <= limiteEstoqueBaixo) {
+      alertas.push({ label: `Estoque ≤ ${limiteEstoqueBaixo}`, tone: "warning" });
+    }
+    if (!variacoesOrdenadas.length) alertas.push({ label: "Sem grade", tone: "danger" });
+
+    return alertas;
+  }, [detalhesProduto, limiteEstoqueBaixo, produtoSelecionado, variacoesOrdenadas.length]);
 
   const atualizarProdutoNaTela = (produtoAtualizado) => {
     setProdutoSelecionado(produtoAtualizado);
@@ -677,6 +704,14 @@ export default function Estoque({ onNavigate }) {
                         </button>
                         <button
                           type="button"
+                          onClick={() => setMostrarReposicaoModal(true)}
+                          className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                        >
+                          <PackagePlus size={15} />
+                          Repor produto
+                        </button>
+                        <button
+                          type="button"
                           onClick={() => {
                             const proximoEstado = !gerenciandoVariacoes;
                             setGerenciandoVariacoes(proximoEstado);
@@ -713,6 +748,32 @@ export default function Estoque({ onNavigate }) {
                         value={`${detalhesProduto?.estoque || 0} pares`}
                         detail={`${detalhesProduto?.variacoesComEstoque || 0} tamanhos disponíveis`}
                       />
+                    </div>
+
+                    <div className="mt-4 rounded-2xl border border-slate-200/80 bg-slate-50/70 p-3">
+                      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                          <p className="text-xs font-semibold uppercase text-slate-500">Saúde do cadastro</p>
+                          <p className="mt-0.5 text-xs text-slate-500">
+                            Limite de estoque baixo: {limiteEstoqueBaixo} {limiteEstoqueBaixo === 1 ? "par" : "pares"}.
+                          </p>
+                        </div>
+                        {produtoAlertas.length === 0 && (
+                          <span className="inline-flex w-fit rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+                            Cadastro completo
+                          </span>
+                        )}
+                      </div>
+
+                      {produtoAlertas.length > 0 && (
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          {produtoAlertas.map((alerta) => (
+                            <HealthBadge key={alerta.label} tone={alerta.tone}>
+                              {alerta.label}
+                            </HealthBadge>
+                          ))}
+                        </div>
+                      )}
                     </div>
 
                     <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-slate-500">
@@ -1197,6 +1258,20 @@ function MediaBadge({ icon: Icon, active, label }) {
     >
       {Icon && <Icon size={12} />}
       <span>{label}</span>
+    </span>
+  );
+}
+
+function HealthBadge({ tone = "neutral", children }) {
+  const classes = {
+    danger: "border-rose-200 bg-rose-50 text-rose-700",
+    warning: "border-amber-200 bg-amber-50 text-amber-700",
+    neutral: "border-slate-200 bg-white text-slate-600",
+  };
+
+  return (
+    <span className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold ${classes[tone] || classes.neutral}`}>
+      {children}
     </span>
   );
 }

@@ -28,8 +28,31 @@ const periodos = [
   { value: "dia", label: "Hoje" },
   { value: "7dias", label: "Últimos 7 dias" },
   { value: "mes", label: "Este mês" },
+  { value: "personalizado", label: "Personalizado" },
   { value: "tudo", label: "Todo período" },
 ];
+
+const toDateInputValue = (date) => {
+  const local = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+  return local.toISOString().slice(0, 10);
+};
+
+const dataInicioDia = (value) => {
+  if (!value) return null;
+  const data = new Date(`${value}T00:00:00`);
+  return Number.isNaN(data.getTime()) ? null : data;
+};
+
+const dataFimDia = (value) => {
+  if (!value) return null;
+  const data = new Date(`${value}T23:59:59.999`);
+  return Number.isNaN(data.getTime()) ? null : data;
+};
+
+const formatDateLabel = (value) => {
+  const data = dataInicioDia(value);
+  return data ? data.toLocaleDateString("pt-BR") : "";
+};
 
 const formatCurrency = (valor) =>
   new Intl.NumberFormat("pt-BR", {
@@ -39,14 +62,15 @@ const formatCurrency = (valor) =>
 
 const calcularLucroVenda = (venda) => {
   const desconto = Number(venda.desconto || 0);
-  const subtotalItens = venda.itens.reduce((soma, item) => {
+  const itens = venda.itens || [];
+  const subtotalItens = itens.reduce((soma, item) => {
     const produto = item.variacaoProduto?.produto;
     const preco = Number(item.precoUnitario ?? produto?.preco ?? 0);
     return soma + preco * item.quantidade;
   }, 0);
   const subtotalProdutos = Number(venda.subtotalProdutos ?? subtotalItens);
   const receitaProdutos = Math.max(subtotalProdutos - desconto, 0);
-  const custoProdutos = venda.itens.reduce((soma, item) => {
+  const custoProdutos = itens.reduce((soma, item) => {
     const produto = item.variacaoProduto?.produto;
     const custoUnitario = Number(item.custoUnitario ?? produto?.custoUnitario ?? 0);
     const outrosCustos = Number(item.outrosCustos ?? produto?.outrosCustos ?? 0);
@@ -102,14 +126,19 @@ function FeaturedMetricCard({ titulo, valor, periodoAtual }) {
   );
 }
 
-export default function Dashboard() {
-  const { usuario } = useAuth();
+export default function Dashboard({ onNavigate }) {
+  const { usuario, lojaAtual } = useAuth();
   const [vendas, setVendas] = useState([]);
   const [pedidos, setPedidos] = useState([]);
+  const [produtos, setProdutos] = useState([]);
+  const [clientes, setClientes] = useState([]);
   const [dadosGrafico, setDadosGrafico] = useState([]);
   const [rankingProdutos, setRankingProdutos] = useState([]);
   const [vendasFiltradas, setVendasFiltradas] = useState([]);
   const [periodo, setPeriodo] = useState("dia");
+  const [dataInicio, setDataInicio] = useState(() => toDateInputValue(new Date()));
+  const [dataFim, setDataFim] = useState(() => toDateInputValue(new Date()));
+  const [onboardingOculto, setOnboardingOculto] = useState(false);
 
   const [total, setTotal] = useState(0);
   const [qtdProdutos, setQtdProdutos] = useState(0);
@@ -122,10 +151,20 @@ export default function Dashboard() {
 
   const [carregando, setCarregando] = useState(true);
 
-  const periodoAtual = useMemo(
-    () => periodos.find((item) => item.value === periodo)?.label || "Período",
-    [periodo]
-  );
+  const lojaId = lojaAtual?.loja?.id || "global";
+  const onboardingKey = `lojia_onboarding_oculto_${lojaId}`;
+  const configuracoesKey = `lojia_configuracoes_salvas_${lojaId}`;
+
+  const periodoAtual = useMemo(() => {
+    if (periodo === "personalizado") {
+      const inicio = formatDateLabel(dataInicio);
+      const fim = formatDateLabel(dataFim);
+      if (inicio && fim) return `${inicio} até ${fim}`;
+      return "Período personalizado";
+    }
+
+    return periodos.find((item) => item.value === periodo)?.label || "Período";
+  }, [dataFim, dataInicio, periodo]);
 
   const primeiroNome = useMemo(() => {
     const nome = String(usuario?.nome || "lojista").trim();
@@ -136,15 +175,21 @@ export default function Dashboard() {
     async function carregarDados() {
       try {
         setCarregando(true);
-        const [resVendas, resPedidos] = await Promise.all([
+        const [resVendas, resPedidos, resProdutos, resClientes] = await Promise.all([
           api.get("/vendas"),
           api.get("/pedidos"),
+          api.get("/produtos"),
+          api.get("/clientes"),
         ]);
 
         const vendasData = Array.isArray(resVendas.data) ? resVendas.data : [];
         const pedidosData = Array.isArray(resPedidos.data) ? resPedidos.data : [];
+        const produtosData = Array.isArray(resProdutos.data) ? resProdutos.data : [];
+        const clientesData = Array.isArray(resClientes.data) ? resClientes.data : [];
         setVendas(vendasData);
         setPedidos(pedidosData);
+        setProdutos(produtosData);
+        setClientes(clientesData);
       } catch (err) {
         console.error("Erro ao carregar dados", err);
       } finally {
@@ -156,10 +201,17 @@ export default function Dashboard() {
   }, []);
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
+    setOnboardingOculto(localStorage.getItem(onboardingKey) === "1");
+  }, [onboardingKey]);
+
+  useEffect(() => {
     const hoje = new Date();
     const inicio7Dias = new Date(hoje);
     inicio7Dias.setDate(hoje.getDate() - 6);
     const inicioMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+    const inicioPersonalizado = dataInicioDia(dataInicio);
+    const fimPersonalizado = dataFimDia(dataFim);
 
     const filtrarPorPeriodo = (venda) => {
       const dataVenda = new Date(venda.data);
@@ -169,6 +221,10 @@ export default function Dashboard() {
       if (periodo === "dia") return dataVendaStr === hojeStr;
       if (periodo === "7dias") return dataVenda >= inicio7Dias && dataVenda <= hoje;
       if (periodo === "mes") return dataVenda >= inicioMes && dataVenda <= hoje;
+      if (periodo === "personalizado") {
+        if (!inicioPersonalizado || !fimPersonalizado) return false;
+        return dataVenda >= inicioPersonalizado && dataVenda <= fimPersonalizado;
+      }
       if (periodo === "tudo") return true;
       return false;
     };
@@ -180,7 +236,7 @@ export default function Dashboard() {
     const totalProdutos = vendasPeriodo.reduce(
       (acc, venda) =>
         acc +
-        venda.itens.reduce((soma, item) => soma + Number(item.quantidade || 0), 0),
+          (venda.itens || []).reduce((soma, item) => soma + Number(item.quantidade || 0), 0),
       0
     );
     const ticket = vendasPeriodo.length ? totalPeriodo / vendasPeriodo.length : 0;
@@ -231,7 +287,7 @@ export default function Dashboard() {
     setRankingProdutos(
       Object.entries(
         vendasPeriodo.reduce((acc, venda) => {
-          venda.itens.forEach((item) => {
+          (venda.itens || []).forEach((item) => {
             const produto = item.variacaoProduto?.produto;
             const nome = produto?.nome || item.nomeManual;
             if (nome) acc[nome] = (acc[nome] || 0) + Number(item.quantidade || 0);
@@ -247,7 +303,59 @@ export default function Dashboard() {
         .sort((a, b) => b.quantidadeVendida - a.quantidadeVendida)
     );
 
-  }, [vendas, periodo]);
+  }, [dataFim, dataInicio, vendas, periodo]);
+
+  const onboardingSteps = useMemo(() => {
+    const configuracoesSalvas =
+      typeof window !== "undefined" && localStorage.getItem(configuracoesKey) === "1";
+
+    return [
+      {
+        id: "produto",
+        titulo: "Cadastre o primeiro produto",
+        descricao: "Inclua foto, preço, custo e grade para começar com estoque confiável.",
+        pronto: produtos.length > 0,
+        destino: "estoque",
+      },
+      {
+        id: "venda",
+        titulo: "Faça uma venda teste",
+        descricao: "Valide carrinho, pagamento e recibo antes de usar no balcão.",
+        pronto: vendas.length > 0,
+        destino: "vendas",
+      },
+      {
+        id: "pedido",
+        titulo: "Crie um pedido",
+        descricao: "Reserve produtos e confirme depois como venda normal.",
+        pronto: pedidos.length > 0,
+        destino: "pedidos",
+      },
+      {
+        id: "cliente",
+        titulo: "Salve seus clientes",
+        descricao: "Facilite pedidos, entregas e histórico de compra.",
+        pronto: clientes.length > 0,
+        destino: "clientes",
+      },
+      {
+        id: "configuracoes",
+        titulo: "Revise a loja",
+        descricao: "Ajuste dados, recibo e preferências em Minha conta.",
+        pronto: configuracoesSalvas,
+        destino: "minha-conta",
+      },
+    ];
+  }, [clientes.length, configuracoesKey, pedidos.length, produtos.length, vendas.length]);
+
+  const onboardingCompleto = onboardingSteps.every((step) => step.pronto);
+
+  function ocultarOnboarding() {
+    if (typeof window !== "undefined") {
+      localStorage.setItem(onboardingKey, "1");
+    }
+    setOnboardingOculto(true);
+  }
 
   const pedidosOrdenados = useMemo(
     () =>
@@ -264,7 +372,7 @@ export default function Dashboard() {
   function formatPedidoDate(pedido) {
     if (!pedido.dataEntrega) return "Sem entrega definida";
     const data = new Date(pedido.dataEntrega).toLocaleDateString("pt-BR");
-    return pedido.horarioEntrega ? `${data} as ${pedido.horarioEntrega}` : data;
+    return pedido.horarioEntrega ? `${data} às ${pedido.horarioEntrega}` : data;
   }
 
   if (carregando) {
@@ -294,26 +402,94 @@ export default function Dashboard() {
             </div>
           </div>
 
-          <div className="grid w-full grid-cols-4 gap-1 rounded-lg border border-[#E5DED2] bg-[#F7F5EF] p-1 sm:inline-flex sm:w-auto">
-            {periodos.map((item) => {
-              const ativo = periodo === item.value;
-              return (
-                <button
-                  key={item.value}
-                  onClick={() => setPeriodo(item.value)}
-                  className={`min-h-9 min-w-0 rounded-md px-1 text-[10px] font-medium transition sm:flex-none sm:px-3 sm:text-sm ${
-                    ativo
-                      ? "bg-white text-[#0B1115] shadow-sm"
-                      : "text-slate-600 hover:bg-white/70 hover:text-slate-900"
-                  }`}
-                >
-                  <span className="whitespace-nowrap">{item.label}</span>
-                </button>
-              );
-            })}
+          <div className="flex w-full flex-col gap-2 sm:w-auto sm:items-end">
+            <div className="flex w-full flex-wrap gap-1 rounded-lg border border-[#E5DED2] bg-[#F7F5EF] p-1 sm:w-auto">
+              {periodos.map((item) => {
+                const ativo = periodo === item.value;
+                return (
+                  <button
+                    key={item.value}
+                    onClick={() => setPeriodo(item.value)}
+                    className={`min-h-9 flex-1 rounded-md px-2 text-[11px] font-medium transition sm:flex-none sm:px-3 sm:text-sm ${
+                      ativo
+                        ? "bg-white text-[#0B1115] shadow-sm"
+                        : "text-slate-600 hover:bg-white/70 hover:text-slate-900"
+                    }`}
+                  >
+                    <span className="whitespace-nowrap">{item.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {periodo === "personalizado" && (
+              <div className="grid w-full grid-cols-2 gap-2 sm:w-auto">
+                <label className="min-w-0">
+                  <span className="sr-only">Data inicial</span>
+                  <input
+                    type="date"
+                    value={dataInicio}
+                    onChange={(event) => setDataInicio(event.target.value)}
+                    className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 outline-none focus:border-[#16A34A] focus:ring-3 focus:ring-[#16A34A]/10"
+                  />
+                </label>
+                <label className="min-w-0">
+                  <span className="sr-only">Data final</span>
+                  <input
+                    type="date"
+                    value={dataFim}
+                    onChange={(event) => setDataFim(event.target.value)}
+                    className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 outline-none focus:border-[#16A34A] focus:ring-3 focus:ring-[#16A34A]/10"
+                  />
+                </label>
+              </div>
+            )}
           </div>
         </div>
       </div>
+
+      {!onboardingCompleto && !onboardingOculto && (
+        <section className="lojia-surface rounded-xl bg-white/90 p-4 shadow-[0_12px_30px_rgba(11,17,21,0.05)]">
+          <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase text-slate-500">Primeiros passos</p>
+              <h3 className="mt-1 text-lg font-semibold text-slate-950">Deixe a Lojia pronta para o dia a dia</h3>
+            </div>
+            <button
+              type="button"
+              onClick={ocultarOnboarding}
+              className="self-start rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-500 transition hover:bg-slate-50 hover:text-slate-900"
+            >
+              Ocultar guia
+            </button>
+          </div>
+
+          <div className="grid gap-2 md:grid-cols-5">
+            {onboardingSteps.map((step, index) => (
+              <button
+                key={step.id}
+                type="button"
+                onClick={() => onNavigate?.(step.destino)}
+                className={`rounded-xl border p-3 text-left transition ${
+                  step.pronto
+                    ? "border-[#16A34A]/20 bg-[#16A34A]/5"
+                    : "border-slate-200 bg-white hover:border-slate-300 hover:shadow-sm"
+                }`}
+              >
+                <span
+                  className={`mb-3 inline-flex h-8 w-8 items-center justify-center rounded-lg text-sm font-bold ${
+                    step.pronto ? "bg-[#16A34A] text-white" : "bg-slate-100 text-slate-500"
+                  }`}
+                >
+                  {step.pronto ? "✓" : index + 1}
+                </span>
+                <p className="text-sm font-semibold text-slate-950">{step.titulo}</p>
+                <p className="mt-1 text-xs leading-5 text-slate-500">{step.descricao}</p>
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
 
       <FeaturedMetricCard
         titulo="Sua loja vendeu"

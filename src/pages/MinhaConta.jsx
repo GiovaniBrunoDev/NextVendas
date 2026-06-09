@@ -6,17 +6,27 @@ import {
   CalendarDays,
   CheckCircle2,
   CreditCard,
+  Image,
   Lock,
   Mail,
   MapPin,
+  MessageCircle,
+  ReceiptText,
   Phone,
   Save,
+  Settings,
   ShieldCheck,
   Store,
+  Truck,
   UserCog,
   UserRound,
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
+import {
+  carregarLojaConfiguracoes,
+  lojaConfiguracoesPadrao,
+  salvarLojaConfiguracoes,
+} from "../hooks/useLojaConfiguracoes";
 
 const inputClass =
   "h-11 w-full rounded-lg border border-slate-200 bg-white px-3 pr-9 text-base text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-[#16A34A] focus:ring-3 focus:ring-[#16A34A]/10 disabled:bg-slate-50 disabled:text-slate-400 sm:text-sm";
@@ -65,6 +75,7 @@ export default function MinhaConta() {
   const [abaAtiva, setAbaAtiva] = useState("perfil");
   const [dadosUsuario, setDadosUsuario] = useState(usuarioInicial);
   const [dadosLoja, setDadosLoja] = useState(lojaInicial);
+  const [configuracoes, setConfiguracoes] = useState(lojaConfiguracoesPadrao);
   const [senha, setSenha] = useState({ atual: "", nova: "" });
   const [salvando, setSalvando] = useState(false);
 
@@ -75,12 +86,14 @@ export default function MinhaConta() {
   const assinaturaAtiva = Boolean(loja?.assinaturaAtiva);
   const podeEditarLoja = usuario?.superadmin || papel === "admin";
   const fotoPerfil = usuario?.fotoUrl || usuario?.avatarUrl || usuario?.imagemUrl;
+  const lojaConfigId = loja?.id || "padrao";
 
   const abas = useMemo(
     () => [
       { key: "perfil", label: "Perfil", icon: UserRound },
       { key: "loja", label: "Loja", icon: Store },
       { key: "plano", label: "Plano", icon: CreditCard },
+      { key: "configuracoes", label: "Configurações", icon: Settings },
       { key: "seguranca", label: "Segurança", icon: Lock },
     ],
     []
@@ -129,6 +142,10 @@ export default function MinhaConta() {
     });
   }, [loja]);
 
+  useEffect(() => {
+    setConfiguracoes(carregarLojaConfiguracoes(lojaConfigId));
+  }, [lojaConfigId]);
+
   function setUsuarioCampo(campo, valor) {
     setDadosUsuario((prev) => ({ ...prev, [campo]: valor }));
   }
@@ -137,8 +154,26 @@ export default function MinhaConta() {
     setDadosLoja((prev) => ({ ...prev, [campo]: valor }));
   }
 
+  function setConfiguracaoCampo(campo, valor) {
+    setConfiguracoes((prev) => ({ ...prev, [campo]: valor }));
+  }
+
+  function salvarConfiguracoes() {
+    try {
+      salvarLojaConfiguracoes(lojaConfigId, configuracoes);
+      toast.success("Configurações da loja salvas.");
+    } catch {
+      toast.error("Não foi possível salvar as configurações.");
+    }
+  }
+
   async function salvar(e) {
     e.preventDefault();
+
+    if (abaAtiva === "configuracoes") {
+      salvarConfiguracoes();
+      return;
+    }
 
     try {
       setSalvando(true);
@@ -166,7 +201,7 @@ export default function MinhaConta() {
             Organize seus dados, loja, plano e segurança em um só lugar.
           </p>
         </div>
-        {abaAtiva !== "plano" && (
+        {abaAtiva !== "plano" && abaAtiva !== "configuracoes" && (
           <button
             disabled={salvando}
             className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-[#16A34A] px-4 text-sm font-semibold text-white transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60"
@@ -430,6 +465,94 @@ export default function MinhaConta() {
             </div>
           )}
 
+          {abaAtiva === "configuracoes" && (
+            <div className="space-y-5">
+              <Section title="Operação da loja" icon={Settings}>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <Field label="Taxa de entrega padrão" icon={Truck}>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={configuracoes.taxaEntregaPadrao}
+                      onChange={(e) => setConfiguracaoCampo("taxaEntregaPadrao", e.target.value)}
+                      className={inputClass}
+                      placeholder="0,00"
+                    />
+                  </Field>
+                  <Field label="Alerta de estoque" icon={Store}>
+                    <input
+                      type="number"
+                      min="0"
+                      value={configuracoes.alertaEstoque}
+                      onChange={(e) => setConfiguracaoCampo("alertaEstoque", e.target.value)}
+                      className={inputClass}
+                      placeholder="2"
+                    />
+                  </Field>
+                  <Field label="Mensagem rápida do WhatsApp" icon={MessageCircle} wide>
+                    <textarea
+                      value={configuracoes.mensagemWhatsApp}
+                      onChange={(e) => setConfiguracaoCampo("mensagemWhatsApp", e.target.value)}
+                      className="min-h-[104px] w-full resize-none rounded-lg border border-slate-200 bg-white px-3 py-3 pr-9 text-base text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-[#16A34A] focus:ring-3 focus:ring-[#16A34A]/10 sm:text-sm"
+                      placeholder="Mensagem padrão para atendimento"
+                    />
+                  </Field>
+                </div>
+              </Section>
+
+              <Section title="Recibo e impressão" icon={ReceiptText}>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <Field label="Logo do recibo" icon={Image}>
+                    <input
+                      value={configuracoes.logoUrl}
+                      onChange={(e) => setConfiguracaoCampo("logoUrl", e.target.value)}
+                      className={inputClass}
+                      placeholder="Link da imagem"
+                    />
+                  </Field>
+                  <Field label="Rodapé do recibo" icon={ReceiptText}>
+                    <input
+                      value={configuracoes.rodapeRecibo}
+                      onChange={(e) => setConfiguracaoCampo("rodapeRecibo", e.target.value)}
+                      className={inputClass}
+                      placeholder="Mensagem final"
+                    />
+                  </Field>
+                </div>
+
+                <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                  <ToggleRow
+                    titulo="Mostrar logo no recibo"
+                    descricao="Usa a logo informada quando houver imagem válida."
+                    checked={configuracoes.mostrarLogoRecibo}
+                    onChange={(checked) => setConfiguracaoCampo("mostrarLogoRecibo", checked)}
+                  />
+                  <ToggleRow
+                    titulo="Recibo mais compacto"
+                    descricao="Reduz espaçamentos para impressão em bobina ou papel menor."
+                    checked={configuracoes.reciboCompacto}
+                    onChange={(checked) => setConfiguracaoCampo("reciboCompacto", checked)}
+                  />
+                </div>
+
+                <div className="mt-5 flex flex-col gap-3 border-t border-slate-200 pt-4 sm:flex-row sm:items-center sm:justify-between">
+                  <p className="text-sm text-slate-500">
+                    Essas preferências ficam salvas para esta loja neste dispositivo.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={salvarConfiguracoes}
+                    className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-[#16A34A] px-4 text-sm font-semibold text-white transition hover:bg-[#15803D]"
+                  >
+                    <Save size={16} />
+                    Salvar configurações
+                  </button>
+                </div>
+              </Section>
+            </div>
+          )}
+
           {abaAtiva === "seguranca" && (
             <Section title="Segurança" icon={Lock}>
               <div className="grid gap-3 sm:grid-cols-2">
@@ -492,6 +615,23 @@ function Info({ label, value }) {
       <p className="text-xs font-semibold uppercase text-slate-500">{label}</p>
       <p className="mt-0.5 truncate font-semibold capitalize text-slate-950">{value || "-"}</p>
     </div>
+  );
+}
+
+function ToggleRow({ titulo, descricao, checked, onChange }) {
+  return (
+    <label className="flex cursor-pointer items-center justify-between gap-4 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
+      <span className="min-w-0">
+        <span className="block text-sm font-semibold text-slate-950">{titulo}</span>
+        <span className="mt-0.5 block text-xs leading-5 text-slate-500">{descricao}</span>
+      </span>
+      <input
+        type="checkbox"
+        checked={Boolean(checked)}
+        onChange={(event) => onChange(event.target.checked)}
+        className="h-5 w-5 shrink-0 rounded border-slate-300 text-[#16A34A] focus:ring-[#16A34A]"
+      />
+    </label>
   );
 }
 

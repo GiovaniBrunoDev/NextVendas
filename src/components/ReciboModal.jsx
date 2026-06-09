@@ -2,6 +2,7 @@ import { useRef } from "react";
 import { X, Printer, ReceiptText } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import useModalPresence from "../hooks/useModalPresence";
+import useLojaConfiguracoes from "../hooks/useLojaConfiguracoes";
 
 const moeda = (valor) =>
   Number(valor || 0).toLocaleString("pt-BR", {
@@ -51,6 +52,7 @@ function normalizarItens(registro) {
 
 export default function ReciboModal({ aberto, tipo = "venda", registro, aoFechar }) {
   const { lojaAtual } = useAuth();
+  const { configuracoes } = useLojaConfiguracoes();
   const reciboRef = useRef(null);
   useModalPresence(Boolean(aberto && registro));
 
@@ -66,6 +68,18 @@ export default function ReciboModal({ aberto, tipo = "venda", registro, aoFechar
   const cliente = registro.cliente;
   const titulo = tipo === "pedido" ? "Recibo de pedido" : "Recibo de venda";
   const numero = tipo === "pedido" ? `Pedido #${registro.id}` : `Venda #${registro.id}`;
+  const reciboCompacto = Boolean(configuracoes.reciboCompacto);
+  const logoRecibo = configuracoes.mostrarLogoRecibo
+    ? String(configuracoes.logoUrl || "").trim() || "/lojia-logo.png"
+    : "";
+  const rodapeRecibo = String(configuracoes.rodapeRecibo || "").trim() || "Obrigado pela preferência.";
+  const dadosLoja = [
+    loja?.telefone,
+    loja?.documento,
+    [loja?.endereco, loja?.bairro, loja?.cidade, loja?.estado].filter(Boolean).join(", "),
+  ].filter(Boolean);
+  const sectionPadding = reciboCompacto ? "py-3" : "py-4";
+  const cellPadding = reciboCompacto ? "px-3 py-1.5" : "px-3 py-2";
 
   const imprimir = () => {
     if (!reciboRef.current) return;
@@ -92,19 +106,38 @@ export default function ReciboModal({ aberto, tipo = "venda", registro, aoFechar
         </div>
 
         <div className="overflow-y-auto p-5">
-          <div ref={reciboRef} className="recibo-print-area mx-auto max-w-[720px] rounded-lg border border-slate-200 bg-white p-5 text-slate-950">
-            <header className="flex items-start justify-between gap-4 border-b border-slate-200 pb-4">
+          <div
+            ref={reciboRef}
+            className={`recibo-print-area mx-auto max-w-[720px] rounded-lg border border-slate-200 bg-white text-slate-950 ${
+              reciboCompacto ? "p-4 text-[13px]" : "p-5"
+            }`}
+          >
+            <header className={`flex items-start justify-between gap-4 border-b border-slate-200 ${reciboCompacto ? "pb-3" : "pb-4"}`}>
               <div>
                 <div className="flex items-center gap-2">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-900 text-white">
-                    <ReceiptText size={20} />
-                  </div>
+                  {logoRecibo ? (
+                    <img
+                      src={logoRecibo}
+                      alt={loja?.nome || "Lojia"}
+                      className="h-12 max-w-[150px] rounded-lg object-contain"
+                    />
+                  ) : (
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-900 text-white">
+                      <ReceiptText size={20} />
+                    </div>
+                  )}
                   <div>
-                    <p className="text-xl font-semibold">Lojia</p>
+                    <p className="text-xl font-semibold">{loja?.nome || "Lojia"}</p>
                     <p className="text-xs text-slate-500">Sua loja no controle.</p>
                   </div>
                 </div>
-                <p className="mt-3 text-sm font-medium">{loja?.nome || "Loja"}</p>
+                {dadosLoja.length > 0 && (
+                  <div className="mt-3 space-y-0.5 text-xs text-slate-500">
+                    {dadosLoja.map((item) => (
+                      <p key={item}>{item}</p>
+                    ))}
+                  </div>
+                )}
               </div>
               <div className="text-right">
                 <p className="text-xs font-medium uppercase text-slate-500">{titulo}</p>
@@ -115,7 +148,7 @@ export default function ReciboModal({ aberto, tipo = "venda", registro, aoFechar
               </div>
             </header>
 
-            <section className="grid gap-4 border-b border-slate-200 py-4 sm:grid-cols-2">
+            <section className={`grid gap-4 border-b border-slate-200 ${sectionPadding} sm:grid-cols-2`}>
               <div>
                 <p className="text-xs font-medium uppercase text-slate-500">Cliente</p>
                 <p className="mt-1 text-sm font-semibold">{cliente?.nome || "Não informado"}</p>
@@ -144,28 +177,28 @@ export default function ReciboModal({ aberto, tipo = "venda", registro, aoFechar
               </div>
             </section>
 
-            <section className="border-b border-slate-200 py-4">
+            <section className={`border-b border-slate-200 ${sectionPadding}`}>
               <p className="mb-3 text-xs font-medium uppercase text-slate-500">Itens</p>
               <div className="overflow-hidden rounded-lg border border-slate-200">
                 <table className="w-full text-sm">
                   <thead className="bg-slate-50 text-left text-xs font-medium uppercase text-slate-500">
                     <tr>
-                      <th className="px-3 py-2">Produto</th>
-                      <th className="px-3 py-2 text-center">Qtd.</th>
-                      <th className="px-3 py-2 text-right">Unit.</th>
-                      <th className="px-3 py-2 text-right">Total</th>
+                      <th className={cellPadding}>Produto</th>
+                      <th className={`${cellPadding} text-center`}>Qtd.</th>
+                      <th className={`${cellPadding} text-right`}>Unit.</th>
+                      <th className={`${cellPadding} text-right`}>Total</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
                     {itens.map((item) => (
                       <tr key={item.id}>
-                        <td className="px-3 py-2">
+                        <td className={cellPadding}>
                           <p className="font-medium">{item.nome}</p>
                           {item.numeracao && <p className="text-xs text-slate-500">Numeração {item.numeracao}</p>}
                         </td>
-                        <td className="px-3 py-2 text-center">{item.quantidade}</td>
-                        <td className="px-3 py-2 text-right">{moeda(item.precoUnitario)}</td>
-                        <td className="px-3 py-2 text-right font-medium">{moeda(item.subtotal)}</td>
+                        <td className={`${cellPadding} text-center`}>{item.quantidade}</td>
+                        <td className={`${cellPadding} text-right`}>{moeda(item.precoUnitario)}</td>
+                        <td className={`${cellPadding} text-right font-medium`}>{moeda(item.subtotal)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -173,7 +206,7 @@ export default function ReciboModal({ aberto, tipo = "venda", registro, aoFechar
               </div>
             </section>
 
-            <section className="ml-auto w-full max-w-xs space-y-2 py-4 text-sm">
+            <section className={`ml-auto w-full max-w-xs space-y-2 ${sectionPadding} text-sm`}>
               <div className="flex justify-between text-slate-600">
                 <span>Produtos</span>
                 <span>{moeda(subtotalProdutos)}</span>
@@ -213,7 +246,7 @@ export default function ReciboModal({ aberto, tipo = "venda", registro, aoFechar
 
             <footer className="mt-5 border-t border-slate-200 pt-4 text-center text-xs text-slate-500">
               <p>Documento não fiscal emitido pelo sistema Lojia.</p>
-              <p>Obrigado pela preferência.</p>
+              <p>{rodapeRecibo}</p>
             </footer>
           </div>
         </div>

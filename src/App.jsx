@@ -127,11 +127,11 @@ function ProtectedApp() {
       case "relatorios":
         return <Relatorios />;
       case "superadmin":
-        return usuario?.superadmin ? <SuperAdmin /> : <Dashboard />;
+        return usuario?.superadmin ? <SuperAdmin /> : <Dashboard onNavigate={setTela} />;
       case "minha-conta":
         return <MinhaConta />;
       default:
-        return <Dashboard />;
+        return <Dashboard onNavigate={setTela} />;
     }
   };
 
