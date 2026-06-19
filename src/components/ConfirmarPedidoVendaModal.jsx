@@ -1,9 +1,14 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
-import { FaCheckCircle, FaCreditCard, FaMoneyBillAlt, FaPercentage, FaTimes } from "react-icons/fa";
-import { SiPix } from "react-icons/si";
+import { FaCheckCircle, FaPercentage, FaTimes } from "react-icons/fa";
 import EntregadorSelect from "./EntregadorSelect";
 import useModalPresence from "../hooks/useModalPresence";
+import PagamentoMisto, {
+  novoPagamento,
+  normalizarPagamentosPayload,
+  pagamentosFecham,
+  resumoPagamentos,
+} from "./PagamentoMisto";
 
 const inputClass =
   "w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-base text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-[#16A34A] focus:ring-3 focus:ring-[#16A34A]/10 sm:text-sm";
@@ -37,7 +42,7 @@ function moeda(valor) {
 export default function ConfirmarPedidoVendaModal({ pedido, aoFechar, aoConfirmar, carregando }) {
   useModalPresence();
 
-  const [formaPagamento, setFormaPagamento] = useState("pix");
+  const [pagamentos, setPagamentos] = useState([novoPagamento("pix")]);
   const [entregador, setEntregador] = useState(pedido?.entregador || "");
   const [desconto, setDesconto] = useState("");
   const [tipoDesconto, setTipoDesconto] = useState("valor");
@@ -58,14 +63,30 @@ export default function ConfirmarPedidoVendaModal({ pedido, aoFechar, aoConfirma
   const descontoAplicado = Math.min(valorDesconto, totalAntesDesconto);
   const totalFinal = Math.max(totalAntesDesconto - descontoAplicado, 0);
 
+  useEffect(() => {
+    setPagamentos((prev) => {
+      if (prev.length !== 1 || prev[0].auto === false) return prev;
+      return [{ ...prev[0], valor: totalFinal.toFixed(2) }];
+    });
+  }, [totalFinal]);
+
   function confirmar() {
-    if (!formaPagamento) {
-      toast.error("Informe a forma de pagamento.");
+    const pagamentosPayload = normalizarPagamentosPayload(pagamentos);
+    const temPrazo = pagamentosPayload.some((pagamento) => pagamento.forma === "a_prazo");
+
+    if (!pagamentosFecham(pagamentos, totalFinal)) {
+      toast.error("Confira os pagamentos. A soma precisa fechar com o total da venda.");
+      return;
+    }
+
+    if (temPrazo && !pedido?.clienteId) {
+      toast.error("Venda a prazo precisa ter cliente no pedido.");
       return;
     }
 
     aoConfirmar({
-      formaPagamento,
+      formaPagamento: resumoPagamentos(pagamentos),
+      pagamentos: pagamentosPayload,
       desconto: descontoAplicado,
       entregador: pedido?.tipoEntrega === "entrega" ? entregador || null : null,
     });
@@ -99,30 +120,7 @@ export default function ConfirmarPedidoVendaModal({ pedido, aoFechar, aoConfirma
 
         <div className="min-h-0 flex-1 overflow-y-auto bg-[#F7F5EF]/50 px-4 py-5 sm:px-6">
           <div className="space-y-4">
-            <div className={panelClass}>
-              <h3 className="mb-3 text-sm font-semibold text-slate-950">Pagamento</h3>
-              <div className="grid grid-cols-3 gap-1 rounded-2xl border border-slate-200 bg-white p-1">
-                {[
-                  { value: "pix", label: "Pix", icon: <SiPix /> },
-                  { value: "dinheiro", label: "Dinheiro", icon: <FaMoneyBillAlt /> },
-                  { value: "cartao", label: "Cartão", icon: <FaCreditCard /> },
-                ].map((opcao) => (
-                  <button
-                    key={opcao.value}
-                    type="button"
-                    onClick={() => setFormaPagamento(opcao.value)}
-                    className={`flex items-center justify-center gap-2 rounded-lg px-2 py-2.5 text-xs font-medium transition ${
-                      formaPagamento === opcao.value
-                        ? "bg-[#0B1115] text-white shadow-[0_10px_20px_rgba(24,31,36,0.12)]"
-                        : "text-slate-600 hover:bg-slate-50 hover:text-slate-950"
-                    }`}
-                  >
-                    <span className="text-base">{opcao.icon}</span>
-                    {opcao.label}
-                  </button>
-                ))}
-              </div>
-            </div>
+            <PagamentoMisto total={totalFinal} pagamentos={pagamentos} onChange={setPagamentos} />
 
             <div className={panelClass}>
               <div className="flex items-center justify-between gap-3">
@@ -195,6 +193,21 @@ export default function ConfirmarPedidoVendaModal({ pedido, aoFechar, aoConfirma
                     </div>
                     <p className="mt-1 text-xs text-slate-500">Qtd. {item.quantidade}</p>
                   </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-slate-200/80 bg-white p-4 text-sm shadow-[0_12px_30px_rgba(24,31,36,0.045)]">
+              <p className="font-semibold text-slate-950">Pagamento</p>
+              <div className="mt-2 space-y-1 text-slate-500">
+                {normalizarPagamentosPayload(pagamentos).map((pagamento, index) => (
+                  <p key={`${pagamento.forma}-${index}`} className="flex justify-between gap-3">
+                    <span className="capitalize">
+                      {pagamento.forma.replace("_", " ")}
+                      {pagamento.forma === "credito" && pagamento.parcelas > 1 ? ` ${pagamento.parcelas}x` : ""}
+                    </span>
+                    <span className="font-medium text-slate-800">{moeda(pagamento.valor)}</span>
+                  </p>
                 ))}
               </div>
             </div>

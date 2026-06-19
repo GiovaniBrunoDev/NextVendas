@@ -14,15 +14,19 @@ import {
   FaBoxOpen,
   FaChartLine,
   FaClipboardList,
+  FaCheckCircle,
   FaCreditCard,
   FaMoneyBillWave,
+  FaPlay,
   FaReceipt,
   FaRegHandPaper,
+  FaStore,
   FaShoppingCart,
   FaSmile,
   FaTruck,
 } from "react-icons/fa";
 import { useAuth } from "../contexts/AuthContext";
+import { getLojaConfiguracoesSalvasKey } from "../hooks/useLojaConfiguracoes";
 
 const periodos = [
   { value: "dia", label: "Hoje" },
@@ -138,7 +142,8 @@ export default function Dashboard({ onNavigate }) {
   const [periodo, setPeriodo] = useState("dia");
   const [dataInicio, setDataInicio] = useState(() => toDateInputValue(new Date()));
   const [dataFim, setDataFim] = useState(() => toDateInputValue(new Date()));
-  const [onboardingOculto, setOnboardingOculto] = useState(false);
+  const [boasVindasVista, setBoasVindasVista] = useState(false);
+  const [onboardingConcluido, setOnboardingConcluido] = useState(false);
 
   const [total, setTotal] = useState(0);
   const [qtdProdutos, setQtdProdutos] = useState(0);
@@ -152,8 +157,8 @@ export default function Dashboard({ onNavigate }) {
   const [carregando, setCarregando] = useState(true);
 
   const lojaId = lojaAtual?.loja?.id || "global";
-  const onboardingKey = `lojia_onboarding_oculto_${lojaId}`;
-  const configuracoesKey = `lojia_configuracoes_salvas_${lojaId}`;
+  const boasVindasKey = `lojia_onboarding_boas_vindas_visto_${lojaId}`;
+  const onboardingConcluidoKey = `lojia_onboarding_concluido_${lojaId}`;
 
   const periodoAtual = useMemo(() => {
     if (periodo === "personalizado") {
@@ -202,8 +207,20 @@ export default function Dashboard({ onNavigate }) {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    setOnboardingOculto(localStorage.getItem(onboardingKey) === "1");
-  }, [onboardingKey]);
+    const onboardingAntigoKey = `lojia_onboarding_oculto_${lojaId}`;
+    const primeiroAcessoAntigoKey = `lojia_onboarding_primeiro_acesso_visto_${lojaId}`;
+    const fluxoAntigoOculto =
+      localStorage.getItem(onboardingAntigoKey) === "1" ||
+      localStorage.getItem(primeiroAcessoAntigoKey) === "1";
+
+    setBoasVindasVista(
+      localStorage.getItem(boasVindasKey) === "1" || fluxoAntigoOculto
+    );
+    setOnboardingConcluido(
+      localStorage.getItem(onboardingConcluidoKey) === "1" ||
+        localStorage.getItem(onboardingAntigoKey) === "1"
+    );
+  }, [boasVindasKey, lojaId, onboardingConcluidoKey]);
 
   useEffect(() => {
     const hoje = new Date();
@@ -305,56 +322,68 @@ export default function Dashboard({ onNavigate }) {
 
   }, [dataFim, dataInicio, vendas, periodo]);
 
-  const onboardingSteps = useMemo(() => {
-    const configuracoesSalvas =
-      typeof window !== "undefined" && localStorage.getItem(configuracoesKey) === "1";
+  const lojaSemOperacao =
+    produtos.length === 0 && vendas.length === 0 && pedidos.length === 0 && clientes.length === 0;
+  const configuracoesSalvas =
+    typeof window !== "undefined" &&
+    localStorage.getItem(getLojaConfiguracoesSalvasKey(lojaId)) === "1";
 
-    return [
-      {
-        id: "produto",
-        titulo: "Cadastre o primeiro produto",
-        descricao: "Inclua foto, preço, custo e grade para começar com estoque confiável.",
-        pronto: produtos.length > 0,
-        destino: "estoque",
-      },
-      {
-        id: "venda",
-        titulo: "Faça uma venda teste",
-        descricao: "Valide carrinho, pagamento e recibo antes de usar no balcão.",
-        pronto: vendas.length > 0,
-        destino: "vendas",
-      },
-      {
-        id: "pedido",
-        titulo: "Crie um pedido",
-        descricao: "Reserve produtos e confirme depois como venda normal.",
-        pronto: pedidos.length > 0,
-        destino: "pedidos",
-      },
-      {
-        id: "cliente",
-        titulo: "Salve seus clientes",
-        descricao: "Facilite pedidos, entregas e histórico de compra.",
-        pronto: clientes.length > 0,
-        destino: "clientes",
-      },
-      {
-        id: "configuracoes",
-        titulo: "Revise a loja",
-        descricao: "Ajuste dados, recibo e preferências em Minha conta.",
-        pronto: configuracoesSalvas,
-        destino: "minha-conta",
-      },
-    ];
-  }, [clientes.length, configuracoesKey, pedidos.length, produtos.length, vendas.length]);
+  const onboardingSteps = [
+    {
+      titulo: "Adicionar produto",
+      descricao: "Inclua foto, preço, custo e grade antes da primeira venda.",
+      destino: "estoque",
+      pronto: produtos.length > 0,
+    },
+    {
+      titulo: "Venda teste",
+      descricao: "Valide carrinho, pagamento e recibo antes de operar no dia a dia.",
+      destino: "vendas",
+      pronto: vendas.length > 0,
+    },
+    {
+      titulo: "Configurar loja",
+      descricao: "Revise recibo, taxa padrão e dados que aparecem para o cliente.",
+      destino: "minha-conta",
+      pronto: Boolean(lojaAtual?.loja?.nome) && configuracoesSalvas,
+    },
+    {
+      titulo: "Adicionar cliente",
+      descricao: "Salve um cliente para pedidos, entregas e recibos mais rápidos.",
+      destino: "clientes",
+      pronto: clientes.length > 0,
+    },
+  ];
 
-  const onboardingCompleto = onboardingSteps.every((step) => step.pronto);
+  const onboardingPendente = onboardingSteps.some((step) => !step.pronto);
+  const mostrarBoasVindasPrimeiroAcesso =
+    lojaSemOperacao && !boasVindasVista && !onboardingConcluido;
+  const mostrarChecklistOnboarding =
+    boasVindasVista && !onboardingConcluido && onboardingPendente;
+  const totalOnboardingConcluido = onboardingSteps.filter((step) => step.pronto).length;
+  const progressoOnboarding = onboardingSteps.length
+    ? (totalOnboardingConcluido / onboardingSteps.length) * 100
+    : 0;
 
-  function ocultarOnboarding() {
+  function marcarBoasVindasVista() {
     if (typeof window !== "undefined") {
-      localStorage.setItem(onboardingKey, "1");
+      localStorage.setItem(boasVindasKey, "1");
     }
-    setOnboardingOculto(true);
+    setBoasVindasVista(true);
+  }
+
+  function iniciarOnboarding(destino = "onboarding") {
+    marcarBoasVindasVista();
+    onNavigate?.(destino);
+  }
+
+  function concluirOnboarding() {
+    if (typeof window !== "undefined") {
+      localStorage.setItem(onboardingConcluidoKey, "1");
+      localStorage.setItem(boasVindasKey, "1");
+    }
+    setBoasVindasVista(true);
+    setOnboardingConcluido(true);
   }
 
   const pedidosOrdenados = useMemo(
@@ -448,45 +477,134 @@ export default function Dashboard({ onNavigate }) {
         </div>
       </div>
 
-      {!onboardingCompleto && !onboardingOculto && (
-        <section className="lojia-surface rounded-xl bg-white/90 p-4 shadow-[0_12px_30px_rgba(11,17,21,0.05)]">
-          <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-            <div>
-              <p className="text-xs font-semibold uppercase text-slate-500">Primeiros passos</p>
-              <h3 className="mt-1 text-lg font-semibold text-slate-950">Deixe a Lojia pronta para o dia a dia</h3>
+      {mostrarBoasVindasPrimeiroAcesso && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-950/45 backdrop-blur-sm" />
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-label="Boas-vindas a Lojia"
+            className="relative w-full max-w-3xl overflow-hidden rounded-[1.4rem] border border-white/20 bg-white shadow-[0_28px_80px_rgba(11,17,21,0.28)]"
+          >
+            <div className="grid lg:grid-cols-[0.95fr_1.05fr]">
+              <div className="relative overflow-hidden bg-[#F8FAF8] p-6 sm:p-7">
+                <div className="absolute -right-14 -top-14 h-40 w-40 rounded-full bg-[#16A34A]/10 blur-2xl" />
+                <div className="relative">
+                  <span className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-white text-[#16A34A] ring-1 ring-slate-200">
+                    <FaStore />
+                  </span>
+                  <p className="mt-5 text-xs font-semibold uppercase text-slate-400">Primeiro acesso</p>
+                  <h3 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
+                    Comece pelo que faz a loja vender.
+                  </h3>
+                  <p className="mt-3 text-sm leading-6 text-slate-500">
+                    Primeiro cadastre produtos. Depois faça uma venda teste. Os outros ajustes ficam em segundo plano.
+                  </p>
+                </div>
+              </div>
+
+              <div className="p-5 sm:p-7">
+                <div className="mb-5">
+                  <h4 className="text-lg font-semibold text-slate-950">Comece com um roteiro guiado</h4>
+                  <p className="mt-2 text-sm leading-6 text-slate-500">
+                    A Lojia mostra o caminho ideal e atualiza o progresso conforme você usa.
+                  </p>
+                </div>
+
+                <div className="space-y-2.5">
+                  {onboardingSteps.slice(0, 2).map((step, index) => (
+                    <div key={step.titulo} className="flex items-start gap-3 rounded-xl border border-slate-200 bg-slate-50/80 p-3">
+                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white text-xs font-bold text-slate-600 ring-1 ring-slate-200">
+                        {index + 1}
+                      </span>
+                      <div>
+                        <p className="text-sm font-semibold text-slate-950">{step.titulo}</p>
+                        <p className="mt-0.5 text-xs leading-5 text-slate-500">{step.descricao}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-6 flex flex-col gap-2 sm:flex-row">
+                  <button
+                    type="button"
+                    onClick={() => iniciarOnboarding("onboarding")}
+                    className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-[#16A34A] px-4 text-sm font-semibold text-white transition hover:bg-[#15803D]"
+                  >
+                    <FaPlay size={12} />
+                    Começar pelos produtos
+                  </button>
+                  <button
+                    type="button"
+                    onClick={marcarBoasVindasVista}
+                    className="inline-flex min-h-11 items-center justify-center rounded-xl border border-slate-200 px-4 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 hover:text-slate-950"
+                  >
+                    Fazer depois
+                  </button>
+                </div>
+              </div>
             </div>
-            <button
-              type="button"
-              onClick={ocultarOnboarding}
-              className="self-start rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-500 transition hover:bg-slate-50 hover:text-slate-900"
-            >
-              Ocultar guia
-            </button>
+          </section>
+        </div>
+      )}
+
+      {mostrarChecklistOnboarding && (
+        <section className="lojia-surface overflow-hidden p-0">
+          <div className="flex flex-col gap-4 border-b border-slate-200/80 p-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase text-slate-500">Implantação da loja</p>
+              <h3 className="mt-1 text-lg font-semibold text-slate-950">Finalize o essencial para operar melhor</h3>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-semibold text-slate-700">
+                {totalOnboardingConcluido}/{onboardingSteps.length}
+              </span>
+              <button
+                type="button"
+                onClick={() => iniciarOnboarding("onboarding")}
+                className="inline-flex min-h-10 items-center justify-center rounded-lg bg-[#16A34A] px-3 text-sm font-semibold text-white transition hover:bg-[#15803D]"
+              >
+                Continuar
+              </button>
+            </div>
           </div>
 
-          <div className="grid gap-2 md:grid-cols-5">
-            {onboardingSteps.map((step, index) => (
+          <div className="h-1.5 bg-slate-100">
+            <div
+              className="h-full rounded-r-full bg-[#16A34A] transition-all"
+              style={{ width: `${progressoOnboarding}%` }}
+            />
+          </div>
+
+          <div className="grid gap-3 p-4 md:grid-cols-2 xl:grid-cols-4">
+            {onboardingSteps.map((step) => (
               <button
-                key={step.id}
+                key={step.titulo}
                 type="button"
-                onClick={() => onNavigate?.(step.destino)}
-                className={`rounded-xl border p-3 text-left transition ${
-                  step.pronto
-                    ? "border-[#16A34A]/20 bg-[#16A34A]/5"
-                    : "border-slate-200 bg-white hover:border-slate-300 hover:shadow-sm"
-                }`}
+                onClick={() => iniciarOnboarding(step.destino)}
+                className="group rounded-xl border border-slate-200 bg-white p-3 text-left transition hover:border-slate-300 hover:bg-slate-50"
               >
-                <span
-                  className={`mb-3 inline-flex h-8 w-8 items-center justify-center rounded-lg text-sm font-bold ${
-                    step.pronto ? "bg-[#16A34A] text-white" : "bg-slate-100 text-slate-500"
-                  }`}
-                >
-                  {step.pronto ? "✓" : index + 1}
-                </span>
-                <p className="text-sm font-semibold text-slate-950">{step.titulo}</p>
-                <p className="mt-1 text-xs leading-5 text-slate-500">{step.descricao}</p>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-sm font-semibold text-slate-950">{step.titulo}</span>
+                  {step.pronto ? (
+                    <FaCheckCircle className="shrink-0 text-[#16A34A]" />
+                  ) : (
+                    <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-slate-300" />
+                  )}
+                </div>
+                <p className="mt-2 text-xs leading-5 text-slate-500">{step.descricao}</p>
               </button>
             ))}
+          </div>
+
+          <div className="flex justify-end border-t border-slate-200/80 px-4 py-3">
+            <button
+              type="button"
+              onClick={concluirOnboarding}
+              className="text-sm font-semibold text-slate-500 transition hover:text-slate-900"
+            >
+              Ocultar roteiro
+            </button>
           </div>
         </section>
       )}
@@ -511,7 +629,7 @@ export default function Dashboard({ onNavigate }) {
       <div className="lojia-surface p-4">
         <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h3 className="text-base font-semibold text-slate-950">Evolucao das vendas</h3>
+            <h3 className="text-base font-semibold text-slate-950">Evolução das vendas</h3>
             <p className="text-sm text-slate-500">{periodoAtual}</p>
           </div>
           <p className="text-sm font-medium text-slate-700">{formatCurrency(total)}</p>
@@ -521,7 +639,14 @@ export default function Dashboard({ onNavigate }) {
           <div className="flex h-[260px] items-center justify-center rounded-lg border border-dashed border-slate-200 bg-slate-50 text-center">
             <div>
               <p className="text-sm font-medium text-slate-700">Nenhuma venda no período</p>
-              <p className="mt-1 text-xs text-slate-500">O grafico aparece quando houver vendas.</p>
+              <p className="mt-1 text-xs text-slate-500">O gráfico aparece quando houver vendas.</p>
+              <button
+                type="button"
+                onClick={() => onNavigate?.("vendas")}
+                className="mt-4 inline-flex min-h-9 items-center justify-center rounded-lg bg-white px-3 text-sm font-semibold text-slate-700 ring-1 ring-slate-200 transition hover:bg-slate-100"
+              >
+                Abrir nova venda
+              </button>
             </div>
           </div>
         ) : (
@@ -577,9 +702,19 @@ export default function Dashboard({ onNavigate }) {
           </div>
 
           {pedidosOrdenados.length === 0 ? (
-            <p className="rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
-              Nenhum pedido em aberto no momento.
-            </p>
+            <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+              <p className="text-sm font-medium text-slate-700">Nenhum pedido em aberto no momento.</p>
+              <p className="mt-1 text-xs text-slate-500">
+                Use pedidos para reservar estoque e confirmar a venda depois.
+              </p>
+              <button
+                type="button"
+                onClick={() => onNavigate?.("pedidos")}
+                className="mt-3 inline-flex min-h-9 items-center justify-center rounded-lg bg-white px-3 text-sm font-semibold text-slate-700 ring-1 ring-slate-200 transition hover:bg-slate-100"
+              >
+                Abrir pedidos
+              </button>
+            </div>
           ) : (
             <ul className="divide-y divide-slate-100">
               {pedidosOrdenados.slice(0, 6).map((pedido) => (
@@ -616,9 +751,21 @@ export default function Dashboard({ onNavigate }) {
           </div>
 
           {rankingProdutos.length === 0 ? (
-            <p className="rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
-              Nenhuma venda registrada neste período.
-            </p>
+            <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+              <p className="text-sm font-medium text-slate-700">Nenhuma venda registrada neste período.</p>
+              <p className="mt-1 text-xs text-slate-500">
+                {produtos.length === 0
+                  ? "Cadastre o primeiro produto para iniciar a operação."
+                  : "Assim que vender, seus produtos mais fortes aparecem aqui."}
+              </p>
+              <button
+                type="button"
+                onClick={() => onNavigate?.(produtos.length === 0 ? "estoque" : "vendas")}
+                className="mt-3 inline-flex min-h-9 items-center justify-center rounded-lg bg-white px-3 text-sm font-semibold text-slate-700 ring-1 ring-slate-200 transition hover:bg-slate-100"
+              >
+                {produtos.length === 0 ? "Cadastrar produto" : "Abrir nova venda"}
+              </button>
+            </div>
           ) : (
             <>
               <ul className="divide-y divide-slate-100">

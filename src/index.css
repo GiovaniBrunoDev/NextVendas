@@ -559,6 +559,107 @@
   .bg-yellow-100 {
     background-color: rgba(244, 166, 42, 0.14) !important;
   }
+
+  .Toastify__toast-container {
+    width: min(360px, calc(100vw - 24px));
+    padding: 0;
+    z-index: 12000;
+  }
+
+  .Toastify__toast {
+    min-height: 0;
+    margin-bottom: 0.625rem;
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.96);
+    color: #1f2937;
+    box-shadow: 0 18px 48px rgba(15, 23, 42, 0.12);
+    padding: 0;
+    overflow: hidden;
+    backdrop-filter: blur(14px);
+    font-family: var(--lojia-font-sans);
+  }
+
+  .Toastify__toast-body {
+    align-items: flex-start;
+    gap: 0.7rem;
+    margin: 0;
+    padding: 0.85rem 0.95rem;
+    font-size: 0.875rem;
+    font-weight: 560;
+    line-height: 1.4;
+    color: #24303a;
+  }
+
+  .Toastify__toast-icon {
+    width: 1.05rem;
+    margin-top: 0.05rem;
+    margin-inline-end: 0;
+    opacity: 0.9;
+  }
+
+  .Toastify__toast--success {
+    border-left: 3px solid rgba(15, 23, 42, 0.22);
+  }
+
+  .Toastify__toast--error {
+    border-left: 3px solid rgba(15, 23, 42, 0.22);
+  }
+
+  .Toastify__toast--warning {
+    border-left: 3px solid rgba(15, 23, 42, 0.22);
+  }
+
+  .Toastify__toast--info,
+  .Toastify__toast--default {
+    border-left: 3px solid rgba(15, 23, 42, 0.22);
+  }
+
+  .Toastify__toast--success .Toastify__toast-icon svg {
+    fill: #475569;
+  }
+
+  .Toastify__toast--error .Toastify__toast-icon svg {
+    fill: #475569;
+  }
+
+  .Toastify__toast--warning .Toastify__toast-icon svg {
+    fill: #475569;
+  }
+
+  .Toastify__toast--info .Toastify__toast-icon svg {
+    fill: #475569;
+  }
+
+  .Toastify__bounce-enter--top-right {
+    animation-name: lojia-toast-in;
+  }
+
+  .Toastify__bounce-exit--top-right {
+    animation-name: lojia-toast-out;
+  }
+
+  @keyframes lojia-toast-in {
+    from {
+      opacity: 0;
+      transform: translate3d(0.75rem, -0.35rem, 0) scale(0.98);
+    }
+    to {
+      opacity: 1;
+      transform: translate3d(0, 0, 0) scale(1);
+    }
+  }
+
+  @keyframes lojia-toast-out {
+    from {
+      opacity: 1;
+      transform: translate3d(0, 0, 0) scale(1);
+    }
+    to {
+      opacity: 0;
+      transform: translate3d(0.5rem, -0.25rem, 0) scale(0.98);
+    }
+  }
 }
 
 @media print {
@@ -566,16 +667,20 @@
     background: #ffffff !important;
   }
 
-  body * {
+  .no-print {
+    display: none !important;
+  }
+
+  body.lojia-print-recibo * {
     visibility: hidden !important;
   }
 
-  .recibo-print-area,
-  .recibo-print-area * {
+  body.lojia-print-recibo .recibo-print-area,
+  body.lojia-print-recibo .recibo-print-area * {
     visibility: visible !important;
   }
 
-  .recibo-print-area {
+  body.lojia-print-recibo .recibo-print-area {
     position: absolute !important;
     left: 0 !important;
     top: 0 !important;
@@ -584,9 +689,5 @@
     border: 0 !important;
     border-radius: 0 !important;
     box-shadow: none !important;
-  }
-
-  .no-print {
-    display: none !important;
   }
 }

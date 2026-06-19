@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import {
   BadgeDollarSign,
-  BarChart3,
   Boxes,
   ClipboardList,
   LayoutDashboard,
@@ -25,8 +24,7 @@ const acessoPorPerfil = {
   inventario: ["admin", "gerente"],
   etiquetas: ["admin", "gerente"],
   caixa: ["admin", "gerente", "vendedor"],
-  financeiro: ["admin", "gerente"],
-  relatorios: ["admin", "gerente"],
+  financeiro: ["admin", "gerente", "vendedor"],
   "minha-conta": ["admin", "gerente", "vendedor"],
   metas: ["admin", "gerente"],
 };
@@ -49,6 +47,7 @@ export default function SidebarLayout({ children, setTela }) {
   const [telaAtiva, setTelaAtiva] = useState(() => {
     if (typeof window === "undefined") return "dashboard";
     const telaSalva = localStorage.getItem("lojia_tela_ativa") || "dashboard";
+    if (telaSalva === "relatorios") return "dashboard";
     return ["entradas", "inventario", "etiquetas"].includes(telaSalva) ? "estoque" : telaSalva;
   });
   const { usuario, lojaAtual, logout } = useAuth();
@@ -78,7 +77,6 @@ export default function SidebarLayout({ children, setTela }) {
       { key: "estoque", label: "Estoque", group: "Gestão", icon: Boxes },
       { key: "produtos", label: "Consultar", group: "Gestão", icon: Search },
       { key: "financeiro", label: "Financeiro", group: "Gestão", icon: Wallet },
-      { key: "relatorios", label: "Relatórios", group: "Gestão", icon: BarChart3 },
       ...(usuario?.superadmin ? [{ key: "superadmin", label: "Admin", group: "Sistema", icon: ShieldCheck }] : []),
     ],
     [usuario?.superadmin]

@@ -1,12 +1,17 @@
 import { useEffect, useMemo, useState } from "react";
 import api from "../services/api";
 import { toast } from "react-toastify";
-import { FaArrowLeft, FaArrowRight, FaCheckCircle, FaCreditCard, FaMoneyBillAlt, FaPercentage, FaTimes } from "react-icons/fa";
-import { SiPix } from "react-icons/si";
+import { FaArrowLeft, FaArrowRight, FaCheckCircle, FaPercentage, FaTimes } from "react-icons/fa";
 import Select from "react-select";
 import useModalPresence from "../hooks/useModalPresence";
 import EntregadorSelect from "./EntregadorSelect";
 import useLojaConfiguracoes from "../hooks/useLojaConfiguracoes";
+import PagamentoMisto, {
+  novoPagamento,
+  normalizarPagamentosPayload,
+  pagamentosFecham,
+  resumoPagamentos,
+} from "./PagamentoMisto";
 
 const formatCurrency = (valor) =>
   new Intl.NumberFormat("pt-BR", {
@@ -56,7 +61,7 @@ export default function FinalizarVendaModal({ carrinho, aoFechar, aoFinalizar })
   const { configuracoes } = useLojaConfiguracoes();
 
   const [etapaAtual, setEtapaAtual] = useState(0);
-  const [formaPagamento, setFormaPagamento] = useState("dinheiro");
+  const [pagamentos, setPagamentos] = useState([novoPagamento("dinheiro")]);
   const [tipoEntrega, setTipoEntrega] = useState("entrega");
   const [taxaEntrega, setTaxaEntrega] = useState("");
   const [taxaEntregaManual, setTaxaEntregaManual] = useState(false);
@@ -123,6 +128,13 @@ export default function FinalizarVendaModal({ carrinho, aoFechar, aoFinalizar })
     setTaxaEntrega(String(taxaPadraoConfigurada));
   }, [taxaEntregaManual, taxaPadraoConfigurada, tipoEntrega]);
 
+  useEffect(() => {
+    setPagamentos((prev) => {
+      if (prev.length !== 1 || prev[0].auto === false) return prev;
+      return [{ ...prev[0], valor: totalFinal.toFixed(2) }];
+    });
+  }, [totalFinal]);
+
   async function carregarClientes() {
     try {
       const res = await api.get("/clientes");
@@ -136,6 +148,18 @@ export default function FinalizarVendaModal({ carrinho, aoFechar, aoFinalizar })
     try {
       setCarregando(true);
       let clienteId = null;
+      const pagamentosPayload = normalizarPagamentosPayload(pagamentos);
+      const temPrazo = pagamentosPayload.some((pagamento) => pagamento.forma === "a_prazo");
+
+      if (!pagamentosFecham(pagamentos, totalFinal)) {
+        toast.error("Confira os pagamentos. A soma precisa fechar com o total da venda.");
+        return;
+      }
+
+      if (temPrazo && !clienteSelecionado && !clienteNome.trim()) {
+        toast.error("Venda a prazo precisa ter cliente selecionado.");
+        return;
+      }
 
       if (clienteSelecionado && !isNaN(parseInt(clienteSelecionado))) {
         clienteId = parseInt(clienteSelecionado);
@@ -171,7 +195,8 @@ export default function FinalizarVendaModal({ carrinho, aoFechar, aoFinalizar })
         total: totalFinal,
         subtotalProdutos: totalProdutos,
         desconto: descontoAplicado,
-        formaPagamento,
+        formaPagamento: resumoPagamentos(pagamentos),
+        pagamentos: pagamentosPayload,
         tipoEntrega,
         taxaEntrega: tipoEntrega === "entrega" ? Number(taxaEntrega || 0) : null,
         entregador: tipoEntrega === "entrega" ? entregador : null,
@@ -356,27 +381,7 @@ export default function FinalizarVendaModal({ carrinho, aoFechar, aoFinalizar })
 
   const renderPagamento = () => (
     <div className="space-y-4">
-      <div className="grid grid-cols-3 gap-1 rounded-2xl border border-slate-200 bg-white p-1 shadow-[0_12px_30px_rgba(24,31,36,0.045)]">
-        {[
-          { value: "pix", label: "Pix", icon: <SiPix /> },
-          { value: "dinheiro", label: "Dinheiro", icon: <FaMoneyBillAlt /> },
-          { value: "cartao", label: "Cartão", icon: <FaCreditCard /> },
-        ].map((opcao) => (
-          <button
-            key={opcao.value}
-            type="button"
-            onClick={() => setFormaPagamento(opcao.value)}
-            className={`flex items-center justify-center gap-2 rounded-lg px-2 py-2.5 text-xs font-medium transition ${
-              formaPagamento === opcao.value
-                ? "bg-[#0B1115] text-white shadow-[0_10px_20px_rgba(24,31,36,0.12)]"
-                : "text-slate-600 hover:bg-slate-50 hover:text-slate-950"
-            }`}
-          >
-            <span className="text-base">{opcao.icon}</span>
-            {opcao.label}
-          </button>
-        ))}
-      </div>
+      <PagamentoMisto total={totalFinal} pagamentos={pagamentos} onChange={setPagamentos} />
 
       <div className={panelClass}>
         <div className="flex items-center justify-between gap-3">
@@ -452,6 +457,21 @@ export default function FinalizarVendaModal({ carrinho, aoFechar, aoFinalizar })
         <div className="rounded-2xl border border-slate-200/80 bg-white p-4 text-sm shadow-[0_12px_30px_rgba(24,31,36,0.045)]">
           <p className="font-semibold text-slate-950">Entrega</p>
           <p className="mt-1 capitalize text-slate-500">{tipoEntrega}</p>
+        </div>
+      </div>
+
+      <div className="rounded-2xl border border-slate-200/80 bg-white p-4 text-sm shadow-[0_12px_30px_rgba(24,31,36,0.045)]">
+        <p className="font-semibold text-slate-950">Pagamento</p>
+        <div className="mt-2 space-y-1 text-slate-500">
+          {normalizarPagamentosPayload(pagamentos).map((pagamento, index) => (
+            <p key={`${pagamento.forma}-${index}`} className="flex justify-between gap-3">
+              <span className="capitalize">
+                {pagamento.forma.replace("_", " ")}
+                {pagamento.forma === "credito" && pagamento.parcelas > 1 ? ` ${pagamento.parcelas}x` : ""}
+              </span>
+              <span className="font-medium text-slate-800">{formatCurrency(pagamento.valor)}</span>
+            </p>
+          ))}
         </div>
       </div>
 

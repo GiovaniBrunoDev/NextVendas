@@ -14,7 +14,6 @@ import Metas from "./pages/Metas";
 import Pedidos from "./pages/Pedidos";
 import Caixa from "./pages/Caixa";
 import Financeiro from "./pages/Financeiro";
-import Relatorios from "./pages/Relatorios";
 import Inventario from "./pages/Inventario";
 import Etiquetas from "./pages/Etiquetas";
 import Login from "./pages/Login";
@@ -23,6 +22,7 @@ import AceitarConvite from "./pages/AceitarConvite";
 import SuperAdmin from "./pages/SuperAdmin";
 import Institucional from "./pages/Institucional";
 import MinhaConta from "./pages/MinhaConta";
+import OnboardingInicial from "./pages/OnboardingInicial";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import ConnectionStatus from "./components/ConnectionStatus";
 
@@ -84,7 +84,9 @@ function ProtectedApp() {
   const [tela, setTelaState] = useState(() => {
     if (typeof window === "undefined") return "dashboard";
     const telaSalva = localStorage.getItem("lojia_tela_ativa") || "dashboard";
-    return telaSalva === "entradas" ? "estoque" : telaSalva;
+    if (["entradas", "inventario", "etiquetas"].includes(telaSalva)) return "estoque";
+    if (telaSalva === "relatorios") return "dashboard";
+    return telaSalva;
   });
 
   const setTela = (proximaTela) => {
@@ -124,12 +126,12 @@ function ProtectedApp() {
         return <Caixa />;
       case "financeiro":
         return <Financeiro />;
-      case "relatorios":
-        return <Relatorios />;
       case "superadmin":
         return usuario?.superadmin ? <SuperAdmin /> : <Dashboard onNavigate={setTela} />;
       case "minha-conta":
         return <MinhaConta />;
+      case "onboarding":
+        return <OnboardingInicial onNavigate={setTela} />;
       default:
         return <Dashboard onNavigate={setTela} />;
     }
@@ -154,7 +156,15 @@ function AppRoutes() {
         <Route path="/*" element={<ProtectedApp />} />
       </Routes>
       <ConnectionStatus />
-      <ToastContainer position="top-right" autoClose={3000} />
+      <ToastContainer
+        position="top-right"
+        autoClose={2600}
+        closeButton={false}
+        draggable={false}
+        hideProgressBar
+        newestOnTop
+        pauseOnFocusLoss={false}
+      />
     </>
   );
 }

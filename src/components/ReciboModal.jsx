@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import { X, Printer, ReceiptText } from "lucide-react";
+import { X, Printer } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import useModalPresence from "../hooks/useModalPresence";
 import useLojaConfiguracoes from "../hooks/useLojaConfiguracoes";
@@ -69,8 +69,14 @@ export default function ReciboModal({ aberto, tipo = "venda", registro, aoFechar
   const titulo = tipo === "pedido" ? "Recibo de pedido" : "Recibo de venda";
   const numero = tipo === "pedido" ? `Pedido #${registro.id}` : `Venda #${registro.id}`;
   const reciboCompacto = Boolean(configuracoes.reciboCompacto);
-  const logoRecibo = configuracoes.mostrarLogoRecibo
-    ? String(configuracoes.logoUrl || "").trim() || "/lojia-logo.png"
+  const logoLoja = configuracoes.mostrarLogoRecibo
+    ? String(
+        configuracoes.logoUrl ||
+          loja?.logoUrl ||
+          loja?.logo ||
+          loja?.imagemUrl ||
+          ""
+      ).trim()
     : "";
   const rodapeRecibo = String(configuracoes.rodapeRecibo || "").trim() || "Obrigado pela preferência.";
   const dadosLoja = [
@@ -83,7 +89,169 @@ export default function ReciboModal({ aberto, tipo = "venda", registro, aoFechar
 
   const imprimir = () => {
     if (!reciboRef.current) return;
-    window.print();
+
+    const conteudo = reciboRef.current.outerHTML;
+    const estilos = Array.from(
+      document.querySelectorAll('link[rel="stylesheet"], style')
+    )
+      .map((node) => node.outerHTML)
+      .join("\n");
+
+    const janela = window.open("", "_blank", "width=900,height=720");
+    if (!janela) {
+      const removerClasseImpressao = () => {
+        document.body.classList.remove("lojia-print-recibo");
+      };
+
+      document.body.classList.add("lojia-print-recibo");
+      window.addEventListener("afterprint", removerClasseImpressao, { once: true });
+      window.print();
+      setTimeout(removerClasseImpressao, 1200);
+      return;
+    }
+
+    janela.document.open();
+    janela.document.write(`
+      <!doctype html>
+      <html lang="pt-BR">
+        <head>
+          <meta charset="utf-8" />
+          <meta name="viewport" content="width=device-width, initial-scale=1" />
+          <title>${titulo} - ${numero}</title>
+          ${estilos}
+          <style>
+            @page {
+              size: A4;
+              margin: 12mm;
+            }
+
+            html,
+            body {
+              margin: 0;
+              min-height: 100%;
+              background: #ffffff !important;
+              color: #0f172a;
+              -webkit-print-color-adjust: exact;
+              print-color-adjust: exact;
+            }
+
+            body {
+              display: flex;
+              justify-content: center;
+              padding: 18px;
+              font-family: Aptos, Inter, "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+            }
+
+            .recibo-print-area {
+              width: 100% !important;
+              max-width: 720px !important;
+              margin: 0 auto !important;
+              border: 1px solid #e2e8f0 !important;
+              border-radius: 12px !important;
+              background: #ffffff !important;
+              box-shadow: none !important;
+              color: #0f172a !important;
+            }
+
+            .recibo-print-area table {
+              border-collapse: collapse;
+              page-break-inside: auto;
+            }
+
+            .recibo-print-area tr,
+            .recibo-print-area img,
+            .recibo-print-area section,
+            .recibo-print-area header,
+            .recibo-print-area footer {
+              break-inside: avoid;
+              page-break-inside: avoid;
+            }
+
+            .no-print {
+              display: none !important;
+            }
+
+            @media print {
+              html,
+              body {
+                width: auto !important;
+                height: auto !important;
+                overflow: visible !important;
+              }
+
+              body {
+                display: block !important;
+                padding: 0 !important;
+              }
+
+              body * {
+                visibility: visible !important;
+              }
+
+              .recibo-print-area {
+                position: static !important;
+                width: 100% !important;
+                max-width: none !important;
+                border: 0 !important;
+                border-radius: 0 !important;
+              }
+
+              .no-print {
+                display: none !important;
+              }
+            }
+          </style>
+        </head>
+        <body>
+          ${conteudo}
+        </body>
+      </html>
+    `);
+    janela.document.close();
+
+    const imprimirQuandoPronto = () => {
+      const folhasDeEstilo = Array.from(
+        janela.document.querySelectorAll('link[rel="stylesheet"]')
+      );
+      const aguardarEstilos = folhasDeEstilo.map((link) => {
+        try {
+          if (link.sheet) return Promise.resolve();
+        } catch {
+          // Continua aguardando pelo onload quando o navegador ainda nao liberou a folha.
+        }
+
+        return new Promise((resolve) => {
+          const finalizar = () => resolve();
+          link.onload = finalizar;
+          link.onerror = finalizar;
+          setTimeout(finalizar, 900);
+        });
+      });
+
+      const imagens = Array.from(janela.document.images || []);
+      const aguardarImagens = imagens.map((imagem) => {
+        if (imagem.complete) return Promise.resolve();
+        return new Promise((resolve) => {
+          imagem.onload = resolve;
+          imagem.onerror = resolve;
+        });
+      });
+
+      Promise.all([...aguardarEstilos, ...aguardarImagens]).then(() => {
+        setTimeout(() => {
+          janela.focus();
+          janela.print();
+        }, 250);
+      });
+    };
+
+    janela.onafterprint = () => janela.close();
+
+    if (janela.document.readyState === "complete") {
+      imprimirQuandoPronto();
+    } else {
+      janela.onload = imprimirQuandoPronto;
+    }
   };
 
   return (
@@ -114,22 +282,16 @@ export default function ReciboModal({ aberto, tipo = "venda", registro, aoFechar
           >
             <header className={`flex items-start justify-between gap-4 border-b border-slate-200 ${reciboCompacto ? "pb-3" : "pb-4"}`}>
               <div>
-                <div className="flex items-center gap-2">
-                  {logoRecibo ? (
+                <div className="flex items-center gap-3">
+                  {logoLoja ? (
                     <img
-                      src={logoRecibo}
-                      alt={loja?.nome || "Lojia"}
-                      className="h-12 max-w-[150px] rounded-lg object-contain"
+                      src={logoLoja}
+                      alt={loja?.nome || "Logo da loja"}
+                      className="h-14 max-w-[190px] rounded-lg object-contain"
                     />
                   ) : (
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-900 text-white">
-                      <ReceiptText size={20} />
-                    </div>
+                    <p className="text-2xl font-semibold leading-tight">{loja?.nome || "Loja"}</p>
                   )}
-                  <div>
-                    <p className="text-xl font-semibold">{loja?.nome || "Lojia"}</p>
-                    <p className="text-xs text-slate-500">Sua loja no controle.</p>
-                  </div>
                 </div>
                 {dadosLoja.length > 0 && (
                   <div className="mt-3 space-y-0.5 text-xs text-slate-500">
@@ -245,8 +407,10 @@ export default function ReciboModal({ aberto, tipo = "venda", registro, aoFechar
             )}
 
             <footer className="mt-5 border-t border-slate-200 pt-4 text-center text-xs text-slate-500">
-              <p>Documento não fiscal emitido pelo sistema Lojia.</p>
-              <p>{rodapeRecibo}</p>
+              <p className="font-medium text-slate-600">{rodapeRecibo}</p>
+              <p className="mt-2 text-[11px] text-slate-400">
+                Documento não fiscal. Emitido pela Lojia.
+              </p>
             </footer>
           </div>
         </div>
@@ -262,7 +426,7 @@ export default function ReciboModal({ aberto, tipo = "venda", registro, aoFechar
             onClick={imprimir}
             className="inline-flex items-center justify-center gap-2 rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-slate-700"
           >
-            <Printer size={16} /> Imprimir recibo
+            <Printer size={16} /> Imprimir / salvar PDF
           </button>
         </div>
       </div>

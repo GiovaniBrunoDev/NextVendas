@@ -5,20 +5,13 @@ import ReposicaoEstoqueModal from "../components/ReposicaoEstoqueModal";
 import { toast } from "react-toastify";
 import { FaPlus, FaPen, FaTrashAlt } from "react-icons/fa";
 import {
-  BadgePercent,
   Barcode,
-  Boxes,
-  CircleDollarSign,
   ChevronDown,
   ClipboardCheck,
-  Hash,
-  Image,
   Info,
   Layers3,
   PackagePlus,
   Pencil,
-  Tag,
-  Truck,
   Video,
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
@@ -191,27 +184,6 @@ export default function Estoque({ onNavigate }) {
       statusEstoque: estoque <= 0 ? "Sem estoque" : estoque <= limiteEstoqueBaixo ? "Estoque baixo" : "Disponível",
     };
   }, [limiteEstoqueBaixo, produtoSelecionado, variacoesOrdenadas]);
-
-  const produtoAlertas = useMemo(() => {
-    if (!produtoSelecionado || !detalhesProduto) return [];
-
-    const alertas = [];
-    if (!produtoSelecionado.imagemUrl) alertas.push({ label: "Sem imagem", tone: "warning" });
-    if (!produtoSelecionado.marca) alertas.push({ label: "Sem marca", tone: "neutral" });
-    if (!produtoSelecionado.fornecedor?.nome) alertas.push({ label: "Sem fornecedor", tone: "neutral" });
-    if (detalhesProduto.custoTotalUnitario <= 0) alertas.push({ label: "Sem custo", tone: "warning" });
-    if (detalhesProduto.margemPercentual > 0 && detalhesProduto.margemPercentual < 25) {
-      alertas.push({ label: "Margem baixa", tone: "warning" });
-    }
-    if (detalhesProduto.estoque <= 0) {
-      alertas.push({ label: "Produto zerado", tone: "danger" });
-    } else if (detalhesProduto.estoque <= limiteEstoqueBaixo) {
-      alertas.push({ label: `Estoque ≤ ${limiteEstoqueBaixo}`, tone: "warning" });
-    }
-    if (!variacoesOrdenadas.length) alertas.push({ label: "Sem grade", tone: "danger" });
-
-    return alertas;
-  }, [detalhesProduto, limiteEstoqueBaixo, produtoSelecionado, variacoesOrdenadas.length]);
 
   const atualizarProdutoNaTela = (produtoAtualizado) => {
     setProdutoSelecionado(produtoAtualizado);
@@ -509,7 +481,7 @@ export default function Estoque({ onNavigate }) {
       </div>
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-[420px_minmax(0,1fr)]">
-        <section className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-[0_12px_32px_rgba(15,23,42,0.06)]">
+        <section className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-[0_14px_38px_rgba(15,23,42,0.045)]">
           <div className="border-b border-slate-200 p-4">
             <div className="flex items-center justify-between gap-3">
               <div>
@@ -526,7 +498,7 @@ export default function Estoque({ onNavigate }) {
             />
           </div>
 
-          <ul className="max-h-[680px] divide-y divide-slate-100 overflow-auto">
+          <ul className="max-h-[680px] space-y-2 overflow-auto p-3">
             {produtosFiltrados.map((produto) => {
               const estoqueTotal = calcularEstoqueTotal(produto);
               const selecionado = produtoSelecionado?.id === produto.id;
@@ -536,56 +508,33 @@ export default function Estoque({ onNavigate }) {
                   <button
                     type="button"
                     onClick={() => setProdutoSelecionado(produto)}
-                    className={`flex w-full items-center gap-3 p-3 text-left transition ${
+                    className={`group flex w-full items-center gap-3 rounded-2xl border p-2.5 text-left transition ${
                       selecionado
-                        ? "bg-slate-50 shadow-[inset_3px_0_0_#0B1115]"
-                        : "hover:bg-slate-50"
+                        ? "border-slate-300 bg-slate-50 shadow-[0_12px_28px_rgba(15,23,42,0.06)]"
+                        : "border-transparent bg-white hover:border-slate-200 hover:bg-slate-50/80"
                     }`}
                   >
                     {produto.imagemUrl ? (
                       <img
                         src={produto.imagemUrl}
                         alt={produto.nome}
-                        className="h-14 w-14 shrink-0 rounded-lg object-cover"
+                        className="h-14 w-14 shrink-0 rounded-xl bg-slate-50 object-cover ring-1 ring-slate-100"
                       />
                     ) : (
-                      <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-[11px] text-slate-400">
-                        Sem imagem
+                      <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-[10px] font-medium text-slate-400">
+                        sem foto
                       </div>
                     )}
 
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-semibold text-slate-950">{produto.nome}</p>
-                      <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-500">
+                      <div className="mt-1 flex items-center gap-2 text-xs text-slate-500">
                         <span>{formatCurrency(produto.preco)}</span>
-                        {produto.marca && (
-                          <>
-                            <span className="h-1 w-1 rounded-full bg-slate-300"></span>
-                            <span>{produto.marca}</span>
-                          </>
-                        )}
                         <span className="h-1 w-1 rounded-full bg-slate-300"></span>
                         <span>{estoqueTotal} pares</span>
                       </div>
-                      <div className="mt-2 flex flex-wrap gap-1.5">
-                        <span className="rounded-full border border-slate-200 px-2 py-0.5 text-[11px] font-medium text-slate-600">
-                          {produto.variacoes?.length || 0} variações
-                        </span>
-                        <span className="rounded-full border border-slate-200 px-2 py-0.5 text-[11px] font-medium capitalize text-slate-600">
-                          {produto.genero || "unissex"}
-                        </span>
-                        {produto.fornecedor?.nome && (
-                          <span className="rounded-full border border-slate-200 px-2 py-0.5 text-[11px] font-medium text-slate-600">
-                            {produto.fornecedor.nome}
-                          </span>
-                        )}
-                        {produto.videoUrl && (
-                          <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-700">
-                            Com vídeo
-                          </span>
-                        )}
-                      </div>
                     </div>
+
                   </button>
                 </li>
               );
@@ -615,7 +564,7 @@ export default function Estoque({ onNavigate }) {
                   <FaTrashAlt size={12} />
                 </button>
                 <div className="flex flex-col gap-5 lg:flex-row lg:items-start">
-                  <div className="relative h-36 w-36 shrink-0 rounded-2xl border border-slate-200/80 bg-slate-50/80 p-3 sm:h-40 sm:w-40">
+                  <div className="relative h-36 w-36 shrink-0 rounded-3xl border border-slate-200/80 bg-slate-50/70 p-3 sm:h-40 sm:w-40">
                     {produtoSelecionado.imagemUrl ? (
                       <img
                         src={produtoSelecionado.imagemUrl}
@@ -627,15 +576,6 @@ export default function Estoque({ onNavigate }) {
                         Sem imagem
                       </div>
                     )}
-                    <span
-                      className={`absolute left-3 top-3 rounded-full border px-2.5 py-1 text-[10px] font-semibold shadow-sm ${
-                        detalhesProduto?.estoque > 0
-                          ? "border-emerald-200 bg-white/95 text-emerald-700"
-                          : "border-rose-200 bg-white/95 text-rose-700"
-                      }`}
-                    >
-                      {detalhesProduto?.statusEstoque}
-                    </span>
                     <button
                       className="absolute bottom-3 right-3 rounded-xl bg-white p-2 text-slate-600 shadow-sm ring-1 ring-slate-200 transition hover:text-slate-950"
                       title="Trocar imagem"
@@ -655,17 +595,15 @@ export default function Estoque({ onNavigate }) {
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-col gap-4">
                       <div className="min-w-0 pr-12">
-                        <div className="mb-2 inline-flex items-center gap-1.5 rounded-full bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-500">
-                          <Hash size={13} />
-                          <span>Produto {produtoSelecionado.id}</span>
-                        </div>
                         <h2 className="text-xl font-semibold leading-tight tracking-tight text-slate-950 sm:text-2xl">
                           {produtoSelecionado.nome}
                         </h2>
-                        <div className="mt-3 flex flex-wrap gap-1.5 text-xs">
-                          <ProductTag icon={Tag} value={produtoSelecionado.marca || "Sem marca"} />
-                          <ProductTag value={capitalize(produtoSelecionado.genero || "unissex")} />
-                          <ProductTag icon={Truck} value={produtoSelecionado.fornecedor?.nome || "Sem fornecedor"} />
+                        <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-slate-500">
+                          <span className="font-semibold text-slate-800">{formatCurrency(produtoSelecionado.preco)}</span>
+                          <span className="h-1 w-1 rounded-full bg-slate-300" />
+                          <span>{detalhesProduto?.estoque || 0} pares</span>
+                          <span className="h-1 w-1 rounded-full bg-slate-300" />
+                          <span>{detalhesProduto?.statusEstoque}</span>
                         </div>
                       </div>
 
@@ -729,63 +667,14 @@ export default function Estoque({ onNavigate }) {
                       </div>
                     </div>
 
-                    <div className="mt-5 grid gap-3 sm:grid-cols-3">
-                      <SummaryStat
-                        icon={CircleDollarSign}
-                        label="Preço de venda"
-                        value={formatCurrency(produtoSelecionado.preco)}
-                        detail={`Custo total ${formatCurrency(detalhesProduto?.custoTotalUnitario)}`}
-                      />
-                      <SummaryStat
-                        icon={BadgePercent}
-                        label="Lucro bruto/un."
-                        value={formatCurrency(detalhesProduto?.lucroUnitario)}
-                        detail={`${formatPercent(detalhesProduto?.margemPercentual)} de margem`}
-                      />
-                      <SummaryStat
-                        icon={Boxes}
-                        label="Estoque total"
-                        value={`${detalhesProduto?.estoque || 0} pares`}
-                        detail={`${detalhesProduto?.variacoesComEstoque || 0} tamanhos disponíveis`}
-                      />
-                    </div>
-
-                    <div className="mt-4 rounded-2xl border border-slate-200/80 bg-slate-50/70 p-3">
-                      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                        <div>
-                          <p className="text-xs font-semibold uppercase text-slate-500">Saúde do cadastro</p>
-                          <p className="mt-0.5 text-xs text-slate-500">
-                            Limite de estoque baixo: {limiteEstoqueBaixo} {limiteEstoqueBaixo === 1 ? "par" : "pares"}.
-                          </p>
-                        </div>
-                        {produtoAlertas.length === 0 && (
-                          <span className="inline-flex w-fit rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
-                            Cadastro completo
-                          </span>
-                        )}
-                      </div>
-
-                      {produtoAlertas.length > 0 && (
-                        <div className="mt-3 flex flex-wrap gap-2">
-                          {produtoAlertas.map((alerta) => (
-                            <HealthBadge key={alerta.label} tone={alerta.tone}>
-                              {alerta.label}
-                            </HealthBadge>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-
+                    {(podeAdicionarVideo || produtoSelecionado.videoUrl || produtoSelecionado.gifUrl) && (
                     <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-slate-500">
-                      <MediaBadge icon={Image} active={Boolean(produtoSelecionado.imagemUrl)} label="Imagem" />
-                      <MediaBadge icon={Video} active={Boolean(produtoSelecionado.videoUrl)} label="Vídeo" />
-                      <MediaBadge icon={Image} active={Boolean(produtoSelecionado.gifUrl)} label="GIF" />
                       {podeAdicionarVideo && (
                         <button
                           type="button"
                           onClick={() => document.getElementById("uploadVideoCard")?.click()}
                           disabled={atualizandoVideo}
-                          className="ml-auto inline-flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50 disabled:opacity-60"
+                          className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50 disabled:opacity-60"
                         >
                           <Video size={15} />
                           {atualizandoVideo
@@ -828,6 +717,7 @@ export default function Estoque({ onNavigate }) {
                         />
                       )}
                     </div>
+                    )}
                   </div>
                 </div>
 
@@ -1223,57 +1113,6 @@ function formatPercent(value) {
     minimumFractionDigits: 1,
     maximumFractionDigits: 1,
   })}%`;
-}
-
-function ProductTag({ icon: Icon, value }) {
-  return (
-    <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200/80 bg-slate-50 px-2.5 py-1 font-medium text-slate-600">
-      {Icon && <Icon size={12} />}
-      {value}
-    </span>
-  );
-}
-
-function SummaryStat({ icon: Icon, label, value, detail }) {
-  return (
-    <div className="min-w-0 rounded-2xl border border-slate-200/80 bg-slate-50/70 p-4">
-      <div className="flex items-center gap-1.5 text-[11px] font-medium text-slate-500">
-        <Icon size={14} />
-        <span>{label}</span>
-      </div>
-      <p className="mt-2 text-lg font-semibold tracking-tight text-slate-950">{value}</p>
-      <p className="mt-0.5 truncate text-[11px] text-slate-500" title={detail}>{detail}</p>
-    </div>
-  );
-}
-
-function MediaBadge({ icon: Icon, active, label }) {
-  return (
-    <span
-      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1.5 font-medium ${
-        active
-          ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-          : "border-slate-200 bg-slate-50 text-slate-400"
-      }`}
-    >
-      {Icon && <Icon size={12} />}
-      <span>{label}</span>
-    </span>
-  );
-}
-
-function HealthBadge({ tone = "neutral", children }) {
-  const classes = {
-    danger: "border-rose-200 bg-rose-50 text-rose-700",
-    warning: "border-amber-200 bg-amber-50 text-amber-700",
-    neutral: "border-slate-200 bg-white text-slate-600",
-  };
-
-  return (
-    <span className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold ${classes[tone] || classes.neutral}`}>
-      {children}
-    </span>
-  );
 }
 
 function DetailGroup({ title, children }) {

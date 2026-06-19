@@ -138,6 +138,11 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
         .filter((v) => v.numeracao && Number.isInteger(v.estoque) && v.estoque >= 0),
     [variacoes]
   );
+  const podeAvancarEtapa = useMemo(() => {
+    if (etapaAtual === 0) return Object.keys(errosDados).length === 0;
+    if (etapaAtual === 2) return variacoesValidas.length > 0;
+    return true;
+  }, [errosDados, etapaAtual, variacoesValidas.length]);
 
   useEffect(() => {
     carregarFornecedores();
@@ -387,6 +392,10 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
   }
 
   function avancar() {
+    if (!podeAvancarEtapa) {
+      if (etapaAtual === 0) setTentouAvancarDados(true);
+      return;
+    }
     if (!validarEtapa()) return;
     setEtapaAtual((prev) => Math.min(prev + 1, etapas.length - 1));
   }
@@ -464,6 +473,7 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
             onChange={handleChange}
             onBlur={() => marcarCampoTocado("nome")}
             className={campoComErro(inputClass, mostrarErroCampo("nome"))}
+            required
             autoFocus
           />
           {mostrarErroCampo("nome") && <ErroCampo>{errosDados.nome}</ErroCampo>}
@@ -575,6 +585,7 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
               onChange={handleChange}
               onBlur={() => marcarCampoTocado("preco")}
               className={campoComErro(inputClass, mostrarErroCampo("preco"))}
+              required
             />
             {mostrarErroCampo("preco") && <ErroCampo>{errosDados.preco}</ErroCampo>}
           </label>
@@ -589,6 +600,7 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
               onChange={handleChange}
               onBlur={() => marcarCampoTocado("custoUnitario")}
               className={campoComErro(inputClass, mostrarErroCampo("custoUnitario"))}
+              required
             />
             {mostrarErroCampo("custoUnitario") && <ErroCampo>{errosDados.custoUnitario}</ErroCampo>}
           </label>
@@ -913,7 +925,8 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
                 <button
                   type="button"
                   onClick={avancar}
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#0B1115] px-5 py-3 text-sm font-medium text-white shadow-[0_14px_26px_rgba(24,31,36,0.16)] transition hover:bg-[#131C22]"
+                  disabled={!podeAvancarEtapa}
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#0B1115] px-5 py-3 text-sm font-medium text-white shadow-[0_14px_26px_rgba(24,31,36,0.16)] transition hover:bg-[#131C22] disabled:cursor-not-allowed disabled:border disabled:border-slate-200 disabled:bg-slate-100 disabled:text-slate-400 disabled:shadow-none disabled:hover:bg-slate-100"
                 >
                   Proximo <ArrowRight size={14} />
                 </button>
