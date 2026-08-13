@@ -84,6 +84,7 @@ export default function SuperAdmin() {
   const [descricaoPlano, setDescricaoPlano] = useState("");
   const [carregando, setCarregando] = useState(true);
   const [atualizando, setAtualizando] = useState(false);
+  const [usuariosErro, setUsuariosErro] = useState("");
 
   const resumo = useMemo(() => {
     const lojasAtivas = lojas.filter((loja) => loja.ativa).length;
@@ -139,17 +140,37 @@ export default function SuperAdmin() {
   async function carregar() {
     try {
       setAtualizando(true);
-      const [lojasRes, usuariosRes, planosRes, convitesRes] = await Promise.all([
+      setUsuariosErro("");
+      const [lojasRes, usuariosRes, planosRes, convitesRes] = await Promise.allSettled([
         api.get("/admin/lojas"),
         api.get("/admin/usuarios"),
         api.get("/admin/planos"),
         api.get("/admin/convites"),
       ]);
-      setLojas(Array.isArray(lojasRes.data) ? lojasRes.data : []);
-      setUsuarios(Array.isArray(usuariosRes.data) ? usuariosRes.data : []);
-      setPlanos(Array.isArray(planosRes.data) ? planosRes.data : []);
-      setConvites(Array.isArray(convitesRes.data) ? convitesRes.data : []);
-      if (!planoId && planosRes.data?.[0]?.id) setPlanoId(String(planosRes.data[0].id));
+
+      const essenciais = [
+        ["lojas", lojasRes],
+        ["planos", planosRes],
+        ["convites", convitesRes],
+      ];
+      const falhaEssencial = essenciais.find(([, resposta]) => resposta.status === "rejected");
+      if (falhaEssencial) throw falhaEssencial[1].reason;
+
+      setLojas(Array.isArray(lojasRes.value.data) ? lojasRes.value.data : []);
+      setPlanos(Array.isArray(planosRes.value.data) ? planosRes.value.data : []);
+      setConvites(Array.isArray(convitesRes.value.data) ? convitesRes.value.data : []);
+      if (!planoId && planosRes.value.data?.[0]?.id) setPlanoId(String(planosRes.value.data[0].id));
+
+      if (usuariosRes.status === "fulfilled") {
+        setUsuarios(Array.isArray(usuariosRes.value.data) ? usuariosRes.value.data : []);
+      } else {
+        setUsuarios([]);
+        const mensagem = usuariosRes.reason?.response?.status === 404
+          ? "A gestao de usuarios ainda nao esta disponivel neste backend."
+          : usuariosRes.reason?.response?.data?.error || "Nao foi possivel carregar os usuarios.";
+        setUsuariosErro(mensagem);
+        toast.warn(mensagem);
+      }
     } catch (err) {
       toast.error(err.response?.data?.error || "Erro ao carregar admin.");
     } finally {
@@ -418,6 +439,19 @@ export default function SuperAdmin() {
 
       {aba === "usuarios" && (
         <section className="grid gap-3 xl:grid-cols-2">
+          {usuariosErro && (
+            <div className="lojia-surface p-4 xl:col-span-2">
+              <div className="flex items-start gap-3">
+                <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-amber-50 text-amber-700">
+                  <AlertTriangle size={18} />
+                </span>
+                <div>
+                  <h2 className="text-sm font-semibold text-slate-950">Usuarios indisponiveis no momento</h2>
+                  <p className="mt-1 text-sm text-slate-500">{usuariosErro}</p>
+                </div>
+              </div>
+            </div>
+          )}
           {usuariosFiltrados.map((usuario) => (
             <article key={usuario.id} className="lojia-surface p-4">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
