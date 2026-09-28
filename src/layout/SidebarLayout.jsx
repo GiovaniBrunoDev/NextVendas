@@ -85,7 +85,9 @@ export default function SidebarLayout({ children, setTela }) {
 
   const itensPermitidos = menuItems.filter((item) => {
     if (item.key === "superadmin") return usuario?.superadmin;
-    if (acessoRestritoVendas) return ["dashboard", "vendas", "pedidos", "historico"].includes(item.key);
+    if (acessoRestritoVendas) {
+      return ["dashboard", "vendas", "pedidos", "historico", "estoque", "produtos"].includes(item.key);
+    }
     return acessoPorPerfil[item.key]?.includes(papel);
   });
 

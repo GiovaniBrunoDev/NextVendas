@@ -366,16 +366,14 @@ export default function Pedidos() {
             >
               <PencilLine size={16} />
             </button>
-            {!acessoRestritoVendas && (
-              <button
-                onClick={() => setPedidoParaConfirmar(pedido)}
-                disabled={processando || !podeFinalizar}
-                className="lojia-primary-action inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                <CheckCircle2 size={16} />
-                Confirmar venda
-              </button>
-            )}
+            <button
+              onClick={() => setPedidoParaConfirmar(pedido)}
+              disabled={processando || !podeFinalizar}
+              className="lojia-primary-action inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <CheckCircle2 size={16} />
+              Confirmar venda
+            </button>
             <button
               onClick={() => cancelarPedido(pedido.id)}
               disabled={processando || cancelado}
@@ -409,7 +407,7 @@ export default function Pedidos() {
           <h1 className="text-2xl font-semibold text-white">{acessoRestritoVendas ? "Seus pedidos" : "Pedidos"}</h1>
           <p className="mt-1 text-sm text-white/68">
             {acessoRestritoVendas
-              ? "Crie e acompanhe pedidos. A confirmação da venda será feita pelo responsável da loja."
+              ? "Crie, acompanhe e confirme os pedidos dos seus atendimentos."
               : "Acompanhe reservas de estoque, entregas e pedidos prontos para virar venda."}
           </p>
         </div>

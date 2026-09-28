@@ -3,6 +3,7 @@ import api from "../services/api";
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
 import { Download, Image, PackageSearch, Search, Share2, Tag, X } from "lucide-react";
+import { useAuth } from "../contexts/AuthContext";
 
 const API_BASE_URL = (api.defaults.baseURL || "").replace(/\/$/, "");
 const DOWNLOAD_CONCURRENCY = 6;
@@ -96,6 +97,8 @@ const formatarMoeda = (valor) =>
   });
 
 export default function BuscaProdutos() {
+  const { lojaAtual } = useAuth();
+  const acessoRestritoVendas = Boolean(lojaAtual?.vendasPropriasApenas);
   const [produtos, setProdutos] = useState([]);
   const [buscaConsulta, setBuscaConsulta] = useState("");
   const [buscaCompartilhamento, setBuscaCompartilhamento] = useState("");
@@ -180,7 +183,12 @@ export default function BuscaProdutos() {
 
     return produtos
       .filter((produto) => {
-        const textoBusca = [produto.nome, produto.codigo, produto.marca, produto.fornecedor?.nome]
+        const textoBusca = [
+          produto.nome,
+          produto.codigo,
+          produto.marca,
+          ...(!acessoRestritoVendas ? [produto.fornecedor?.nome] : []),
+        ]
           .map(normalizarTexto)
           .join(" ");
         const passaBusca = !termo || textoBusca.includes(termo);
@@ -195,7 +203,7 @@ export default function BuscaProdutos() {
         return passaBusca && passaNumeracao && passaGenero && passaMarca;
       })
       .sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
-  }, [buscaCompartilhamento, generoSelecionado, marcaSelecionada, numeracaoSelecionada, produtos]);
+  }, [acessoRestritoVendas, buscaCompartilhamento, generoSelecionado, marcaSelecionada, numeracaoSelecionada, produtos]);
 
   const produtosParaCompartilhar = useMemo(
     () => produtosCompartilhamento.filter((produto) => numeracaoSelecionada && imagemProduto(produto)),
@@ -392,7 +400,7 @@ export default function BuscaProdutos() {
             ) : produtosConsulta.length > 0 ? (
               <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                 {produtosConsulta.map((produto) => (
-                  <ProdutoConsultaCard key={produto.id} produto={produto} />
+                  <ProdutoConsultaCard key={produto.id} produto={produto} mostrarFornecedor={!acessoRestritoVendas} />
                 ))}
               </div>
             ) : (
@@ -428,6 +436,7 @@ export default function BuscaProdutos() {
           baixando={baixando}
           progresso={progressoDownload}
           feedback={feedbackCompartilhamento}
+          mostrarFornecedor={!acessoRestritoVendas}
           onBaixarImagens={baixarImagens}
           onLimpar={limparFiltrosCompartilhamento}
           onFechar={() => setModalCompartilharAberto(false)}
@@ -456,6 +465,7 @@ function CompartilharImagensModal({
   baixando,
   progresso,
   feedback,
+  mostrarFornecedor,
   onBaixarImagens,
   onLimpar,
   onFechar,
@@ -496,7 +506,7 @@ function CompartilharImagensModal({
                 type="text"
                 value={buscaCompartilhamento}
                 onChange={(e) => setBuscaCompartilhamento(e.target.value)}
-                placeholder="Produto, marca ou fornecedor"
+                placeholder={mostrarFornecedor ? "Produto, marca ou fornecedor" : "Produto ou marca"}
                 className="w-full rounded-lg border border-slate-200 bg-slate-50 py-3 pl-10 pr-3 text-base outline-none transition placeholder:text-slate-400 focus:border-slate-400 focus:bg-white sm:text-sm"
               />
             </span>
@@ -661,7 +671,7 @@ function Resumo({ label, value }) {
   );
 }
 
-function ProdutoConsultaCard({ produto }) {
+function ProdutoConsultaCard({ produto, mostrarFornecedor }) {
   const estoqueTotal = estoqueDaNumeracao(produto);
   const variacoes = (produto.variacoes || []).slice().sort((a, b) => Number(a.numeracao) - Number(b.numeracao));
 
@@ -705,7 +715,7 @@ function ProdutoConsultaCard({ produto }) {
             <span className="rounded-full bg-slate-100 px-2 py-1 text-[11px] font-medium text-slate-600">
               {generoLabels[produto.genero] || produto.genero || "Unissex"}
             </span>
-            {produto.fornecedor?.nome && (
+            {mostrarFornecedor && produto.fornecedor?.nome && (
               <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-1 text-[11px] font-medium text-slate-600">
                 <Tag size={11} /> {produto.fornecedor.nome}
               </span>

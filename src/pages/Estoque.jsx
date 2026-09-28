@@ -28,7 +28,9 @@ const formatCurrency = (valor) =>
 export default function Estoque({ onNavigate }) {
   const { lojaAtual } = useAuth();
   const { configuracoes } = useLojaConfiguracoes();
-  const podeAdicionarVideo = Number(lojaAtual?.loja?.id) === 1;
+  const acessoRestritoVendas = Boolean(lojaAtual?.vendasPropriasApenas);
+  const podeGerenciarEstoque = !acessoRestritoVendas;
+  const podeAdicionarVideo = podeGerenciarEstoque && Number(lojaAtual?.loja?.id) === 1;
   const alertaEstoqueConfig = Number(configuracoes.alertaEstoque);
   const limiteEstoqueBaixo = Number.isFinite(alertaEstoqueConfig)
     ? Math.max(0, alertaEstoqueConfig)
@@ -77,12 +79,14 @@ export default function Estoque({ onNavigate }) {
       setCarregando(false);
     }
 
-    try {
-      const resFornecedores = await api.get("/fornecedores");
-      setFornecedores(Array.isArray(resFornecedores.data) ? resFornecedores.data : []);
-    } catch (err) {
-      console.error("Erro ao carregar fornecedores:", err);
-      setFornecedores([]);
+    if (podeGerenciarEstoque) {
+      try {
+        const resFornecedores = await api.get("/fornecedores");
+        setFornecedores(Array.isArray(resFornecedores.data) ? resFornecedores.data : []);
+      } catch (err) {
+        console.error("Erro ao carregar fornecedores:", err);
+        setFornecedores([]);
+      }
     }
   };
 
@@ -129,7 +133,9 @@ export default function Estoque({ onNavigate }) {
         totalVariacoes++;
         quantidadeTotal += variacao.estoque;
         valorTotal += variacao.estoque * produto.preco;
-        custoTotal += variacao.estoque * (produto.custoUnitario + produto.outrosCustos);
+        custoTotal += variacao.estoque * (
+          Number(produto.custoUnitario || 0) + Number(produto.outrosCustos || 0)
+        );
       });
     });
 
@@ -434,7 +440,7 @@ export default function Estoque({ onNavigate }) {
             {produtos.length} produtos cadastrados, {relatorio.quantidadeTotal} pares em estoque.
           </p>
         </div>
-        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:justify-end">
+        {podeGerenciarEstoque && <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:justify-end">
           <button
             type="button"
             onClick={() => onNavigate?.("inventario")}
@@ -462,7 +468,7 @@ export default function Estoque({ onNavigate }) {
           >
             <FaPlus className="text-xs" /> Novo produto
           </button>
-        </div>
+        </div>}
       </div>
 
       <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-5">
@@ -471,7 +477,9 @@ export default function Estoque({ onNavigate }) {
           { label: "Variações", value: relatorio.totalVariacoes },
           { label: "Pares", value: relatorio.quantidadeTotal },
           { label: "Valor em estoque", value: formatCurrency(relatorio.valorTotal) },
-          { label: "Custo em estoque", value: formatCurrency(relatorio.custoTotal) },
+          ...(podeGerenciarEstoque
+            ? [{ label: "Custo em estoque", value: formatCurrency(relatorio.custoTotal) }]
+            : []),
         ].map((item) => (
           <div key={item.label} className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
             <p className="text-xs font-medium uppercase tracking-wide text-slate-500">{item.label}</p>
@@ -548,21 +556,21 @@ export default function Estoque({ onNavigate }) {
               <div>
                 <p className="text-lg font-semibold text-slate-900">Selecione um produto</p>
                 <p className="mt-1 text-sm text-slate-500">
-                  Escolha um item da lista para editar valores, mídia e variações.
+                  Escolha um item da lista para consultar os detalhes e a grade disponível.
                 </p>
               </div>
             </div>
           ) : (
             <div>
               <div className="relative border-b border-slate-100 bg-white p-4 sm:p-5 lg:p-6">
-                <button
+                {podeGerenciarEstoque && <button
                   onClick={() => excluirProduto(produtoSelecionado.id)}
                   className="absolute right-4 top-4 inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200/80 bg-white text-slate-400 transition hover:border-rose-200 hover:bg-rose-50 hover:text-rose-700 sm:right-5 sm:top-5"
                   title="Excluir produto"
                   aria-label="Excluir produto"
                 >
                   <FaTrashAlt size={12} />
-                </button>
+                </button>}
                 <div className="flex flex-col gap-5 lg:flex-row lg:items-start">
                   <div className="relative h-36 w-36 shrink-0 rounded-3xl border border-slate-200/80 bg-slate-50/70 p-3 sm:h-40 sm:w-40">
                     {produtoSelecionado.imagemUrl ? (
@@ -576,20 +584,20 @@ export default function Estoque({ onNavigate }) {
                         Sem imagem
                       </div>
                     )}
-                    <button
+                    {podeGerenciarEstoque && <button
                       className="absolute bottom-3 right-3 rounded-xl bg-white p-2 text-slate-600 shadow-sm ring-1 ring-slate-200 transition hover:text-slate-950"
                       title="Trocar imagem"
                       onClick={() => document.getElementById("uploadImagemCard")?.click()}
                     >
                       <FaPen size={12} />
-                    </button>
-                    <input
+                    </button>}
+                    {podeGerenciarEstoque && <input
                       type="file"
                       accept="image/*"
                       id="uploadImagemCard"
                       onChange={(e) => trocarImagemProduto(e.target.files[0])}
                       className="hidden"
-                    />
+                    />}
                   </div>
 
                   <div className="min-w-0 flex-1">
@@ -632,23 +640,23 @@ export default function Estoque({ onNavigate }) {
                             className={`transition-transform ${mostrarDetalhesProduto ? "rotate-180" : ""}`}
                           />
                         </button>
-                        <button
+                        {podeGerenciarEstoque && <button
                           type="button"
                           onClick={() => setEditandoProduto((valor) => !valor)}
                           className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
                         >
                           <Pencil size={15} />
                           {editandoProduto ? "Fechar edição" : "Editar produto"}
-                        </button>
-                        <button
+                        </button>}
+                        {podeGerenciarEstoque && <button
                           type="button"
                           onClick={() => setMostrarReposicaoModal(true)}
                           className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
                         >
                           <PackagePlus size={15} />
                           Repor produto
-                        </button>
-                        <button
+                        </button>}
+                        {podeGerenciarEstoque && <button
                           type="button"
                           onClick={() => {
                             const proximoEstado = !gerenciandoVariacoes;
@@ -663,7 +671,7 @@ export default function Estoque({ onNavigate }) {
                         >
                           <Layers3 size={16} />
                           {gerenciandoVariacoes ? "Concluir edição" : "Gerenciar variações"}
-                        </button>
+                        </button>}
                       </div>
                     </div>
 
@@ -740,15 +748,17 @@ export default function Estoque({ onNavigate }) {
                       <DetailRow label="Referência" value={`Produto ${produtoSelecionado.id}`} />
                       <DetailRow label="Marca" value={produtoSelecionado.marca || "Não informada"} />
                       <DetailRow label="Gênero" value={capitalize(produtoSelecionado.genero || "unissex")} />
-                      <DetailRow label="Fornecedor" value={produtoSelecionado.fornecedor?.nome || "Não informado"} />
+                      {podeGerenciarEstoque && (
+                        <DetailRow label="Fornecedor" value={produtoSelecionado.fornecedor?.nome || "Não informado"} />
+                      )}
                     </DetailGroup>
 
-                    <DetailGroup title="Custos e margem">
+                    {podeGerenciarEstoque && <DetailGroup title="Custos e margem">
                       <DetailRow label="Custo unitário" value={formatCurrency(produtoSelecionado.custoUnitario)} />
                       <DetailRow label="Outros custos" value={formatCurrency(produtoSelecionado.outrosCustos)} />
                       <DetailRow label="Custo total" value={formatCurrency(detalhesProduto?.custoTotalUnitario)} />
                       <DetailRow label="Margem bruta" value={formatPercent(detalhesProduto?.margemPercentual)} />
-                    </DetailGroup>
+                    </DetailGroup>}
 
                     <DetailGroup title="Disponibilidade">
                       <DetailRow
@@ -765,17 +775,21 @@ export default function Estoque({ onNavigate }) {
 
                     <DetailGroup title="Valor do estoque">
                       <DetailRow label="Pares disponíveis" value={detalhesProduto?.estoque || 0} />
-                      <DetailRow label="Custo armazenado" value={formatCurrency(detalhesProduto?.valorCustoEstoque)} />
+                      {podeGerenciarEstoque && (
+                        <DetailRow label="Custo armazenado" value={formatCurrency(detalhesProduto?.valorCustoEstoque)} />
+                      )}
                       <DetailRow label="Venda potencial" value={formatCurrency(detalhesProduto?.valorVendaEstoque)} />
-                      <DetailRow label="Lucro potencial" value={formatCurrency(
-                        detalhesProduto?.valorVendaEstoque - detalhesProduto?.valorCustoEstoque
-                      )} />
+                      {podeGerenciarEstoque && (
+                        <DetailRow label="Lucro potencial" value={formatCurrency(
+                          detalhesProduto?.valorVendaEstoque - detalhesProduto?.valorCustoEstoque
+                        )} />
+                      )}
                     </DetailGroup>
                   </div>
                 </div>
                 )}
 
-                {editandoProduto && (
+                {podeGerenciarEstoque && editandoProduto && (
                   <div className="mt-5 rounded-lg border border-slate-200 bg-slate-50 p-4">
                     <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
                       <label>
@@ -924,7 +938,7 @@ export default function Estoque({ onNavigate }) {
                   </div>
                 )}
 
-                {gerenciandoVariacoes && (
+                {podeGerenciarEstoque && gerenciandoVariacoes && (
                   <div className="mt-5 border-t border-slate-200 pt-5">
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                       <div>
@@ -1068,7 +1082,7 @@ export default function Estoque({ onNavigate }) {
       </div>
 
       <div className="block sm:hidden">
-        {mostrarBotaoFlutuante && !mostrarModal && (
+        {podeGerenciarEstoque && mostrarBotaoFlutuante && !mostrarModal && (
           <button
             onClick={() => setMostrarModal(true)}
             className="fixed bottom-24 right-4 z-[999] flex h-12 w-12 items-center justify-center rounded-full bg-slate-900 text-white shadow-lg"
@@ -1080,7 +1094,7 @@ export default function Estoque({ onNavigate }) {
         )}
       </div>
 
-      {mostrarModal && (
+      {podeGerenciarEstoque && mostrarModal && (
         <ProdutoModal
           aoFechar={() => setMostrarModal(false)}
           aoCadastrar={() => {
@@ -1090,7 +1104,7 @@ export default function Estoque({ onNavigate }) {
         />
       )}
 
-      {mostrarReposicaoModal && (
+      {podeGerenciarEstoque && mostrarReposicaoModal && (
         <ReposicaoEstoqueModal
           produtos={produtos}
           fornecedores={fornecedores}

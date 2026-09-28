@@ -329,7 +329,7 @@ export default function MinhaConta() {
                   <Info label="Loja" value={loja?.nome || "-"} />
                   <Info
                     label={acessoRestritoVendas ? "Área de trabalho" : "Identificador"}
-                    value={acessoRestritoVendas ? "Vendas e pedidos" : loja?.slug || "-"}
+                    value={acessoRestritoVendas ? "Vendas, pedidos e estoque" : loja?.slug || "-"}
                   />
                 </div>
               </Section>
@@ -939,7 +939,7 @@ function NovoAcessoModal({ onClose, onCreated }) {
               <span>
                 <span className="block text-sm font-semibold text-slate-950">Usar desempenho individual</span>
                 <span className="mt-1 block text-xs leading-5 text-slate-500">
-                  Libera Dashboard, Nova venda, Pedidos e Vendas com os resultados criados por esta pessoa.
+                  Libera Dashboard, Nova venda, Pedidos, Vendas, Estoque e Consultar, ocultando custos e lucro.
                 </span>
               </span>
               <input

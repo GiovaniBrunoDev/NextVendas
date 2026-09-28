@@ -627,7 +627,7 @@ export default function Dashboard({ onNavigate }) {
         <MetricCard titulo="Vendas" valor={vendasFiltradas.length} icon={<FaShoppingCart />} />
         <MetricCard titulo="Produtos" valor={qtdProdutos} icon={<FaBoxOpen />} />
         <MetricCard titulo="Ticket médio" valor={ticketMedio} isCurrency icon={<FaReceipt />} />
-        <MetricCard titulo="Lucro bruto" valor={lucro} isCurrency icon={<FaChartLine />} />
+        {!acessoRestritoVendas && <MetricCard titulo="Lucro bruto" valor={lucro} isCurrency icon={<FaChartLine />} />}
         <MetricCard titulo="Clientes" valor={clientesAtendidos} icon={<FaSmile />} />
         <MetricCard titulo="Entregas" valor={taxasEntrega} isCurrency icon={<FaTruck />} />
         <MetricCard titulo="Pedidos" valor={pedidos.length} icon={<FaClipboardList />} />
