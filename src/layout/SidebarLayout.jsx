@@ -85,7 +85,7 @@ export default function SidebarLayout({ children, setTela }) {
 
   const itensPermitidos = menuItems.filter((item) => {
     if (item.key === "superadmin") return usuario?.superadmin;
-    if (acessoRestritoVendas) return ["dashboard", "vendas", "historico"].includes(item.key);
+    if (acessoRestritoVendas) return ["dashboard", "vendas", "pedidos", "historico"].includes(item.key);
     return acessoPorPerfil[item.key]?.includes(papel);
   });
 
@@ -183,7 +183,7 @@ export default function SidebarLayout({ children, setTela }) {
               <span className="min-w-0">
                 <span className="block truncate text-sm font-bold text-white">{usuario?.nome}</span>
                 <span className={`mt-0.5 block text-xs font-semibold capitalize ${contaAtiva ? "text-white/80" : "text-white/[0.48]"}`}>
-                  {acessoRestritoVendas ? "Gerente de vendas" : papel || (usuario?.superadmin ? "superadmin" : "sem perfil")}
+                  {acessoRestritoVendas ? "Atendimento e vendas" : papel || (usuario?.superadmin ? "superadmin" : "sem perfil")}
                 </span>
               </span>
             </button>

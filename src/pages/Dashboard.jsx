@@ -182,13 +182,12 @@ export default function Dashboard({ onNavigate }) {
       try {
         setCarregando(true);
         const resVendas = await api.get("/vendas");
-        let resPedidos = { data: [] };
+        const resPedidos = await api.get("/pedidos");
         let resProdutos = { data: [] };
         let resClientes = { data: [] };
 
         if (!acessoRestritoVendas) {
-          [resPedidos, resProdutos, resClientes] = await Promise.all([
-            api.get("/pedidos"),
+          [resProdutos, resClientes] = await Promise.all([
             api.get("/produtos"),
             api.get("/clientes"),
           ]);
@@ -631,7 +630,7 @@ export default function Dashboard({ onNavigate }) {
         <MetricCard titulo="Lucro bruto" valor={lucro} isCurrency icon={<FaChartLine />} />
         <MetricCard titulo="Clientes" valor={clientesAtendidos} icon={<FaSmile />} />
         <MetricCard titulo="Entregas" valor={taxasEntrega} isCurrency icon={<FaTruck />} />
-        {!acessoRestritoVendas && <MetricCard titulo="Pedidos" valor={pedidos.length} icon={<FaClipboardList />} />}
+        <MetricCard titulo="Pedidos" valor={pedidos.length} icon={<FaClipboardList />} />
         <MetricCard titulo="Pagamento" valor={formaPagamentoMaisUsada} icon={<FaCreditCard />} />
       </div>
 
@@ -698,8 +697,8 @@ export default function Dashboard({ onNavigate }) {
         )}
       </div>
 
-      <div className={`grid grid-cols-1 gap-5 ${acessoRestritoVendas ? "xl:grid-cols-1" : "xl:grid-cols-2"}`}>
-        {!acessoRestritoVendas && <div className="lojia-surface p-4">
+      <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
+        <div className="lojia-surface p-4">
           <div className="mb-4 flex items-start justify-between gap-3">
             <div>
               <h3 className="text-base font-semibold text-slate-950">Pedidos em aberto</h3>
@@ -746,7 +745,7 @@ export default function Dashboard({ onNavigate }) {
               ))}
             </ul>
           )}
-        </div>}
+        </div>
 
         <div className="lojia-surface p-4">
           <div className="mb-4 flex items-start justify-between gap-3">

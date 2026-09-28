@@ -148,11 +148,11 @@ export default function VendasListadas() {
       <div className="mb-6 flex flex-col gap-4 rounded-lg border border-slate-200 bg-white p-4 shadow-sm lg:flex-row lg:items-center lg:justify-between">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-slate-950">
-            {acessoRestritoVendas ? "Minhas vendas" : "Histórico de vendas"}
+            {acessoRestritoVendas ? "Vendas" : "Histórico de vendas"}
           </h1>
           <p className="mt-1 text-sm text-slate-500">
             {acessoRestritoVendas
-              ? "Consulte somente as vendas registradas por você."
+              ? "Acompanhe seus resultados e consulte as vendas que você realizou."
               : "Consulte vendas, edite dados operacionais, realize trocas e exclua registros."}
           </p>
         </div>

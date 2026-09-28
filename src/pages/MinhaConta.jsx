@@ -94,7 +94,7 @@ export default function MinhaConta() {
   const podeEditarLoja = usuario?.superadmin || papel === "admin";
   const acessoRestritoVendas = Boolean(lojaAtual?.vendasPropriasApenas);
   const papelExibido = acessoRestritoVendas
-    ? "Gerente de vendas"
+    ? "Atendimento e vendas"
     : papel || (usuario?.superadmin ? "superadmin" : "sem perfil");
   const fotoPerfil = usuario?.fotoUrl || usuario?.avatarUrl || usuario?.imagemUrl;
   const lojaConfigId = loja?.id || "padrao";
@@ -222,7 +222,7 @@ export default function MinhaConta() {
           <h1 className="text-2xl font-semibold text-white">Minha conta</h1>
           <p className="mt-1 text-sm text-white/68">
             {acessoRestritoVendas
-              ? "Atualize seus dados pessoais e a segurança do seu acesso."
+              ? "Cuide dos seus dados e da segurança do seu acesso."
               : "Organize seus dados, loja, plano e segurança em um só lugar."}
           </p>
         </div>
@@ -328,8 +328,8 @@ export default function MinhaConta() {
                   <Info label="Perfil" value={papelExibido} />
                   <Info label="Loja" value={loja?.nome || "-"} />
                   <Info
-                    label={acessoRestritoVendas ? "Visibilidade" : "Identificador"}
-                    value={acessoRestritoVendas ? "Somente minhas vendas" : loja?.slug || "-"}
+                    label={acessoRestritoVendas ? "Área de trabalho" : "Identificador"}
+                    value={acessoRestritoVendas ? "Vendas e pedidos" : loja?.slug || "-"}
                   />
                 </div>
               </Section>
@@ -721,7 +721,7 @@ function EquipeLoja({ lojaId, usuarioAtualId }) {
                           <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-500">Pausado</span>
                         )}
                         {membro.vendasPropriasApenas && (
-                          <span className="rounded-full bg-[#16A34A]/10 px-2 py-0.5 text-[11px] font-semibold text-[#15803D]">Somente próprias vendas</span>
+                          <span className="rounded-full bg-[#16A34A]/10 px-2 py-0.5 text-[11px] font-semibold text-[#15803D]">Desempenho individual</span>
                         )}
                       </div>
                       <p className="mt-0.5 truncate text-sm text-slate-500">{membro.usuario.email}</p>
@@ -937,9 +937,9 @@ function NovoAcessoModal({ onClose, onCreated }) {
 
             <label className="flex cursor-pointer items-start justify-between gap-4 rounded-xl border border-slate-200 bg-slate-50/70 p-4">
               <span>
-                <span className="block text-sm font-semibold text-slate-950">Mostrar somente as próprias vendas</span>
+                <span className="block text-sm font-semibold text-slate-950">Usar desempenho individual</span>
                 <span className="mt-1 block text-xs leading-5 text-slate-500">
-                  Exibe apenas Dashboard, Nova venda e o histórico realizado por esta pessoa.
+                  Libera Dashboard, Nova venda, Pedidos e Vendas com os resultados criados por esta pessoa.
                 </span>
               </span>
               <input

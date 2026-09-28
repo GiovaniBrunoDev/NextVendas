@@ -20,6 +20,7 @@ import {
 import ReciboModal from "../components/ReciboModal";
 import ConfirmarPedidoVendaModal from "../components/ConfirmarPedidoVendaModal";
 import EditarPedidoModal from "../components/EditarPedidoModal";
+import { useAuth } from "../contexts/AuthContext";
 
 function moeda(valor) {
   return Number(valor || 0).toLocaleString("pt-BR", {
@@ -76,6 +77,8 @@ function grupoInfo(grupo) {
 }
 
 export default function Pedidos() {
+  const { lojaAtual } = useAuth();
+  const acessoRestritoVendas = Boolean(lojaAtual?.vendasPropriasApenas);
   const [pedidos, setPedidos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [pedidoProcessando, setPedidoProcessando] = useState(null);
@@ -254,6 +257,9 @@ export default function Pedidos() {
               {pedido.cliente?.telefone && (
                 <p className="mt-1 text-xs text-slate-500">{pedido.cliente.telefone}</p>
               )}
+              {!acessoRestritoVendas && pedido.criadoPor?.nome && (
+                <p className="mt-1 text-xs text-slate-500">Atendimento: {pedido.criadoPor.nome}</p>
+              )}
             </div>
 
             <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-600">
@@ -360,14 +366,16 @@ export default function Pedidos() {
             >
               <PencilLine size={16} />
             </button>
-            <button
-              onClick={() => setPedidoParaConfirmar(pedido)}
-              disabled={processando || !podeFinalizar}
-              className="lojia-primary-action inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              <CheckCircle2 size={16} />
-              Confirmar venda
-            </button>
+            {!acessoRestritoVendas && (
+              <button
+                onClick={() => setPedidoParaConfirmar(pedido)}
+                disabled={processando || !podeFinalizar}
+                className="lojia-primary-action inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <CheckCircle2 size={16} />
+                Confirmar venda
+              </button>
+            )}
             <button
               onClick={() => cancelarPedido(pedido.id)}
               disabled={processando || cancelado}
@@ -398,9 +406,11 @@ export default function Pedidos() {
     <div className="lojia-page min-h-screen p-4 sm:p-6">
       <div className="lojia-hero-panel mb-6 flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-white">Pedidos</h1>
+          <h1 className="text-2xl font-semibold text-white">{acessoRestritoVendas ? "Seus pedidos" : "Pedidos"}</h1>
           <p className="mt-1 text-sm text-white/68">
-            Acompanhe reservas de estoque, entregas e pedidos prontos para virar venda.
+            {acessoRestritoVendas
+              ? "Crie e acompanhe pedidos. A confirmação da venda será feita pelo responsável da loja."
+              : "Acompanhe reservas de estoque, entregas e pedidos prontos para virar venda."}
           </p>
         </div>
       </div>
