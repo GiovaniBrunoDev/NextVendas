@@ -132,6 +132,7 @@ function FeaturedMetricCard({ titulo, valor, periodoAtual }) {
 
 export default function Dashboard({ onNavigate }) {
   const { usuario, lojaAtual } = useAuth();
+  const acessoRestritoVendas = Boolean(lojaAtual?.vendasPropriasApenas);
   const [vendas, setVendas] = useState([]);
   const [pedidos, setPedidos] = useState([]);
   const [produtos, setProdutos] = useState([]);
@@ -180,12 +181,18 @@ export default function Dashboard({ onNavigate }) {
     async function carregarDados() {
       try {
         setCarregando(true);
-        const [resVendas, resPedidos, resProdutos, resClientes] = await Promise.all([
-          api.get("/vendas"),
-          api.get("/pedidos"),
-          api.get("/produtos"),
-          api.get("/clientes"),
-        ]);
+        const resVendas = await api.get("/vendas");
+        let resPedidos = { data: [] };
+        let resProdutos = { data: [] };
+        let resClientes = { data: [] };
+
+        if (!acessoRestritoVendas) {
+          [resPedidos, resProdutos, resClientes] = await Promise.all([
+            api.get("/pedidos"),
+            api.get("/produtos"),
+            api.get("/clientes"),
+          ]);
+        }
 
         const vendasData = Array.isArray(resVendas.data) ? resVendas.data : [];
         const pedidosData = Array.isArray(resPedidos.data) ? resPedidos.data : [];
@@ -203,7 +210,7 @@ export default function Dashboard({ onNavigate }) {
     }
 
     carregarDados();
-  }, []);
+  }, [acessoRestritoVendas]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -357,9 +364,9 @@ export default function Dashboard({ onNavigate }) {
 
   const onboardingPendente = onboardingSteps.some((step) => !step.pronto);
   const mostrarBoasVindasPrimeiroAcesso =
-    lojaSemOperacao && !boasVindasVista && !onboardingConcluido;
+    !acessoRestritoVendas && lojaSemOperacao && !boasVindasVista && !onboardingConcluido;
   const mostrarChecklistOnboarding =
-    boasVindasVista && !onboardingConcluido && onboardingPendente;
+    !acessoRestritoVendas && boasVindasVista && !onboardingConcluido && onboardingPendente;
   const totalOnboardingConcluido = onboardingSteps.filter((step) => step.pronto).length;
   const progressoOnboarding = onboardingSteps.length
     ? (totalOnboardingConcluido / onboardingSteps.length) * 100
@@ -427,7 +434,9 @@ export default function Dashboard({ onNavigate }) {
             <div className="min-w-0">
               <p className="text-xs font-medium uppercase text-slate-500">Dashboard</p>
               <h2 className="mt-1 text-2xl font-semibold text-slate-950">Olá, {primeiroNome}</h2>
-              <p className="mt-1 text-sm text-slate-500">Aqui está o resumo da sua operação.</p>
+              <p className="mt-1 text-sm text-slate-500">
+                {acessoRestritoVendas ? "Aqui está o resumo das suas vendas." : "Aqui está o resumo da sua operação."}
+              </p>
             </div>
           </div>
 
@@ -610,7 +619,7 @@ export default function Dashboard({ onNavigate }) {
       )}
 
       <FeaturedMetricCard
-        titulo="Sua loja vendeu"
+        titulo={acessoRestritoVendas ? "Você vendeu" : "Sua loja vendeu"}
         valor={total}
         periodoAtual={periodoAtual}
       />
@@ -622,7 +631,7 @@ export default function Dashboard({ onNavigate }) {
         <MetricCard titulo="Lucro bruto" valor={lucro} isCurrency icon={<FaChartLine />} />
         <MetricCard titulo="Clientes" valor={clientesAtendidos} icon={<FaSmile />} />
         <MetricCard titulo="Entregas" valor={taxasEntrega} isCurrency icon={<FaTruck />} />
-        <MetricCard titulo="Pedidos" valor={pedidos.length} icon={<FaClipboardList />} />
+        {!acessoRestritoVendas && <MetricCard titulo="Pedidos" valor={pedidos.length} icon={<FaClipboardList />} />}
         <MetricCard titulo="Pagamento" valor={formaPagamentoMaisUsada} icon={<FaCreditCard />} />
       </div>
 
@@ -689,8 +698,8 @@ export default function Dashboard({ onNavigate }) {
         )}
       </div>
 
-      <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
-        <div className="lojia-surface p-4">
+      <div className={`grid grid-cols-1 gap-5 ${acessoRestritoVendas ? "xl:grid-cols-1" : "xl:grid-cols-2"}`}>
+        {!acessoRestritoVendas && <div className="lojia-surface p-4">
           <div className="mb-4 flex items-start justify-between gap-3">
             <div>
               <h3 className="text-base font-semibold text-slate-950">Pedidos em aberto</h3>
@@ -737,7 +746,7 @@ export default function Dashboard({ onNavigate }) {
               ))}
             </ul>
           )}
-        </div>
+        </div>}
 
         <div className="lojia-surface p-4">
           <div className="mb-4 flex items-start justify-between gap-3">
@@ -754,16 +763,18 @@ export default function Dashboard({ onNavigate }) {
             <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
               <p className="text-sm font-medium text-slate-700">Nenhuma venda registrada neste período.</p>
               <p className="mt-1 text-xs text-slate-500">
-                {produtos.length === 0
+                {acessoRestritoVendas
+                  ? "Assim que você realizar uma venda, os produtos aparecerão aqui."
+                  : produtos.length === 0
                   ? "Cadastre o primeiro produto para iniciar a operação."
                   : "Assim que vender, seus produtos mais fortes aparecem aqui."}
               </p>
               <button
                 type="button"
-                onClick={() => onNavigate?.(produtos.length === 0 ? "estoque" : "vendas")}
+                onClick={() => onNavigate?.(acessoRestritoVendas ? "vendas" : produtos.length === 0 ? "estoque" : "vendas")}
                 className="mt-3 inline-flex min-h-9 items-center justify-center rounded-lg bg-white px-3 text-sm font-semibold text-slate-700 ring-1 ring-slate-200 transition hover:bg-slate-100"
               >
-                {produtos.length === 0 ? "Cadastrar produto" : "Abrir nova venda"}
+                {acessoRestritoVendas ? "Abrir nova venda" : produtos.length === 0 ? "Cadastrar produto" : "Abrir nova venda"}
               </button>
             </div>
           ) : (

@@ -52,6 +52,7 @@ export default function SidebarLayout({ children, setTela }) {
   });
   const { usuario, lojaAtual, logout } = useAuth();
   const papel = lojaAtual?.papel;
+  const acessoRestritoVendas = Boolean(lojaAtual?.vendasPropriasApenas);
   const fotoPerfil = usuario?.fotoUrl || usuario?.avatarUrl || usuario?.imagemUrl;
 
   useEffect(() => {
@@ -84,6 +85,7 @@ export default function SidebarLayout({ children, setTela }) {
 
   const itensPermitidos = menuItems.filter((item) => {
     if (item.key === "superadmin") return usuario?.superadmin;
+    if (acessoRestritoVendas) return ["dashboard", "vendas", "historico"].includes(item.key);
     return acessoPorPerfil[item.key]?.includes(papel);
   });
 
@@ -181,7 +183,7 @@ export default function SidebarLayout({ children, setTela }) {
               <span className="min-w-0">
                 <span className="block truncate text-sm font-bold text-white">{usuario?.nome}</span>
                 <span className={`mt-0.5 block text-xs font-semibold capitalize ${contaAtiva ? "text-white/80" : "text-white/[0.48]"}`}>
-                  {papel || (usuario?.superadmin ? "superadmin" : "sem perfil")}
+                  {acessoRestritoVendas ? "Gerente de vendas" : papel || (usuario?.superadmin ? "superadmin" : "sem perfil")}
                 </span>
               </span>
             </button>

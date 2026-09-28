@@ -92,11 +92,22 @@ export default function MinhaConta() {
   const plano = assinatura?.plano;
   const assinaturaAtiva = Boolean(loja?.assinaturaAtiva);
   const podeEditarLoja = usuario?.superadmin || papel === "admin";
+  const acessoRestritoVendas = Boolean(lojaAtual?.vendasPropriasApenas);
+  const papelExibido = acessoRestritoVendas
+    ? "Gerente de vendas"
+    : papel || (usuario?.superadmin ? "superadmin" : "sem perfil");
   const fotoPerfil = usuario?.fotoUrl || usuario?.avatarUrl || usuario?.imagemUrl;
   const lojaConfigId = loja?.id || "padrao";
 
   const abas = useMemo(
     () => {
+      if (acessoRestritoVendas) {
+        return [
+          { key: "perfil", label: "Meu perfil", icon: UserRound },
+          { key: "seguranca", label: "Segurança", icon: Lock },
+        ];
+      }
+
       const itens = [
         { key: "perfil", label: "Perfil", icon: UserRound },
         { key: "loja", label: "Loja", icon: Store },
@@ -108,7 +119,7 @@ export default function MinhaConta() {
       if (podeEditarLoja) itens.splice(2, 0, { key: "equipe", label: "Equipe", icon: UsersRound });
       return itens;
     },
-    [podeEditarLoja]
+    [acessoRestritoVendas, podeEditarLoja]
   );
 
   const planoResumo = useMemo(() => {
@@ -210,7 +221,9 @@ export default function MinhaConta() {
         <div>
           <h1 className="text-2xl font-semibold text-white">Minha conta</h1>
           <p className="mt-1 text-sm text-white/68">
-            Organize seus dados, loja, plano e segurança em um só lugar.
+            {acessoRestritoVendas
+              ? "Atualize seus dados pessoais e a segurança do seu acesso."
+              : "Organize seus dados, loja, plano e segurança em um só lugar."}
           </p>
         </div>
         {!['plano', 'configuracoes', 'equipe'].includes(abaAtiva) && (
@@ -232,7 +245,7 @@ export default function MinhaConta() {
               <div className="min-w-0">
                 <p className="truncate text-base font-semibold text-slate-950">{usuario?.nome || "Usuário"}</p>
                 <p className="mt-0.5 truncate text-sm font-medium capitalize text-slate-500">
-                  {papel || (usuario?.superadmin ? "superadmin" : "sem perfil")}
+                  {papelExibido}
                 </p>
               </div>
             </div>
@@ -312,9 +325,12 @@ export default function MinhaConta() {
 
               <Section title="Acesso atual" icon={UserCog}>
                 <div className="grid gap-3 sm:grid-cols-3">
-                  <Info label="Perfil" value={papel || (usuario?.superadmin ? "superadmin" : "sem perfil")} />
+                  <Info label="Perfil" value={papelExibido} />
                   <Info label="Loja" value={loja?.nome || "-"} />
-                  <Info label="Identificador" value={loja?.slug || "-"} />
+                  <Info
+                    label={acessoRestritoVendas ? "Visibilidade" : "Identificador"}
+                    value={acessoRestritoVendas ? "Somente minhas vendas" : loja?.slug || "-"}
+                  />
                 </div>
               </Section>
             </div>
@@ -704,6 +720,9 @@ function EquipeLoja({ lojaId, usuarioAtualId }) {
                         {!acessoAtivo && (
                           <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-500">Pausado</span>
                         )}
+                        {membro.vendasPropriasApenas && (
+                          <span className="rounded-full bg-[#16A34A]/10 px-2 py-0.5 text-[11px] font-semibold text-[#15803D]">Somente próprias vendas</span>
+                        )}
                       </div>
                       <p className="mt-0.5 truncate text-sm text-slate-500">{membro.usuario.email}</p>
                     </div>
@@ -776,7 +795,7 @@ function gerarSenhaInicial() {
 }
 
 function NovoAcessoModal({ onClose, onCreated }) {
-  const [dados, setDados] = useState({ nome: "", email: "", telefone: "", senha: gerarSenhaInicial(), papel: "vendedor" });
+  const [dados, setDados] = useState({ nome: "", email: "", telefone: "", senha: gerarSenhaInicial(), papel: "vendedor", vendasPropriasApenas: false });
   const [salvando, setSalvando] = useState(false);
   const [credencial, setCredencial] = useState(null);
   const valido = dados.nome.trim() && /^\S+@\S+\.\S+$/.test(dados.email.trim()) && dados.senha.length >= 6;
@@ -915,6 +934,21 @@ function NovoAcessoModal({ onClose, onCreated }) {
                 />
               </div>
             </div>
+
+            <label className="flex cursor-pointer items-start justify-between gap-4 rounded-xl border border-slate-200 bg-slate-50/70 p-4">
+              <span>
+                <span className="block text-sm font-semibold text-slate-950">Mostrar somente as próprias vendas</span>
+                <span className="mt-1 block text-xs leading-5 text-slate-500">
+                  Exibe apenas Dashboard, Nova venda e o histórico realizado por esta pessoa.
+                </span>
+              </span>
+              <input
+                type="checkbox"
+                checked={dados.vendasPropriasApenas}
+                onChange={(event) => alterar("vendasPropriasApenas", event.target.checked)}
+                className="mt-0.5 h-5 w-5 shrink-0 rounded border-slate-300 text-[#16A34A] focus:ring-[#16A34A]"
+              />
+            </label>
 
             <div className="flex flex-col-reverse gap-3 border-t border-slate-200 pt-5 sm:flex-row sm:justify-end">
               <button type="button" onClick={onClose} className="h-11 rounded-lg border border-slate-200 px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50">

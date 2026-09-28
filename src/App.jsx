@@ -48,7 +48,7 @@ function LoadingScreen() {
 
 function ProtectedApp() {
   const location = useLocation();
-  const { autenticado, carregando, usuario } = useAuth();
+  const { autenticado, carregando, usuario, lojaAtual } = useAuth();
   const [tela, setTelaState] = useState(() => {
     if (typeof window === "undefined") return "dashboard";
     const telaSalva = localStorage.getItem("lojia_tela_ativa") || "dashboard";
@@ -71,6 +71,12 @@ function ProtectedApp() {
   }
 
   const renderizarTela = () => {
+    const acessoRestritoVendas = Boolean(lojaAtual?.vendasPropriasApenas);
+    const telasPermitidas = ["dashboard", "vendas", "historico", "minha-conta"];
+    if (acessoRestritoVendas && !telasPermitidas.includes(tela)) {
+      return <Dashboard onNavigate={setTela} />;
+    }
+
     switch (tela) {
       case "vendas":
         return <Vendas />;

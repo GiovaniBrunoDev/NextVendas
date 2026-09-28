@@ -4,6 +4,7 @@ import { CreditCard, Search } from "lucide-react";
 import { toast } from "react-toastify";
 import VendaDetalhesModal from "../components/VendaDetalhesModal";
 import TrocaModal from "../components/TrocaModal";
+import { useAuth } from "../contexts/AuthContext";
 
 const formatCurrency = (valor) =>
   new Intl.NumberFormat("pt-BR", {
@@ -29,6 +30,8 @@ const descricaoItemVenda = (item) => {
 };
 
 export default function VendasListadas() {
+  const { lojaAtual } = useAuth();
+  const acessoRestritoVendas = Boolean(lojaAtual?.vendasPropriasApenas);
   const [mostrarTrocaModal, setMostrarTrocaModal] = useState(false);
   const [vendas, setVendas] = useState([]);
   const [busca, setBusca] = useState("");
@@ -144,9 +147,13 @@ export default function VendasListadas() {
     <div className="min-h-screen bg-slate-50 p-4 sm:p-6">
       <div className="mb-6 flex flex-col gap-4 rounded-lg border border-slate-200 bg-white p-4 shadow-sm lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-950">Histórico de vendas</h1>
+          <h1 className="text-2xl font-semibold tracking-tight text-slate-950">
+            {acessoRestritoVendas ? "Minhas vendas" : "Histórico de vendas"}
+          </h1>
           <p className="mt-1 text-sm text-slate-500">
-            Consulte vendas, edite dados operacionais, realize trocas e exclua registros.
+            {acessoRestritoVendas
+              ? "Consulte somente as vendas registradas por você."
+              : "Consulte vendas, edite dados operacionais, realize trocas e exclua registros."}
           </p>
         </div>
         <div className="relative w-full lg:max-w-md">
