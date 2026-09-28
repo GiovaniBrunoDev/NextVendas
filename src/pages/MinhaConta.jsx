@@ -4,7 +4,6 @@ import { toast } from "react-toastify";
 import {
   AlertTriangle,
   Bell,
-  BellOff,
   BellRing,
   Building2,
   CalendarDays,
@@ -691,64 +690,72 @@ function NotificacoesPush() {
   const ativo = Boolean(status?.inscritoNesteDispositivo && status?.permissao === "granted");
   const precisaInstalar = Boolean(status?.ios && !status?.instalado);
   const bloqueado = status?.permissao === "denied";
+  const podeAlternar = Boolean(
+    status?.suportado && status?.servidorConfigurado && !bloqueado && !precisaInstalar
+  );
+
+  function alternar() {
+    if (ativo) return desativar();
+    return ativar();
+  }
 
   return (
     <div className="space-y-5">
-      <Section title="Avisos de novos pedidos" icon={BellRing}>
-        <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4 sm:p-5">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-            <div className="flex min-w-0 gap-3">
-              <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${ativo ? "bg-[#16A34A]/10 text-[#15803D]" : "bg-white text-slate-500 ring-1 ring-slate-200"}`}>
-                {ativo ? <BellRing size={20} /> : <BellOff size={20} />}
-              </span>
-              <div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <h3 className="text-sm font-semibold text-slate-950">Notificações neste dispositivo</h3>
-                  <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${ativo ? "bg-[#16A34A]/10 text-[#15803D]" : "bg-slate-200/70 text-slate-600"}`}>
-                    {carregando ? "Verificando" : ativo ? "Ativas" : "Desativadas"}
-                  </span>
-                </div>
-                <p className="mt-1 max-w-2xl text-sm leading-6 text-slate-500">
-                  Receba um aviso na tela bloqueada e na Central de Notificações quando alguém da equipe criar um pedido.
-                </p>
-              </div>
+      <Section title="Notificações" icon={BellRing}>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <span className={`h-2 w-2 rounded-full ${ativo ? "bg-[#16A34A]" : "bg-slate-300"}`} />
+              <h3 className="text-sm font-semibold text-slate-950">Novos pedidos</h3>
             </div>
-
-            <div className="flex shrink-0 flex-wrap gap-2">
-              {ativo ? (
-                <>
-                  <button type="button" onClick={testar} disabled={processando} className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:opacity-50">
-                    <Send size={15} /> Testar
-                  </button>
-                  <button type="button" onClick={desativar} disabled={processando} className="inline-flex min-h-10 items-center justify-center rounded-lg px-3 text-sm font-semibold text-slate-500 transition hover:bg-white hover:text-slate-900 disabled:opacity-50">
-                    Desativar
-                  </button>
-                </>
-              ) : (
-                <button type="button" onClick={ativar} disabled={carregando || processando || !status?.suportado || bloqueado || !status?.servidorConfigurado} className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-[#16A34A] px-4 text-sm font-semibold text-white transition hover:bg-[#15803D] disabled:cursor-not-allowed disabled:bg-slate-300">
-                  <Bell size={16} /> Ativar notificações
-                </button>
-              )}
-            </div>
+            <p className="mt-1 max-w-xl text-sm leading-6 text-slate-500">
+              Avise este dispositivo quando alguém da equipe criar um pedido.
+            </p>
           </div>
 
-          {precisaInstalar && (
-            <div className="mt-4 flex gap-3 rounded-xl border border-slate-200 bg-white p-3 text-sm text-slate-600">
-              <Smartphone size={18} className="mt-0.5 shrink-0 text-slate-500" />
-              <p>No iPhone, abra a Lojia no Safari, toque em Compartilhar e escolha “Adicionar à Tela de Início”. Depois abra pelo ícone e ative aqui.</p>
-            </div>
-          )}
-          {bloqueado && (
-            <div className="mt-4 rounded-xl border border-slate-200 bg-white p-3 text-sm text-slate-600">
-              A permissão está bloqueada. Abra Ajustes do iPhone, entre em Notificações, selecione Lojia e permita os avisos.
-            </div>
-          )}
-          {!carregando && status?.suportado && !status?.servidorConfigurado && (
-            <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
-              O servidor ainda precisa receber as chaves de notificação antes da ativação.
-            </div>
-          )}
+          <div className="flex shrink-0 items-center gap-3">
+            <span className="text-xs font-medium text-slate-500">
+              {carregando ? "Verificando" : ativo ? "Ativas" : "Desativadas"}
+            </span>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={ativo}
+              aria-label={ativo ? "Desativar notificações" : "Ativar notificações"}
+              onClick={alternar}
+              disabled={carregando || processando || (!ativo && !podeAlternar)}
+              className={`relative h-7 w-12 rounded-full transition-colors ${ativo ? "bg-[#16A34A]" : "bg-slate-300"} disabled:cursor-not-allowed disabled:opacity-55`}
+            >
+              <span className={`absolute left-1 top-1 h-5 w-5 rounded-full bg-white shadow-sm transition-transform ${ativo ? "translate-x-5" : "translate-x-0"}`} />
+            </button>
+          </div>
         </div>
+
+        {ativo && (
+          <div className="mt-4 flex items-center justify-between gap-3 border-t border-slate-200 pt-4">
+            <p className="text-xs text-slate-500">Confirme se os avisos estão chegando corretamente.</p>
+            <button type="button" onClick={testar} disabled={processando} className="inline-flex min-h-9 shrink-0 items-center justify-center gap-2 rounded-lg px-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 disabled:opacity-50">
+              <Send size={14} /> Enviar teste
+            </button>
+          </div>
+        )}
+
+        {precisaInstalar && (
+          <div className="mt-4 flex gap-2 border-t border-slate-200 pt-4 text-sm leading-6 text-slate-500">
+            <Smartphone size={17} className="mt-1 shrink-0" />
+            <p>No iPhone, adicione a Lojia à Tela de Início e abra pelo ícone para ativar.</p>
+          </div>
+        )}
+        {bloqueado && (
+          <p className="mt-4 border-t border-slate-200 pt-4 text-sm leading-6 text-slate-500">
+            Permissão bloqueada. Libere a Lojia em Ajustes &gt; Notificações.
+          </p>
+        )}
+        {!carregando && status?.suportado && !status?.servidorConfigurado && (
+          <p className="mt-4 border-t border-slate-200 pt-4 text-sm leading-6 text-slate-500">
+            As notificações ainda não estão disponíveis no servidor.
+          </p>
+        )}
       </Section>
     </div>
   );
