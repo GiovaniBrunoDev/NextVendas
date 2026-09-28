@@ -426,7 +426,13 @@ export default function Dashboard({ onNavigate }) {
     <div className="lojia-page min-h-screen space-y-4 p-4 sm:p-6">
       <div className="lojia-surface rounded-xl bg-white/90 p-4 shadow-[0_12px_30px_rgba(11,17,21,0.05)]">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex min-w-0 items-start gap-3">
+          <button
+            type="button"
+            onClick={() => onNavigate?.("minha-conta")}
+            aria-label="Abrir minha conta"
+            title="Minha conta"
+            className="flex min-w-0 items-start gap-3 text-left outline-none transition-opacity hover:opacity-80 focus-visible:ring-2 focus-visible:ring-[#16A34A]/30"
+          >
             <span className="mt-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#16A34A]/10 text-[#0B1115] ring-1 ring-[#16A34A]/15">
               <FaRegHandPaper />
             </span>
@@ -437,7 +443,7 @@ export default function Dashboard({ onNavigate }) {
                 {acessoRestritoVendas ? "Aqui está o resumo das suas vendas." : "Aqui está o resumo da sua operação."}
               </p>
             </div>
-          </div>
+          </button>
 
           <div className="flex w-full flex-col gap-2 sm:w-auto sm:items-end">
             <div className="flex w-full flex-wrap gap-1 rounded-lg border border-[#E5DED2] bg-[#F7F5EF] p-1 sm:w-auto">
