@@ -3,6 +3,9 @@ import { createPortal } from "react-dom";
 import { toast } from "react-toastify";
 import {
   AlertTriangle,
+  Bell,
+  BellOff,
+  BellRing,
   Building2,
   CalendarDays,
   CheckCircle2,
@@ -17,9 +20,11 @@ import {
   Plus,
   Power,
   Save,
+  Send,
   Settings,
   ShieldCheck,
   Store,
+  Smartphone,
   Truck,
   UserCog,
   UserPlus,
@@ -34,6 +39,12 @@ import {
   lojaConfiguracoesPadrao,
   salvarLojaConfiguracoes,
 } from "../hooks/useLojaConfiguracoes";
+import {
+  ativarNotificacoes,
+  desativarNotificacoes,
+  obterStatusNotificacoes,
+  testarNotificacoes,
+} from "../services/notificacoes";
 
 const inputClass =
   "h-11 w-full rounded-lg border border-slate-200 bg-white px-3 pr-9 text-base text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-[#16A34A] focus:ring-3 focus:ring-[#16A34A]/10 disabled:bg-slate-50 disabled:text-slate-400 sm:text-sm";
@@ -117,6 +128,7 @@ export default function MinhaConta() {
       ];
 
       if (podeEditarLoja) itens.splice(2, 0, { key: "equipe", label: "Equipe", icon: UsersRound });
+      if (podeEditarLoja) itens.splice(itens.length - 1, 0, { key: "notificacoes", label: "Notificações", icon: Bell });
       return itens;
     },
     [acessoRestritoVendas, podeEditarLoja]
@@ -226,7 +238,7 @@ export default function MinhaConta() {
               : "Organize seus dados, loja, plano e segurança em um só lugar."}
           </p>
         </div>
-        {!['plano', 'configuracoes', 'equipe'].includes(abaAtiva) && (
+        {!['plano', 'configuracoes', 'equipe', 'notificacoes'].includes(abaAtiva) && (
           <button
             disabled={salvando}
             className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-[#16A34A] px-4 text-sm font-semibold text-white transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60"
@@ -585,6 +597,8 @@ export default function MinhaConta() {
             </div>
           )}
 
+          {abaAtiva === "notificacoes" && <NotificacoesPush />}
+
           {abaAtiva === "seguranca" && (
             <Section title="Segurança" icon={Lock}>
               <div className="grid gap-3 sm:grid-cols-2">
@@ -612,6 +626,131 @@ export default function MinhaConta() {
         </div>
       </div>
     </form>
+  );
+}
+
+function NotificacoesPush() {
+  const [status, setStatus] = useState(null);
+  const [carregando, setCarregando] = useState(true);
+  const [processando, setProcessando] = useState(false);
+
+  async function carregarStatus() {
+    try {
+      setCarregando(true);
+      setStatus(await obterStatusNotificacoes());
+    } catch (error) {
+      console.error(error);
+      setStatus({ suportado: false, permissao: "unsupported" });
+    } finally {
+      setCarregando(false);
+    }
+  }
+
+  useEffect(() => {
+    carregarStatus();
+  }, []);
+
+  async function ativar() {
+    try {
+      setProcessando(true);
+      const novoStatus = await ativarNotificacoes();
+      setStatus(novoStatus);
+      toast.success("Notificações ativadas neste dispositivo.");
+    } catch (error) {
+      toast.error(error.response?.data?.error || error.message || "Não foi possível ativar as notificações.");
+    } finally {
+      setProcessando(false);
+    }
+  }
+
+  async function desativar() {
+    try {
+      setProcessando(true);
+      const novoStatus = await desativarNotificacoes();
+      setStatus(novoStatus);
+      toast.success("Notificações desativadas neste dispositivo.");
+    } catch (error) {
+      toast.error(error.response?.data?.error || "Não foi possível desativar as notificações.");
+    } finally {
+      setProcessando(false);
+    }
+  }
+
+  async function testar() {
+    try {
+      setProcessando(true);
+      await testarNotificacoes();
+      toast.success("Notificação de teste enviada.");
+    } catch (error) {
+      toast.error(error.response?.data?.error || "Não foi possível enviar o teste.");
+    } finally {
+      setProcessando(false);
+    }
+  }
+
+  const ativo = Boolean(status?.inscritoNesteDispositivo && status?.permissao === "granted");
+  const precisaInstalar = Boolean(status?.ios && !status?.instalado);
+  const bloqueado = status?.permissao === "denied";
+
+  return (
+    <div className="space-y-5">
+      <Section title="Avisos de novos pedidos" icon={BellRing}>
+        <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4 sm:p-5">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div className="flex min-w-0 gap-3">
+              <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${ativo ? "bg-[#16A34A]/10 text-[#15803D]" : "bg-white text-slate-500 ring-1 ring-slate-200"}`}>
+                {ativo ? <BellRing size={20} /> : <BellOff size={20} />}
+              </span>
+              <div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <h3 className="text-sm font-semibold text-slate-950">Notificações neste dispositivo</h3>
+                  <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${ativo ? "bg-[#16A34A]/10 text-[#15803D]" : "bg-slate-200/70 text-slate-600"}`}>
+                    {carregando ? "Verificando" : ativo ? "Ativas" : "Desativadas"}
+                  </span>
+                </div>
+                <p className="mt-1 max-w-2xl text-sm leading-6 text-slate-500">
+                  Receba um aviso na tela bloqueada e na Central de Notificações quando alguém da equipe criar um pedido.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex shrink-0 flex-wrap gap-2">
+              {ativo ? (
+                <>
+                  <button type="button" onClick={testar} disabled={processando} className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:opacity-50">
+                    <Send size={15} /> Testar
+                  </button>
+                  <button type="button" onClick={desativar} disabled={processando} className="inline-flex min-h-10 items-center justify-center rounded-lg px-3 text-sm font-semibold text-slate-500 transition hover:bg-white hover:text-slate-900 disabled:opacity-50">
+                    Desativar
+                  </button>
+                </>
+              ) : (
+                <button type="button" onClick={ativar} disabled={carregando || processando || !status?.suportado || bloqueado || !status?.servidorConfigurado} className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-[#16A34A] px-4 text-sm font-semibold text-white transition hover:bg-[#15803D] disabled:cursor-not-allowed disabled:bg-slate-300">
+                  <Bell size={16} /> Ativar notificações
+                </button>
+              )}
+            </div>
+          </div>
+
+          {precisaInstalar && (
+            <div className="mt-4 flex gap-3 rounded-xl border border-slate-200 bg-white p-3 text-sm text-slate-600">
+              <Smartphone size={18} className="mt-0.5 shrink-0 text-slate-500" />
+              <p>No iPhone, abra a Lojia no Safari, toque em Compartilhar e escolha “Adicionar à Tela de Início”. Depois abra pelo ícone e ative aqui.</p>
+            </div>
+          )}
+          {bloqueado && (
+            <div className="mt-4 rounded-xl border border-slate-200 bg-white p-3 text-sm text-slate-600">
+              A permissão está bloqueada. Abra Ajustes do iPhone, entre em Notificações, selecione Lojia e permita os avisos.
+            </div>
+          )}
+          {!carregando && status?.suportado && !status?.servidorConfigurado && (
+            <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+              O servidor ainda precisa receber as chaves de notificação antes da ativação.
+            </div>
+          )}
+        </div>
+      </Section>
+    </div>
   );
 }
 

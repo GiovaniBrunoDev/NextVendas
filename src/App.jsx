@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 
@@ -51,6 +51,8 @@ function ProtectedApp() {
   const { autenticado, carregando, usuario, lojaAtual } = useAuth();
   const [tela, setTelaState] = useState(() => {
     if (typeof window === "undefined") return "dashboard";
+    const telaNotificacao = new URLSearchParams(window.location.search).get("tela");
+    if (telaNotificacao === "pedidos") return telaNotificacao;
     const telaSalva = localStorage.getItem("lojia_tela_ativa") || "dashboard";
     if (["entradas", "inventario", "etiquetas"].includes(telaSalva)) return "estoque";
     if (telaSalva === "relatorios") return "dashboard";
@@ -61,6 +63,15 @@ function ProtectedApp() {
     localStorage.setItem("lojia_tela_ativa", proximaTela);
     setTelaState(proximaTela);
   };
+
+  useEffect(() => {
+    const parametros = new URLSearchParams(window.location.search);
+    const telaNotificacao = parametros.get("tela");
+    if (telaNotificacao !== "pedidos") return;
+
+    localStorage.setItem("lojia_tela_ativa", telaNotificacao);
+    window.history.replaceState({}, "", window.location.pathname);
+  }, []);
 
   if (carregando) {
     return <LoadingScreen />;

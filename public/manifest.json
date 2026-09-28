@@ -1,6 +1,7 @@
 {
   "short_name": "Lojia",
   "name": "Lojia - Sua loja no controle",
+  "id": "/",
   "icons": [
     {
       "src": "lojia-icon.svg",
