@@ -16,7 +16,7 @@ import {
 import { useAuth } from "../contexts/AuthContext";
 
 const inputClass =
-  "h-10 w-full rounded-[9px] border border-[#DDE5EE] bg-white pl-10 pr-10 text-sm text-[#0B1115] outline-none transition placeholder:text-[#8A94A6] focus:border-[#16A34A] focus:ring-4 focus:ring-[#16A34A]/10 lg:h-9";
+  "h-11 w-full rounded-lg border border-slate-200 bg-slate-50/70 pl-10 pr-10 text-base text-[#0B1115] outline-none transition placeholder:text-slate-400 hover:border-slate-300 focus:border-[#16A34A] focus:bg-white focus:ring-4 focus:ring-[#16A34A]/10 sm:text-sm lg:h-10";
 
 const inicial = {
   nome: "",
@@ -113,25 +113,25 @@ export default function CadastroLojista() {
       <section className="relative flex min-h-[100dvh] flex-col items-center justify-center px-4 py-7 sm:px-8 lg:px-10 lg:py-4">
         <form
           onSubmit={enviar}
-          className="w-full max-w-[632px] rounded-[24px] border border-[#EEF2F6] bg-white px-6 py-8 shadow-[0_28px_90px_rgba(11,17,21,0.09)] sm:px-12 sm:py-10 lg:max-w-[540px] lg:px-9 lg:py-5 xl:px-10"
+          className="w-full max-w-[620px] rounded-2xl border border-slate-200/80 bg-white px-5 py-6 shadow-[0_18px_55px_rgba(11,17,21,0.07)] sm:px-9 sm:py-8 lg:max-w-[540px] lg:px-8 lg:py-5"
         >
-          <Link to="/institucional" className="inline-flex items-center gap-3">
-            <span className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-[10px] lg:h-8 lg:w-8">
+          <Link to="/institucional" className="inline-flex items-center gap-2.5">
+            <span className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-lg lg:h-8 lg:w-8">
               <img src="/lojia-icon.svg" alt="" className="h-full w-full object-cover" />
             </span>
-            <span className="text-[22px] font-black tracking-[-0.02em] text-[#0B1115] lg:text-lg">Lojia</span>
+            <span className="text-xl font-bold text-[#0B1115] lg:text-lg">Lojia</span>
           </Link>
 
-          <div className="mt-8 lg:mt-4">
-            <h1 className="text-[38px] font-black leading-none tracking-[-0.03em] text-[#0B1115] sm:text-[42px] lg:text-[30px]">
+          <div className="mt-7 lg:mt-4">
+            <h1 className="text-3xl font-semibold leading-tight text-[#0B1115] lg:text-[28px]">
               Criar conta
             </h1>
-            <p className="mt-2 text-[15px] leading-6 text-[#7D8798] lg:text-[13px] lg:leading-5">
-              Cadastre-se para começar a usar a Lojia.
+            <p className="mt-1.5 text-sm leading-6 text-slate-500 lg:text-[13px] lg:leading-5">
+              Preencha seus dados para começar.
             </p>
           </div>
 
-          <div className="mt-7 space-y-3.5 lg:mt-4 lg:space-y-2">
+          <div className="mt-6 space-y-3.5 lg:mt-4 lg:space-y-2.5">
             <Campo label="Nome completo" icon={UserRound}>
               <input
                 autoComplete="name"
@@ -212,7 +212,7 @@ export default function CadastroLojista() {
             </Campo>
           </div>
 
-          <label className="mt-3 inline-flex cursor-pointer select-none items-start gap-3 text-sm leading-6 text-[#7D8798] lg:text-xs lg:leading-5">
+          <label className="mt-4 inline-flex cursor-pointer select-none items-start gap-2.5 text-sm leading-5 text-slate-500 lg:mt-3 lg:text-xs">
             <input
               type="checkbox"
               checked={aceitouTermos}
@@ -220,7 +220,7 @@ export default function CadastroLojista() {
               className="sr-only"
             />
             <span
-              className={`mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-[4px] border transition ${
+              className={`inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-md border transition ${
                 aceitouTermos ? "border-[#16A34A] bg-[#16A34A] text-white" : "border-[#DDE5EE] bg-white text-transparent"
               }`}
             >
@@ -240,13 +240,13 @@ export default function CadastroLojista() {
 
           <button
             disabled={salvando}
-            className="mt-4 inline-flex h-[52px] w-full items-center justify-center gap-3 rounded-[9px] bg-[#16A34A] text-base font-black text-white shadow-[0_18px_36px_rgba(22,163,74,0.25)] transition hover:bg-[#0B1115] disabled:cursor-not-allowed disabled:opacity-65 lg:h-11"
+            className="mt-5 inline-flex h-12 w-full items-center justify-center gap-2.5 rounded-lg bg-[#16A34A] text-base font-semibold text-white shadow-[0_8px_20px_rgba(22,163,74,0.16)] transition hover:bg-[#138A40] disabled:cursor-not-allowed disabled:opacity-65 lg:mt-4 lg:h-11 lg:text-sm"
           >
             <UserPlus size={19} strokeWidth={2.1} />
             {salvando ? "Criando conta..." : "Criar conta"}
           </button>
 
-          <div className="mt-3 text-center text-sm text-[#7D8798] lg:text-xs">
+          <div className="mt-4 border-t border-slate-100 pt-4 text-center text-sm text-slate-500 lg:mt-3 lg:pt-3 lg:text-xs">
             Já tem uma conta?{" "}
             <Link to="/login" className="font-bold text-[#16A34A] transition hover:text-[#0B1115]">
               Entrar
@@ -265,13 +265,13 @@ export default function CadastroLojista() {
 
 function Campo({ label, icon: Icon, children }) {
   return (
-    <label className="block text-sm font-bold text-[#0B1115] lg:text-xs">
+    <label className="block text-sm font-medium text-slate-700 lg:text-xs">
       {label}
       <span className="relative mt-1.5 block">
         <Icon
           size={17}
           strokeWidth={1.8}
-          className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#7D8798]"
+          className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
         />
         {children}
       </span>

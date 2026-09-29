@@ -59,8 +59,8 @@ export default function Login() {
     <main className="grid min-h-[100dvh] w-full overflow-x-hidden bg-[#FFFDF9] text-[#0B1115] lg:h-[100dvh] lg:overflow-hidden lg:grid-cols-[51%_49%]">
       <section className="relative hidden min-h-[100dvh] overflow-hidden bg-[#E8F4FF] lg:block lg:rounded-r-[34px] lg:shadow-[18px_0_45px_rgba(11,17,21,0.08)]">
         <img
-          src="/login-showcase-reference.png"
-          alt="Lojia, sistema para lojas de calçados"
+          src="/cadastro-showcase-reference.png"
+          alt="Lojia, gestão para lojas de calçados"
           className="h-full min-h-[100dvh] w-full object-cover"
         />
       </section>

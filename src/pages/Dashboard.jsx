@@ -13,13 +13,11 @@ import { AnimatedNumber } from "../components/AnimatedNumber";
 import {
   FaBoxOpen,
   FaChartLine,
-  FaClipboardList,
   FaCheckCircle,
   FaCreditCard,
   FaMoneyBillWave,
   FaPlay,
   FaReceipt,
-  FaRegHandPaper,
   FaStore,
   FaShoppingCart,
   FaSmile,
@@ -30,10 +28,9 @@ import { getLojaConfiguracoesSalvasKey } from "../hooks/useLojaConfiguracoes";
 
 const periodos = [
   { value: "dia", label: "Hoje" },
-  { value: "7dias", label: "Últimos 7 dias" },
-  { value: "mes", label: "Este mês" },
-  { value: "personalizado", label: "Personalizado" },
-  { value: "tudo", label: "Todo período" },
+  { value: "7dias", label: "7 dias" },
+  { value: "mes", label: "Mês" },
+  { value: "personalizado", label: "Período" },
 ];
 
 const toDateInputValue = (date) => {
@@ -248,7 +245,6 @@ export default function Dashboard({ onNavigate }) {
         if (!inicioPersonalizado || !fimPersonalizado) return false;
         return dataVenda >= inicioPersonalizado && dataVenda <= fimPersonalizado;
       }
-      if (periodo === "tudo") return true;
       return false;
     };
 
@@ -423,57 +419,57 @@ export default function Dashboard({ onNavigate }) {
   }
 
   return (
-    <div className="lojia-page min-h-screen space-y-4 p-4 sm:p-6">
-      <div className="lojia-surface rounded-xl bg-white/90 p-4 shadow-[0_12px_30px_rgba(11,17,21,0.05)]">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+    <div className="lojia-page min-h-screen space-y-4 p-3 sm:p-5 lg:p-6">
+      <div className="lojia-surface overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-[0_10px_28px_rgba(11,17,21,0.05)]">
+        <div className="flex flex-col gap-3 p-4 sm:p-5 lg:flex-row lg:items-center lg:justify-between lg:gap-6">
           <button
             type="button"
             onClick={() => onNavigate?.("minha-conta")}
             aria-label="Abrir minha conta"
             title="Minha conta"
-            className="flex min-w-0 items-start gap-3 text-left outline-none transition-opacity hover:opacity-80 focus-visible:ring-2 focus-visible:ring-[#16A34A]/30"
+            className="group relative flex w-full min-w-0 items-center rounded-lg py-0.5 pl-4 text-left outline-none transition focus-visible:ring-2 focus-visible:ring-[#16A34A]/25 lg:w-auto"
           >
-            <span className="mt-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#16A34A]/10 text-[#0B1115] ring-1 ring-[#16A34A]/15">
-              <FaRegHandPaper />
-            </span>
+            <span
+              aria-hidden="true"
+              className="absolute inset-y-1 left-0 w-1 rounded-full bg-[#16A34A] transition-transform group-hover:scale-y-110"
+            />
             <div className="min-w-0">
-              <p className="text-xs font-medium uppercase text-slate-500">Dashboard</p>
-              <h2 className="mt-1 text-2xl font-semibold text-slate-950">Olá, {primeiroNome}</h2>
-              <p className="mt-1 text-sm text-slate-500">
+              <h2 className="truncate text-xl font-semibold text-slate-950 sm:text-2xl">Olá, {primeiroNome}</h2>
+              <p className="mt-0.5 text-sm leading-5 text-slate-500">
                 {acessoRestritoVendas ? "Aqui está o resumo das suas vendas." : "Aqui está o resumo da sua operação."}
               </p>
             </div>
           </button>
 
-          <div className="flex w-full flex-col gap-2 sm:w-auto sm:items-end">
-            <div className="flex w-full flex-wrap gap-1 rounded-lg border border-[#E5DED2] bg-[#F7F5EF] p-1 sm:w-auto">
+          <div className="flex w-full flex-col gap-2 border-t border-slate-100 pt-3 lg:w-auto lg:items-end lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0">
+            <div className="flex w-full items-center gap-0.5 rounded-lg border border-slate-200 bg-slate-50 p-1 sm:w-auto sm:gap-1">
               {periodos.map((item) => {
                 const ativo = periodo === item.value;
                 return (
                   <button
                     key={item.value}
                     onClick={() => setPeriodo(item.value)}
-                    className={`min-h-9 flex-1 rounded-md px-2 text-[11px] font-medium transition sm:flex-none sm:px-3 sm:text-sm ${
+                    className={`min-h-8 min-w-0 flex-1 whitespace-nowrap rounded-md px-1.5 text-[10px] font-semibold transition sm:min-h-9 sm:flex-none sm:px-3 sm:text-xs ${
                       ativo
                         ? "bg-white text-[#0B1115] shadow-sm"
                         : "text-slate-600 hover:bg-white/70 hover:text-slate-900"
                     }`}
                   >
-                    <span className="whitespace-nowrap">{item.label}</span>
+                    {item.label}
                   </button>
                 );
               })}
             </div>
 
             {periodo === "personalizado" && (
-              <div className="grid w-full grid-cols-2 gap-2 sm:w-auto">
+              <div className="grid w-full grid-cols-1 gap-2 min-[420px]:grid-cols-2 lg:w-auto">
                 <label className="min-w-0">
                   <span className="sr-only">Data inicial</span>
                   <input
                     type="date"
                     value={dataInicio}
                     onChange={(event) => setDataInicio(event.target.value)}
-                    className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 outline-none focus:border-[#16A34A] focus:ring-3 focus:ring-[#16A34A]/10"
+                    className="h-10 w-full min-w-0 rounded-lg border border-slate-200 bg-white px-3 text-base font-medium text-slate-700 outline-none focus:border-[#16A34A] focus:ring-3 focus:ring-[#16A34A]/10 sm:text-sm"
                   />
                 </label>
                 <label className="min-w-0">
@@ -482,7 +478,7 @@ export default function Dashboard({ onNavigate }) {
                     type="date"
                     value={dataFim}
                     onChange={(event) => setDataFim(event.target.value)}
-                    className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 outline-none focus:border-[#16A34A] focus:ring-3 focus:ring-[#16A34A]/10"
+                    className="h-10 w-full min-w-0 rounded-lg border border-slate-200 bg-white px-3 text-base font-medium text-slate-700 outline-none focus:border-[#16A34A] focus:ring-3 focus:ring-[#16A34A]/10 sm:text-sm"
                   />
                 </label>
               </div>
@@ -636,7 +632,6 @@ export default function Dashboard({ onNavigate }) {
         {!acessoRestritoVendas && <MetricCard titulo="Lucro bruto" valor={lucro} isCurrency icon={<FaChartLine />} />}
         <MetricCard titulo="Clientes" valor={clientesAtendidos} icon={<FaSmile />} />
         <MetricCard titulo="Entregas" valor={taxasEntrega} isCurrency icon={<FaTruck />} />
-        <MetricCard titulo="Pedidos" valor={pedidos.length} icon={<FaClipboardList />} />
         <MetricCard titulo="Pagamento" valor={formaPagamentoMaisUsada} icon={<FaCreditCard />} />
       </div>
 
