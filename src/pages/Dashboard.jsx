@@ -25,6 +25,7 @@ import {
 } from "react-icons/fa";
 import { useAuth } from "../contexts/AuthContext";
 import { getLojaConfiguracoesSalvasKey } from "../hooks/useLojaConfiguracoes";
+import { formatDateOnly } from "../utils/dateOnly";
 
 const periodos = [
   { value: "dia", label: "Hoje" },
@@ -402,7 +403,7 @@ export default function Dashboard({ onNavigate }) {
 
   function formatPedidoDate(pedido) {
     if (!pedido.dataEntrega) return "Sem entrega definida";
-    const data = new Date(pedido.dataEntrega).toLocaleDateString("pt-BR");
+    const data = formatDateOnly(pedido.dataEntrega);
     return pedido.horarioEntrega ? `${data} às ${pedido.horarioEntrega}` : data;
   }
 

@@ -79,11 +79,11 @@ const inputClass =
 const abasPrincipais = [
   { value: "resumo", label: "Resumo" },
   { value: "caixa", label: "Caixa de hoje" },
-  { value: "relatorios", label: "Relatorios" },
+  { value: "relatorios", label: "Relatórios" },
 ];
 
 const detalhesFinanceiro = {
-  contas: "Onde esta o dinheiro",
+  contas: "Onde está o dinheiro",
   despesas: "Contas para pagar",
   receber: "Vendas a receber",
 };
@@ -94,23 +94,23 @@ const categoriasDespesa = ["fornecedor", "aluguel", "funcionario", "embalagem", 
 const formaPagamentoLabels = {
   dinheiro: "Dinheiro",
   pix: "Pix",
-  debito: "Cartao de debito",
-  credito: "Cartao de credito",
+  debito: "Cartão de débito",
+  credito: "Cartão de crédito",
   a_prazo: "A prazo",
-  transferencia: "Transferencia",
+  transferencia: "Transferência",
 };
 
 const categoriaLabels = {
   fornecedor: "Fornecedor",
   aluguel: "Aluguel",
-  funcionario: "Funcionario",
+  funcionario: "Funcionário",
   embalagem: "Embalagem",
   entrega: "Entrega",
-  anuncio: "Anuncio",
-  taxa: "Taxa de cartao",
+  anuncio: "Anúncio",
+  taxa: "Taxa de cartão",
   recebimento: "Recebimento",
   ajuste: "Ajuste",
-  reforco: "Reforco",
+  reforco: "Reforço",
   sangria: "Sangria",
   outro: "Outro",
 };
@@ -122,7 +122,7 @@ const statusLabels = {
 };
 
 const contaTipoLabels = {
-  caixa: "Caixa fisico",
+  caixa: "Caixa físico",
   pix: "Pix",
   banco: "Banco",
   maquininha: "Maquininha",
@@ -151,7 +151,7 @@ const formTransferenciaInicial = () => ({
   contaOrigemId: "",
   contaDestinoId: "",
   valor: "",
-  descricao: "Transferencia entre contas",
+  descricao: "Transferência entre contas",
   data: hojeInput(),
 });
 
@@ -262,7 +262,7 @@ export default function Financeiro() {
       setModal(null);
       await recarregarDepois();
     } catch (error) {
-      toast.error(error.response?.data?.error || "Erro ao salvar lancamento.");
+      toast.error(error.response?.data?.error || "Erro ao salvar lançamento.");
     } finally {
       setSalvando(false);
     }
@@ -274,7 +274,7 @@ export default function Financeiro() {
     try {
       setSalvando(true);
       await api.post("/financeiro/transferencias", formTransferencia);
-      toast.success("Transferencia registrada.");
+      toast.success("Transferência registrada.");
       setModal(null);
       await recarregarDepois();
     } catch (error) {
@@ -326,11 +326,11 @@ export default function Financeiro() {
     try {
       setSalvando(true);
       await api.put("/financeiro/configuracao", configForm);
-      toast.success("Configuracoes financeiras salvas.");
+      toast.success("Configurações financeiras salvas.");
       setModal(null);
       await recarregarDepois();
     } catch (error) {
-      toast.error(error.response?.data?.error || "Erro ao salvar configuracoes.");
+      toast.error(error.response?.data?.error || "Erro ao salvar configurações.");
     } finally {
       setSalvando(false);
     }
@@ -339,7 +339,7 @@ export default function Financeiro() {
   async function marcarPago(id) {
     try {
       await api.patch(`/financeiro/lancamentos/${id}/pagar`);
-      toast.success("Lancamento marcado como pago.");
+      toast.success("Lançamento marcado como pago.");
       await recarregarDepois();
     } catch (error) {
       toast.error(error.response?.data?.error || "Erro ao marcar como pago.");
@@ -349,10 +349,10 @@ export default function Financeiro() {
   async function removerLancamento(id) {
     try {
       await api.delete(`/financeiro/lancamentos/${id}`);
-      toast.success("Lancamento removido.");
+      toast.success("Lançamento removido.");
       await recarregarDepois();
     } catch (error) {
-      toast.error(error.response?.data?.error || "Erro ao remover lancamento.");
+      toast.error(error.response?.data?.error || "Erro ao remover lançamento.");
     }
   }
 
@@ -388,7 +388,7 @@ export default function Financeiro() {
               </label>
             ) : (
               <label className="flex-1">
-                <span className="mb-1 block text-xs font-semibold uppercase tracking-[0.08em] text-slate-400">Ver mes</span>
+                <span className="mb-1 block text-xs font-semibold uppercase tracking-[0.08em] text-slate-400">Ver mês</span>
                 <input
                   type="month"
                   value={mesBusca}
@@ -402,7 +402,7 @@ export default function Financeiro() {
               onClick={() => (aba === "caixa" ? setCaixaData(hojeInput()) : setMesBusca(mesInput()))}
               className="inline-flex min-h-10 items-center justify-center rounded-lg border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
             >
-              {aba === "caixa" ? "Hoje" : "Mes atual"}
+              {aba === "caixa" ? "Hoje" : "Mês atual"}
             </button>
           </div>
         </div>
@@ -458,7 +458,7 @@ export default function Financeiro() {
       {aba === "caixa" && (
         <CaixaFinanceiro
           caixa={dados?.caixaHoje}
-          onReforco={() => abrirLancamento("entrada", { contaId: contaCaixaId, categoria: "reforco", descricao: "Reforco de caixa", formaPagamento: "dinheiro" })}
+          onReforco={() => abrirLancamento("entrada", { contaId: contaCaixaId, categoria: "reforco", descricao: "Reforço de caixa", formaPagamento: "dinheiro" })}
           onSangria={() => abrirLancamento("saida", { contaId: contaCaixaId, categoria: "sangria", descricao: "Sangria de caixa", formaPagamento: "dinheiro" })}
           onTransferir={() => abrirTransferencia({ contaOrigemId: contaCaixaId })}
         />
@@ -585,10 +585,10 @@ function ResumoFinanceiro({
           <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div>
               <p className="inline-flex items-center gap-2 rounded-full border border-emerald-100 bg-emerald-50/80 px-3 py-1 text-xs font-semibold text-[#148344]">
-                <ReceiptText size={14} /> Resultado do mes
+                <ReceiptText size={14} /> Resultado do mês
               </p>
               <h2 className="mt-4 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">{moeda(resultadoMes)}</h2>
-              <p className="mt-1 text-sm text-slate-500">Lucro bruto menos as despesas pagas no mes selecionado.</p>
+              <p className="mt-1 text-sm text-slate-500">Lucro bruto menos as despesas pagas no mês selecionado.</p>
             </div>
 
             <div className="flex flex-wrap gap-1.5 lg:justify-end">
@@ -599,15 +599,15 @@ function ResumoFinanceiro({
           </div>
 
           <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            <FinanceMetric label="Vendeu" value={moeda(resumo.faturamento)} hint="Total vendido no periodo." />
-            <FinanceMetric label="Entrou" value={moeda(resumo.recebido)} hint="Dinheiro ja recebido." />
+            <FinanceMetric label="Vendeu" value={moeda(resumo.faturamento)} hint="Total vendido no período." />
+            <FinanceMetric label="Entrou" value={moeda(resumo.recebido)} hint="Dinheiro já recebido." />
             <FinanceMetric label="Lucro bruto" value={moeda(resumo.lucroBruto)} hint="Venda menos custo dos produtos." />
-            <FinanceMetric label="Saldo disponivel" value={moeda(resumo.saldoTotal)} hint="Soma das contas ativas." />
+            <FinanceMetric label="Saldo disponível" value={moeda(resumo.saldoTotal)} hint="Soma das contas ativas." />
           </div>
 
           <div className="mt-4 grid gap-2 md:grid-cols-3">
-            <DicaFinanceira title="Comece pelas pendencias" text={`${alertaReceber}. ${alertaPagar}.`} />
-            <DicaFinanceira title="Registre o que saiu" text="Use Adicionar despesa para fornecedor, aluguel, entrega e outras saidas." />
+            <DicaFinanceira title="Comece pelas pendências" text={`${alertaReceber}. ${alertaPagar}.`} />
+            <DicaFinanceira title="Registre o que saiu" text="Use Adicionar despesa para fornecedor, aluguel, entrega e outras saídas." />
             <DicaFinanceira title="Organize os saldos" text="Use Transferir quando mover dinheiro entre caixa, Pix, banco ou maquininha." />
           </div>
 
@@ -659,7 +659,7 @@ function ResumoFinanceiro({
           actionLabel="Abrir"
           onAction={onVerReceber}
         >
-          <MiniLancamentos items={recebiveisPendentes.slice(0, 4)} vazio="Tudo certo: nao ha valores para receber." onPagar={onReceber} pagoLabel="Recebi" />
+          <MiniLancamentos items={recebiveisPendentes.slice(0, 4)} vazio="Tudo certo: não há valores para receber." onPagar={onReceber} pagoLabel="Recebi" />
         </PainelFinanceiro>
 
         <PainelFinanceiro
@@ -678,7 +678,7 @@ function ResumoFinanceiro({
 
         <PainelFinanceiro
           icon={Landmark}
-          titulo="Onde esta o dinheiro"
+          titulo="Onde está o dinheiro"
           valor={moeda(resumo.saldoTotal)}
           detalhe={`${contasVisiveis.length} conta${contasVisiveis.length === 1 ? "" : "s"} ativa${contasVisiveis.length === 1 ? "" : "s"}`}
           descricao="Caixa, Pix, banco, maquininha e valores a receber."
@@ -814,20 +814,20 @@ function CaixaFinanceiro({ caixa, onReforco, onSangria, onTransferir }) {
         <p className="mt-1 text-sm text-slate-500">{dataCaixa || "Dia selecionado"}</p>
         <div className="mt-5 grid grid-cols-2 gap-3">
           <InfoTile label="Entradas" value={moeda(caixa?.entradas)} />
-          <InfoTile label="Saidas" value={moeda(caixa?.saidas)} />
+          <InfoTile label="Saídas" value={moeda(caixa?.saidas)} />
         </div>
         <div className="mt-3">
           <InfoTile label="Saldo no caixa" value={moeda(caixa?.conta?.saldo)} />
         </div>
         <div className="mt-5 grid gap-2">
-          <ActionButton icon={ArrowDownLeft} label="Adicionar reforco" onClick={onReforco} dark />
+          <ActionButton icon={ArrowDownLeft} label="Adicionar reforço" onClick={onReforco} dark />
           <ActionButton icon={ArrowUpRight} label="Registrar sangria" onClick={onSangria} />
           <ActionButton icon={Send} label="Transferir saldo" onClick={onTransferir} />
         </div>
       </aside>
 
       <section className="overflow-hidden rounded-[18px] border border-slate-200/80 bg-white/80 shadow-[0_12px_34px_rgba(15,23,42,0.03)]">
-        <SectionHeader title="Movimentos do dia" subtitle="Entradas em dinheiro, sangrias, reforcos e transferencias." />
+        <SectionHeader title="Movimentos do dia" subtitle="Entradas em dinheiro, sangrias, reforços e transferências." />
         <ListaLancamentos lancamentos={movimentos} vazio="Nenhum movimento no dia selecionado." />
       </section>
     </div>
@@ -840,7 +840,7 @@ function ContasFinanceiras({ contas, onNovaConta, onTransferir, compacto = false
       {!compacto && (
         <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 className="text-base font-semibold text-slate-950">Onde esta o dinheiro</h2>
+            <h2 className="text-base font-semibold text-slate-950">Onde está o dinheiro</h2>
             <p className="text-sm text-slate-500">Separe caixa, Pix, banco, maquininha e valores a receber.</p>
           </div>
           <div className="grid gap-2 sm:grid-cols-2">
@@ -881,7 +881,7 @@ function DespesasFinanceiras({ despesas, recorrentes, onDespesa, onRecorrente, o
         <div className="flex items-center justify-between gap-3">
           <div>
             <h2 className="text-base font-semibold text-slate-950">Despesas fixas</h2>
-            <p className="text-sm text-slate-500">Criadas automaticamente todo mes.</p>
+            <p className="text-sm text-slate-500">Criadas automaticamente todo mês.</p>
           </div>
           <button type="button" onClick={onRecorrente} className="rounded-lg border border-slate-200 p-2 text-slate-600 hover:bg-slate-50">
             <Plus size={16} />
@@ -925,8 +925,8 @@ function RelatoriosFinanceiros({ dados }) {
   return (
     <section className="overflow-hidden rounded-[18px] border border-slate-200/80 bg-white/80 shadow-[0_12px_34px_rgba(15,23,42,0.03)]">
       <SectionHeader
-        title="Relatorio financeiro"
-        subtitle="Tabela detalhada para conferencia e impressao."
+        title="Relatório financeiro"
+        subtitle="Tabela detalhada para conferência e impressão."
         action={<ActionButton icon={FileDown} label="Salvar PDF" onClick={() => window.print()} />}
       />
       <div className="overflow-x-auto">
@@ -934,7 +934,7 @@ function RelatoriosFinanceiros({ dados }) {
           <thead className="border-b border-slate-200 bg-slate-50 text-left text-xs font-semibold uppercase text-slate-500">
             <tr>
               <th className="px-4 py-3">Data</th>
-              <th className="px-4 py-3">Lancamento</th>
+              <th className="px-4 py-3">Lançamento</th>
               <th className="px-4 py-3">Conta</th>
               <th className="px-4 py-3">Forma</th>
               <th className="px-4 py-3">Status</th>
@@ -957,7 +957,7 @@ function RelatoriosFinanceiros({ dados }) {
             ))}
             {!lancamentos.length && (
               <tr>
-                <td colSpan="6" className="px-4 py-10 text-center text-slate-500">Nenhum lancamento na busca atual.</td>
+                <td colSpan="6" className="px-4 py-10 text-center text-slate-500">Nenhum lançamento na busca atual.</td>
               </tr>
             )}
           </tbody>
@@ -976,7 +976,7 @@ function LancamentoModal({ form, contas, salvando, onChange, onSubmit, onClose }
         <div className="grid grid-cols-2 rounded-lg border border-slate-200 bg-slate-50 p-1">
           {[
             { value: "entrada", label: "Entrada" },
-            { value: "saida", label: "Saida" },
+            { value: "saida", label: "Saída" },
           ].map((item) => (
             <button
               key={item.value}
@@ -989,7 +989,7 @@ function LancamentoModal({ form, contas, salvando, onChange, onSubmit, onClose }
           ))}
         </div>
 
-        <Campo label="Nome do lancamento" value={form.descricao} onChange={(value) => onChange("descricao", value)} placeholder={saida ? "Ex: pagamento fornecedor" : "Ex: recebimento manual"} autoFocus />
+        <Campo label="Nome do lançamento" value={form.descricao} onChange={(value) => onChange("descricao", value)} placeholder={saida ? "Ex: pagamento fornecedor" : "Ex: recebimento manual"} autoFocus />
         <div className="grid gap-3 sm:grid-cols-2">
           <Campo label="Valor" value={form.valor} onChange={(value) => onChange("valor", value)} placeholder="0,00" inputMode="decimal" />
           <Campo label="Data" type="date" value={form.data} onChange={(value) => onChange("data", value)} />
@@ -1037,7 +1037,7 @@ function TransferenciaModal({ form, contas, salvando, onChange, onSubmit, onClos
           <Campo label="Valor" value={form.valor} onChange={(value) => onChange("valor", value)} placeholder="0,00" inputMode="decimal" />
           <Campo label="Data" type="date" value={form.data} onChange={(value) => onChange("data", value)} />
         </div>
-        <Campo label="Observacao" value={form.descricao} onChange={(value) => onChange("descricao", value)} />
+        <Campo label="Observação" value={form.descricao} onChange={(value) => onChange("descricao", value)} />
         <ModalActions salvando={salvando} submitLabel="Transferir" onClose={onClose} />
       </form>
     </Modal>
@@ -1046,7 +1046,7 @@ function TransferenciaModal({ form, contas, salvando, onChange, onSubmit, onClos
 
 function RecorrenteModal({ form, contas, salvando, onChange, onSubmit, onClose }) {
   return (
-    <Modal title="Despesa fixa" subtitle="O sistema cria essa conta automaticamente todo mes." onClose={onClose}>
+    <Modal title="Despesa fixa" subtitle="O sistema cria essa conta automaticamente todo mês." onClose={onClose}>
       <form onSubmit={onSubmit} className="space-y-4">
         <Campo label="Nome da despesa" value={form.descricao} onChange={(value) => onChange("descricao", value)} placeholder="Ex: aluguel" autoFocus />
         <div className="grid gap-3 sm:grid-cols-2">
@@ -1091,30 +1091,30 @@ function ContaModal({ form, salvando, onChange, onSubmit, onClose }) {
 
 function ConfigModal({ form, contas, salvando, onChange, onSubmit, onClose }) {
   return (
-    <Modal title="Taxas e contas padrao" subtitle="Defina para onde cada pagamento entra e quando cartao deve cair." onClose={onClose}>
+    <Modal title="Taxas e contas padrão" subtitle="Defina para onde cada pagamento entra e quando o cartão deve cair." onClose={onClose}>
       <form onSubmit={onSubmit} className="space-y-4">
         <div className="grid gap-3 sm:grid-cols-2">
-          <Campo label="Taxa do debito (%)" value={form.taxaDebito} onChange={(value) => onChange("taxaDebito", value)} inputMode="decimal" />
-          <Campo label="Debito cai em (dias)" type="number" value={form.prazoDebitoDias} onChange={(value) => onChange("prazoDebitoDias", value)} />
-          <Campo label="Taxa do credito (%)" value={form.taxaCredito} onChange={(value) => onChange("taxaCredito", value)} inputMode="decimal" />
-          <Campo label="Credito cai em (dias)" type="number" value={form.prazoCreditoDias} onChange={(value) => onChange("prazoCreditoDias", value)} />
-          <Campo label="Maximo de parcelas" type="number" value={form.parcelasCreditoMax} onChange={(value) => onChange("parcelasCreditoMax", value)} />
+          <Campo label="Taxa do débito (%)" value={form.taxaDebito} onChange={(value) => onChange("taxaDebito", value)} inputMode="decimal" />
+          <Campo label="Débito cai em (dias)" type="number" value={form.prazoDebitoDias} onChange={(value) => onChange("prazoDebitoDias", value)} />
+          <Campo label="Taxa do crédito (%)" value={form.taxaCredito} onChange={(value) => onChange("taxaCredito", value)} inputMode="decimal" />
+          <Campo label="Crédito cai em (dias)" type="number" value={form.prazoCreditoDias} onChange={(value) => onChange("prazoCreditoDias", value)} />
+          <Campo label="Máximo de parcelas" type="number" value={form.parcelasCreditoMax} onChange={(value) => onChange("parcelasCreditoMax", value)} />
         </div>
         <div className="grid gap-3 sm:grid-cols-2">
           {[
             ["contaDinheiroId", "Dinheiro entra em"],
             ["contaPixId", "Pix entra em"],
-            ["contaDebitoId", "Debito entra em"],
-            ["contaCreditoId", "Credito entra em"],
+            ["contaDebitoId", "Débito entra em"],
+            ["contaCreditoId", "Crédito entra em"],
             ["contaPrazoId", "A prazo entra em"],
           ].map(([campo, label]) => (
             <SelectCampo key={campo} label={label} value={form[campo] || ""} onChange={(value) => onChange(campo, value)}>
-              <option value="">Padrao do sistema</option>
+              <option value="">Padrão do sistema</option>
               {contas.map((conta) => <option key={conta.id} value={conta.id}>{conta.nome}</option>)}
             </SelectCampo>
           ))}
         </div>
-        <ModalActions salvando={salvando} submitLabel="Salvar configuracoes" onClose={onClose} />
+        <ModalActions salvando={salvando} submitLabel="Salvar configurações" onClose={onClose} />
       </form>
     </Modal>
   );

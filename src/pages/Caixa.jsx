@@ -148,8 +148,8 @@ export default function Caixa() {
           </h1>
           <p className="mt-1 text-sm text-white/68">
             {caixa
-              ? `Aberto em ${dataHora(caixa.abertoEm)} por ${caixa.abertoPor?.nome || "usuario"}`
-              : "Controle entradas, saidas e vendas do turno."}
+              ? `Aberto em ${dataHora(caixa.abertoEm)} por ${caixa.abertoPor?.nome || "usuário"}`
+              : "Controle entradas, saídas e vendas do turno."}
           </p>
         </div>
         <div className="rounded-lg border border-white/10 bg-white/[0.08] px-4 py-3">
@@ -162,7 +162,7 @@ export default function Caixa() {
         <StatCard label="Valor inicial" value={moeda(resumo.valorInicial)} icon={Wallet} />
         <StatCard label="Vendas no caixa" value={moeda(resumo.vendas)} icon={ReceiptText} />
         <StatCard label="Entradas" value={moeda(resumo.entradas)} icon={ArrowDownLeft} />
-        <StatCard label="Saidas" value={moeda(resumo.saidas)} icon={ArrowUpRight} />
+        <StatCard label="Saídas" value={moeda(resumo.saidas)} icon={ArrowUpRight} />
       </div>
 
       {!caixa ? (
@@ -192,7 +192,7 @@ export default function Caixa() {
                 />
               </label>
               <label>
-                <span className="mb-1 block text-xs font-medium uppercase text-slate-500">Observacao</span>
+                <span className="mb-1 block text-xs font-medium uppercase text-slate-500">Observação</span>
                 <textarea
                   rows={3}
                   value={abrirForm.observacao}
@@ -221,7 +221,7 @@ export default function Caixa() {
               <div className="mb-4 flex items-center justify-between gap-3">
                 <div>
                   <h2 className="text-base font-semibold text-slate-950">Novo movimento</h2>
-                  <p className="text-sm text-slate-500">Use para reforco de caixa, retirada ou despesa.</p>
+                  <p className="text-sm text-slate-500">Use para reforço de caixa, retirada ou despesa.</p>
                 </div>
               </div>
 
@@ -263,7 +263,7 @@ export default function Caixa() {
                 </label>
 
                 <label>
-                  <span className="mb-1 block text-xs font-medium uppercase text-slate-500">Descricao</span>
+                  <span className="mb-1 block text-xs font-medium uppercase text-slate-500">Descrição</span>
                   <input
                     value={movimentoForm.descricao}
                     onChange={(e) => setMovimentoForm((prev) => ({ ...prev, descricao: e.target.value }))}
@@ -355,7 +355,7 @@ export default function Caixa() {
                 <LinhaResumo label="Valor inicial" value={moeda(resumo.valorInicial)} />
                 <LinhaResumo label="Vendas" value={moeda(resumo.vendas)} />
                 <LinhaResumo label="Entradas" value={moeda(resumo.entradas)} />
-                <LinhaResumo label="Saidas" value={`- ${moeda(resumo.saidas)}`} />
+                <LinhaResumo label="Saídas" value={`- ${moeda(resumo.saidas)}`} />
                 <div className="border-t border-slate-200 pt-3">
                   <LinhaResumo label="Saldo esperado" value={moeda(resumo.saldoEsperado)} strong />
                 </div>
@@ -398,7 +398,7 @@ export default function Caixa() {
                   />
                 </label>
                 <label>
-                  <span className="mb-1 block text-xs font-medium uppercase text-slate-500">Observacao</span>
+                  <span className="mb-1 block text-xs font-medium uppercase text-slate-500">Observação</span>
                   <textarea
                     rows={3}
                     value={fecharForm.observacao}

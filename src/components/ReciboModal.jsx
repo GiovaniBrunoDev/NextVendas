@@ -3,6 +3,7 @@ import { X, Printer } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import useModalPresence from "../hooks/useModalPresence";
 import useLojaConfiguracoes from "../hooks/useLojaConfiguracoes";
+import { formatDateOnly } from "../utils/dateOnly";
 
 const moeda = (valor) =>
   Number(valor || 0).toLocaleString("pt-BR", {
@@ -25,11 +26,7 @@ const formatarDataHora = (valor) => {
 };
 
 const formatarData = (valor) => {
-  if (!valor) return "-";
-  const data = new Date(valor);
-  if (Number.isNaN(data.getTime())) return "-";
-
-  return data.toLocaleDateString("pt-BR");
+  return formatDateOnly(valor);
 };
 
 function normalizarItens(registro) {

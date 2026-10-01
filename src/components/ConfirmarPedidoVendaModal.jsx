@@ -248,7 +248,7 @@ export default function ConfirmarPedidoVendaModal({ pedido, aoFechar, aoConfirma
               type="button"
               onClick={confirmar}
               disabled={carregando}
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#16A34A] px-5 py-3 text-sm font-medium text-white shadow-[0_14px_26px_rgba(22,163,74,0.22)] transition hover:bg-[#0B1115] disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#168B4B] px-5 py-3 text-sm font-semibold text-white shadow-[0_10px_22px_rgba(22,139,75,0.18)] transition hover:bg-[#11743E] disabled:cursor-not-allowed disabled:opacity-60"
             >
               {carregando ? "Processando..." : "Lançar venda"}
               {!carregando && <FaCheckCircle />}

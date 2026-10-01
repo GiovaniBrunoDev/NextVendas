@@ -166,8 +166,8 @@ export default function SuperAdmin() {
       } else {
         setUsuarios([]);
         const mensagem = usuariosRes.reason?.response?.status === 404
-          ? "A gestao de usuarios ainda nao esta disponivel neste backend."
-          : usuariosRes.reason?.response?.data?.error || "Nao foi possivel carregar os usuarios.";
+          ? "A gestão de usuários ainda não está disponível neste backend."
+          : usuariosRes.reason?.response?.data?.error || "Não foi possível carregar os usuários.";
         setUsuariosErro(mensagem);
         toast.warn(mensagem);
       }
@@ -352,7 +352,7 @@ export default function SuperAdmin() {
             <input
               value={busca}
               onChange={(e) => setBusca(e.target.value)}
-              placeholder="Buscar loja, usuário, email ou slug"
+              placeholder="Buscar loja, usuário, e-mail ou slug"
               className="min-h-10 w-full rounded-lg border border-slate-200 bg-white pl-9 pr-3 text-base outline-none focus:border-slate-400 sm:text-sm"
             />
           </label>
@@ -396,7 +396,7 @@ export default function SuperAdmin() {
                   </div>
                   <p className="mt-1 text-sm text-slate-500">{loja.slug}</p>
                   <p className="mt-1 text-xs text-slate-500">
-                    {loja.email || "Sem email"} · {loja.telefone || "Sem telefone"}
+                    {loja.email || "Sem e-mail"} · {loja.telefone || "Sem telefone"}
                   </p>
                 </div>
 
@@ -446,7 +446,7 @@ export default function SuperAdmin() {
                   <AlertTriangle size={18} />
                 </span>
                 <div>
-                  <h2 className="text-sm font-semibold text-slate-950">Usuarios indisponiveis no momento</h2>
+                  <h2 className="text-sm font-semibold text-slate-950">Usuários indisponíveis no momento</h2>
                   <p className="mt-1 text-sm text-slate-500">{usuariosErro}</p>
                 </div>
               </div>
@@ -547,7 +547,7 @@ export default function SuperAdmin() {
             </h2>
             <form onSubmit={criarConvite} className="grid gap-3">
               <input value={nomeLoja} onChange={(e) => setNomeLoja(e.target.value)} placeholder="Nome da loja" className={inputClass} required />
-              <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email do dono" type="email" className={inputClass} />
+              <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="E-mail do dono" type="email" className={inputClass} />
               <div className="grid gap-3 sm:grid-cols-[1fr_140px]">
                 <select value={planoId} onChange={(e) => setPlanoId(e.target.value)} className={inputClass}>
                   <option value="">Sem plano</option>
@@ -571,7 +571,7 @@ export default function SuperAdmin() {
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <p className="font-semibold text-slate-950">{convite.nomeLoja}</p>
-                      <p className="mt-1 text-xs text-slate-500">{convite.email || "Sem email definido"}</p>
+                      <p className="mt-1 text-xs text-slate-500">{convite.email || "Sem e-mail definido"}</p>
                     </div>
                     <StatusBadge status={convite.status} />
                   </div>

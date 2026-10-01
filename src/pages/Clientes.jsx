@@ -23,12 +23,6 @@ function enderecoCompleto(cliente) {
   return [cliente.endereco, cliente.bairro, cliente.cidade, cliente.estado, cliente.cep].filter(Boolean).join(", ");
 }
 
-const moeda = (valor) =>
-  Number(valor || 0).toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-  });
-
 function dataCurta(valor) {
   if (!valor) return "Sem compras";
   const data = new Date(valor);
@@ -106,9 +100,9 @@ export default function Clientes() {
       total: clientes.length,
       comTelefone: clientes.filter((cliente) => cliente.telefone).length,
       comEndereco: clientes.filter((cliente) => enderecoCurto(cliente)).length,
-      compraram: new Set(vendas.map((venda) => venda.clienteId).filter(Boolean)).size,
+      compraram: clientes.filter((cliente) => cliente.ultimaCompra).length,
     }),
-    [clientes, vendas]
+    [clientes]
   );
 
   const historicoPorCliente = useMemo(() => {
@@ -117,12 +111,8 @@ export default function Clientes() {
     vendas.forEach((venda) => {
       if (!venda.clienteId) return;
       const atual = mapa.get(venda.clienteId) || {
-        compras: 0,
-        total: 0,
         ultimaCompra: null,
       };
-      atual.compras += 1;
-      atual.total += Number(venda.total || 0);
       if (!atual.ultimaCompra || new Date(venda.data) > new Date(atual.ultimaCompra)) {
         atual.ultimaCompra = venda.data;
       }
@@ -138,7 +128,7 @@ export default function Clientes() {
         <div>
           <h1 className="text-2xl font-semibold text-slate-950">Clientes</h1>
           <p className="mt-1 text-sm text-slate-500">
-            Cadastre contatos, endereco de entrega e observacoes uteis para venda e pedido.
+            Cadastre contatos, endereço de entrega e observações úteis para vendas e pedidos.
           </p>
         </div>
         <button onClick={abrirNovoCliente} className="inline-flex items-center justify-center gap-2 rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700">
@@ -170,7 +160,7 @@ export default function Clientes() {
             <input
               value={busca}
               onChange={(e) => setBusca(e.target.value)}
-              placeholder="Buscar por nome, telefone ou endereco"
+              placeholder="Buscar por nome, telefone ou endereço"
               className="w-full rounded-lg border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-3 text-sm outline-none transition placeholder:text-slate-400 focus:border-slate-400 focus:bg-white"
             />
           </label>
@@ -194,11 +184,8 @@ export default function Clientes() {
                 const enderecoMapa = enderecoCompleto(cliente);
                 const whatsapp = whatsappUrl(cliente.telefone);
                 const historico = historicoPorCliente.get(cliente.id) || {
-                  compras: 0,
-                  total: 0,
                   ultimaCompra: null,
                 };
-                const ticketMedio = historico.compras ? historico.total / historico.compras : 0;
 
                 return (
                   <article key={cliente.id} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-[0_14px_30px_rgba(15,23,42,0.07)]">
@@ -233,15 +220,14 @@ export default function Clientes() {
                       </p>
                     </div>
 
-                    <div className="mt-4 grid grid-cols-3 gap-2">
-                      <ClientMetric label="Compras" value={historico.compras} />
-                      <ClientMetric label="Total" value={moeda(historico.total)} />
-                      <ClientMetric label="Ticket" value={moeda(ticketMedio)} />
-                    </div>
-
                     <div className="mt-3 flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-500">
                       <CalendarDays size={14} />
-                      <span>Última compra: <strong className="font-semibold text-slate-700">{dataCurta(historico.ultimaCompra)}</strong></span>
+                      <span>
+                        Última compra: {" "}
+                        <strong className="font-semibold text-slate-700">
+                          {dataCurta(cliente.ultimaCompra || historico.ultimaCompra)}
+                        </strong>
+                      </span>
                     </div>
 
                     {cliente.observacoes && (
@@ -290,17 +276,6 @@ export default function Clientes() {
           }}
         />
       )}
-    </div>
-  );
-}
-
-function ClientMetric({ label, value }) {
-  return (
-    <div className="min-w-0 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-2">
-      <p className="text-[10px] font-semibold uppercase text-slate-400">{label}</p>
-      <p className="mt-0.5 truncate text-xs font-semibold text-slate-950" title={String(value)}>
-        {value}
-      </p>
     </div>
   );
 }

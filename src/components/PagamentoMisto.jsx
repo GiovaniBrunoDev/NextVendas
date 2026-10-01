@@ -15,8 +15,8 @@ const numero = (valor) => {
 export const formasPagamentoMisto = [
   { value: "dinheiro", label: "Dinheiro" },
   { value: "pix", label: "Pix" },
-  { value: "debito", label: "Debito" },
-  { value: "credito", label: "Credito" },
+  { value: "debito", label: "Débito" },
+  { value: "credito", label: "Crédito" },
   { value: "a_prazo", label: "A prazo" },
 ];
 
@@ -53,7 +53,7 @@ export function resumoPagamentos(pagamentos) {
   normalizarPagamentosPayload(pagamentos).forEach((pagamento) => {
     labels.add(formasPagamentoMisto.find((item) => item.value === pagamento.forma)?.label || pagamento.forma);
   });
-  return Array.from(labels).join(" + ") || "Nao informado";
+  return Array.from(labels).join(" + ") || "Não informado";
 }
 
 export default function PagamentoMisto({ total, pagamentos, onChange, parcelasMax = 6 }) {

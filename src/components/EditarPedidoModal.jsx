@@ -3,6 +3,7 @@ import { CalendarDays, PackagePlus, Plus, Save, Trash2, Truck, UserRound, X } fr
 import { toast } from "react-toastify";
 import api from "../services/api";
 import useModalPresence from "../hooks/useModalPresence";
+import { dateOnlyKey } from "../utils/dateOnly";
 
 const inputClass =
   "w-full rounded-lg border border-[#E5DED2] bg-[#FFFEFA] px-3 py-2.5 text-base outline-none transition placeholder:text-slate-400 focus:border-[#16A34A] focus:bg-white sm:text-sm";
@@ -23,14 +24,7 @@ function numero(valor, fallback = 0) {
 }
 
 function dataInput(value) {
-  if (!value) return "";
-  const data = new Date(value);
-  if (Number.isNaN(data.getTime())) return "";
-
-  const ano = data.getFullYear();
-  const mes = String(data.getMonth() + 1).padStart(2, "0");
-  const dia = String(data.getDate()).padStart(2, "0");
-  return `${ano}-${mes}-${dia}`;
+  return dateOnlyKey(value);
 }
 
 function itemPedidoParaForm(item) {
@@ -216,7 +210,7 @@ export default function EditarPedidoModal({ pedido, aoFechar, aoSalvar, carregan
                     onChange={(event) => atualizarForm("clienteId", event.target.value)}
                     className={inputClass}
                   >
-                    <option value="">Cliente nao informado</option>
+                    <option value="">Cliente não informado</option>
                     {clientes.map((cliente) => (
                       <option key={cliente.id} value={cliente.id}>
                         {cliente.nome}
@@ -236,7 +230,7 @@ export default function EditarPedidoModal({ pedido, aoFechar, aoSalvar, carregan
                     />
                   </label>
                   <label>
-                    <span className={labelClass}>Horario</span>
+                    <span className={labelClass}>Horário</span>
                     <input
                       type="time"
                       value={form.horarioEntrega}
@@ -278,11 +272,11 @@ export default function EditarPedidoModal({ pedido, aoFechar, aoSalvar, carregan
                 {form.tipoEntrega === "entrega" && (
                   <div className="grid grid-cols-1 gap-3">
                     <label>
-                      <span className={labelClass}>Endereco</span>
+                      <span className={labelClass}>Endereço</span>
                       <input
                         value={form.endereco}
                         onChange={(event) => atualizarForm("endereco", event.target.value)}
-                        placeholder="Rua, numero, bairro"
+                        placeholder="Rua, número, bairro"
                         className={inputClass}
                       />
                     </label>
@@ -301,7 +295,7 @@ export default function EditarPedidoModal({ pedido, aoFechar, aoSalvar, carregan
                 )}
 
                 <label>
-                  <span className={labelClass}>Observacoes</span>
+                  <span className={labelClass}>Observações</span>
                   <textarea
                     rows={4}
                     value={form.observacoes}

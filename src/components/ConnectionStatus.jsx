@@ -50,12 +50,12 @@ export default function ConnectionStatus() {
         </span>
 
         <p className="mt-5 text-lg font-semibold text-slate-950">
-          {recarregando ? "Conexao restabelecida" : "Sem conexao com a internet"}
+          {recarregando ? "Conexão restabelecida" : "Sem conexão com a internet"}
         </p>
         <p className="mt-2 text-sm leading-6 text-slate-500">
           {recarregando
-            ? "Estamos atualizando esta tela para sincronizar as informacoes."
-            : "Verifique sua rede. Assim que a conexao voltar, esta pagina sera atualizada automaticamente."}
+            ? "Estamos atualizando esta tela para sincronizar as informações."
+            : "Verifique sua rede. Assim que a conexão voltar, esta página será atualizada automaticamente."}
         </p>
       </div>
     </div>

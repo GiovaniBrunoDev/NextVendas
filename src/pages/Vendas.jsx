@@ -420,7 +420,7 @@ export default function Vendas() {
 
             <div className="grid grid-cols-1 gap-2">
               <button
-                className="lojia-primary-action px-4 py-3 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-50"
+                className="rounded-lg bg-[#168B4B] px-4 py-3 text-sm font-semibold text-white shadow-[0_8px_18px_rgba(22,139,75,0.18)] transition hover:bg-[#11743E] disabled:cursor-not-allowed disabled:opacity-50"
                 onClick={() => setMostrarFinalizarModal(true)}
                 disabled={carrinho.length === 0}
               >
@@ -428,7 +428,7 @@ export default function Vendas() {
               </button>
 
               <button
-                className="lojia-ghost-action px-4 py-3 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-50"
+                className="rounded-lg bg-[#0B1115] px-4 py-3 text-sm font-semibold text-white shadow-[0_8px_18px_rgba(11,17,21,0.14)] transition hover:bg-[#172228] disabled:cursor-not-allowed disabled:opacity-50"
                 onClick={() => setMostrarPedidoModal(true)}
                 disabled={carrinho.length === 0}
               >

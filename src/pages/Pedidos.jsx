@@ -21,6 +21,7 @@ import ReciboModal from "../components/ReciboModal";
 import ConfirmarPedidoVendaModal from "../components/ConfirmarPedidoVendaModal";
 import EditarPedidoModal from "../components/EditarPedidoModal";
 import { useAuth } from "../contexts/AuthContext";
+import { dateOnlyKey, formatDateOnly } from "../utils/dateOnly";
 
 function moeda(valor) {
   return Number(valor || 0).toLocaleString("pt-BR", {
@@ -29,25 +30,8 @@ function moeda(valor) {
   });
 }
 
-function dataKey(date) {
-  const valor = date instanceof Date ? date : new Date(date);
-  if (Number.isNaN(valor.getTime())) return "";
-
-  const ano = valor.getFullYear();
-  const mes = String(valor.getMonth() + 1).padStart(2, "0");
-  const dia = String(valor.getDate()).padStart(2, "0");
-  return `${ano}-${mes}-${dia}`;
-}
-
 function formatarData(value) {
-  if (!value) return "Sem data";
-  const data = new Date(value);
-  if (Number.isNaN(data.getTime())) return "Sem data";
-
-  return data.toLocaleDateString("pt-BR", {
-    day: "2-digit",
-    month: "short",
-  });
+  return formatDateOnly(value, { day: "2-digit", month: "short" }, "Sem data");
 }
 
 function googleMapsUrl(endereco) {
@@ -152,12 +136,12 @@ export default function Pedidos() {
     carregarPedidos();
   }, []);
 
-  const hoje = dataKey(new Date());
+  const hoje = dateOnlyKey(new Date());
 
   const pedidosComGrupo = useMemo(
     () =>
       pedidos.map((pedido) => {
-        const chaveEntrega = pedido.dataEntrega ? dataKey(pedido.dataEntrega) : "";
+        const chaveEntrega = pedido.dataEntrega ? dateOnlyKey(pedido.dataEntrega) : "";
         let grupo = "semData";
 
         if (chaveEntrega) {
@@ -350,37 +334,39 @@ export default function Pedidos() {
             <p className="text-xl font-semibold text-slate-950">{moeda(pedido.total)}</p>
           </div>
 
-          <div className="flex gap-2">
-            <button
-              onClick={() => setRecibo({ tipo: "pedido", registro: pedido })}
-              title="Gerar recibo"
-              className="lojia-ghost-action inline-flex items-center justify-center px-3 py-2 text-slate-600"
-            >
-              <ReceiptText size={16} />
-            </button>
-            <button
-              onClick={() => setPedidoParaEditar(pedido)}
-              disabled={processando || cancelado}
-              title="Editar pedido"
-              className="lojia-ghost-action inline-flex items-center justify-center px-3 py-2 text-slate-600 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              <PencilLine size={16} />
-            </button>
+          <div className="w-full sm:w-auto sm:min-w-[190px]">
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setRecibo({ tipo: "pedido", registro: pedido })}
+                title="Gerar recibo"
+                className="lojia-ghost-action inline-flex h-10 w-10 items-center justify-center text-slate-600"
+              >
+                <ReceiptText size={16} />
+              </button>
+              <button
+                onClick={() => setPedidoParaEditar(pedido)}
+                disabled={processando || cancelado}
+                title="Editar pedido"
+                className="lojia-ghost-action inline-flex h-10 w-10 items-center justify-center text-slate-600 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <PencilLine size={16} />
+              </button>
+              <button
+                onClick={() => cancelarPedido(pedido.id)}
+                disabled={processando || cancelado}
+                title="Cancelar pedido"
+                className="lojia-ghost-action inline-flex h-10 w-10 items-center justify-center text-slate-600 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <PackageX size={16} />
+              </button>
+            </div>
             <button
               onClick={() => setPedidoParaConfirmar(pedido)}
               disabled={processando || !podeFinalizar}
-              className="lojia-primary-action inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-50"
+              className="mt-2 inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-lg bg-[#168B4B] px-4 py-2 text-sm font-semibold text-white shadow-[0_8px_18px_rgba(22,139,75,0.16)] transition hover:bg-[#11743E] disabled:cursor-not-allowed disabled:opacity-50"
             >
               <CheckCircle2 size={16} />
               Confirmar venda
-            </button>
-            <button
-              onClick={() => cancelarPedido(pedido.id)}
-              disabled={processando || cancelado}
-              title="Cancelar pedido"
-              className="lojia-ghost-action inline-flex items-center justify-center px-3 py-2 text-slate-600 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              <PackageX size={16} />
             </button>
           </div>
         </div>

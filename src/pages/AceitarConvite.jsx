@@ -30,7 +30,7 @@ export default function AceitarConvite() {
         setConvite(data);
         setEmail(data.email || "");
       } catch (err) {
-        toast.error(err.response?.data?.error || "Convite invalido.");
+        toast.error(err.response?.data?.error || "Convite inválido.");
       } finally {
         setCarregando(false);
       }
@@ -59,7 +59,7 @@ export default function AceitarConvite() {
   }
 
   if (!convite) {
-    return <main className="lojia-shell grid min-h-screen place-items-center font-bold text-[#0B1115]">Convite indisponivel.</main>;
+    return <main className="lojia-shell grid min-h-screen place-items-center font-bold text-[#0B1115]">Convite indisponível.</main>;
   }
 
   return (
@@ -75,7 +75,7 @@ export default function AceitarConvite() {
         <h1 className="mt-2 text-3xl font-black">{convite.nomeLoja}</h1>
         <div className="mt-5 space-y-3 text-sm text-white/[0.72]">
           <p className="flex items-center gap-2">
-            <Mail size={16} /> {convite.email || "Email livre para cadastro"}
+            <Mail size={16} /> {convite.email || "E-mail livre para cadastro"}
           </p>
           <p className="flex items-center gap-2">
             <CalendarClock size={16} /> Expira em {formatDate(convite.expiraEm)}
@@ -88,7 +88,7 @@ export default function AceitarConvite() {
           <div className="mb-6">
             <p className="mb-1 text-xs font-bold uppercase text-[#0B1115]">Criar acesso</p>
             <h2 className="text-2xl font-black text-[#0B1115]">Finalize seu cadastro</h2>
-            <p className="mt-1 text-sm text-[#66736D]">Este usuario sera vinculado a loja convidada.</p>
+            <p className="mt-1 text-sm text-[#66736D]">Este usuário será vinculado à loja convidada.</p>
           </div>
 
           <label className="mb-3 block">

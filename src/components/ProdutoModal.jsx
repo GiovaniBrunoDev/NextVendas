@@ -25,9 +25,9 @@ const API_KEY = "6371650aa50b8af82e574e8022553613";
 
 const etapas = [
   { key: "dados", label: "Dados", title: "Dados do produto" },
-  { key: "midia", label: "Midia", title: "Midia do produto" },
+  { key: "midia", label: "Mídia", title: "Mídia do produto" },
   { key: "grade", label: "Grade", title: "Grade e estoque" },
-  { key: "revisao", label: "Revisao", title: "Revisao final" },
+  { key: "revisao", label: "Revisão", title: "Revisão final" },
 ];
 
 const generos = [
@@ -123,8 +123,8 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
     const custo = numeroFormulario(form.custoUnitario);
 
     if (!form.nome.trim()) erros.nome = "Informe o nome do produto.";
-    if (preco === null || preco <= 0) erros.preco = "Informe o preco de venda.";
-    if (custo === null || custo < 0) erros.custoUnitario = "Informe o custo unitario.";
+    if (preco === null || preco <= 0) erros.preco = "Informe o preço de venda.";
+    if (custo === null || custo < 0) erros.custoUnitario = "Informe o custo unitário.";
 
     return erros;
   }, [form.custoUnitario, form.nome, form.preco]);
@@ -197,7 +197,7 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
         const gerador = QRCode?.default || QRCode;
         const gerarDataUrl = gerador?.toDataURL;
         const gerarSvg = gerador?.toString;
-        if (!gerarDataUrl && !gerarSvg) throw new Error("Gerador de QR Code indisponivel.");
+        if (!gerarDataUrl && !gerarSvg) throw new Error("Gerador de QR Code indisponível.");
 
         const opcoes = {
           width: 180,
@@ -384,7 +384,7 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
     }
 
     if (indice === 2 && variacoesValidas.length === 0) {
-      toast.error("Adicione ao menos uma numeracao.");
+      toast.error("Adicione ao menos uma numeração.");
       return false;
     }
 
@@ -493,7 +493,7 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
           </label>
 
           <label>
-            <span className={labelClass}>Genero</span>
+            <span className={labelClass}>Gênero</span>
             <select name="genero" value={form.genero} onChange={handleChange} className={inputClass}>
               {generos.map((genero) => (
                 <option key={genero.value} value={genero.value}>
@@ -667,7 +667,7 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
               <div className="flex h-full min-h-[156px] flex-col items-center justify-center">
                 <CheckCircle2 className="text-[#16A34A]" size={28} />
                 <p className="mt-3 text-sm font-semibold text-slate-950">Foto recebida do celular</p>
-                <p className="mt-1 text-xs text-slate-500">Ela ja foi colocada na previa do produto.</p>
+                <p className="mt-1 text-xs text-slate-500">Ela já foi colocada na prévia do produto.</p>
                 <button
                   type="button"
                   onClick={iniciarUploadCelular}
@@ -700,7 +700,7 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
             <label className="rounded-lg border border-dashed border-[#E5DED2] bg-[#FFFEFA]/70 p-4 text-center transition hover:bg-white">
               <ImagePlus className="mx-auto text-[#16A34A]" />
               <span className="mt-2 block text-sm font-semibold text-slate-950">Video do catalogo</span>
-              <span className="mt-1 block text-xs text-slate-500">Disponivel para a loja principal</span>
+              <span className="mt-1 block text-xs text-slate-500">Disponível para a loja principal</span>
               <input type="file" accept="video/*" onChange={handleSelecionarVideo} className="hidden" />
             </label>
           )}
@@ -709,10 +709,10 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {imagemPreview ? (
             <div>
-              <p className={labelClass}>Previa da imagem</p>
+              <p className={labelClass}>Prévia da imagem</p>
               <img
                 src={imagemPreview}
-                alt="Previa"
+                alt="Prévia"
                 className="h-28 w-full rounded-lg border border-slate-200 bg-white object-contain p-2 sm:h-32"
               />
             </div>
@@ -928,7 +928,7 @@ export default function ProdutoModal({ aoFechar, aoCadastrar }) {
                   disabled={!podeAvancarEtapa}
                   className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#0B1115] px-5 py-3 text-sm font-medium text-white shadow-[0_14px_26px_rgba(24,31,36,0.16)] transition hover:bg-[#131C22] disabled:cursor-not-allowed disabled:border disabled:border-slate-200 disabled:bg-slate-100 disabled:text-slate-400 disabled:shadow-none disabled:hover:bg-slate-100"
                 >
-                  Proximo <ArrowRight size={14} />
+                  Próximo <ArrowRight size={14} />
                 </button>
               )}
             </div>

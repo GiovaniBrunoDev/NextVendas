@@ -86,14 +86,21 @@ export default function SidebarLayout({ children, setTela }) {
   const itensPermitidos = menuItems.filter((item) => {
     if (item.key === "superadmin") return usuario?.superadmin;
     if (acessoRestritoVendas) {
-      return ["dashboard", "vendas", "pedidos", "historico", "estoque", "produtos"].includes(item.key);
+      return ["dashboard", "vendas", "pedidos", "historico", "clientes", "estoque", "produtos"].includes(item.key);
     }
     return acessoPorPerfil[item.key]?.includes(papel);
   });
 
   const contaAtiva = telaAtiva === "minha-conta";
 
-  const itensMobile = ["dashboard", "vendas", "pedidos", "historico", "estoque", "produtos"]
+  const itensMobile = [
+    "dashboard",
+    "vendas",
+    "pedidos",
+    "historico",
+    "estoque",
+    "produtos",
+  ]
     .map((key) => itensPermitidos.find((item) => item.key === key))
     .filter(Boolean);
 

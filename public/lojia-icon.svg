@@ -3,14 +3,25 @@
   <rect x="10" y="10" width="492" height="492" rx="106" stroke="#FFFFFF" stroke-opacity="0.07" stroke-width="4"/>
 
   <path
-    d="M136 108V332C136 369.555 166.445 400 204 400H390"
+    d="M140 108V332C140 369.555 170.445 400 208 400H392"
     stroke="#16A34A"
     stroke-width="76"
     stroke-linecap="round"
     stroke-linejoin="round"
   />
-  <rect x="224" y="246" width="42" height="80" rx="14" fill="#F8FAFC"/>
-  <rect x="282" y="199" width="42" height="127" rx="14" fill="#F8FAFC"/>
-  <rect x="340" y="143" width="42" height="183" rx="14" fill="#16A34A"/>
-  <circle cx="361" cy="105" r="13" fill="#F8FAFC"/>
+
+  <path
+    d="M259 190V174C259 143.072 284.072 118 315 118C345.928 118 371 143.072 371 174V190"
+    stroke="#F8FAFC"
+    stroke-width="18"
+    stroke-linecap="round"
+  />
+  <rect x="225" y="178" width="180" height="150" rx="32" fill="#F8FAFC"/>
+  <path
+    d="M270 250L300 278L360 218"
+    stroke="#16A34A"
+    stroke-width="20"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
 </svg>

@@ -83,7 +83,16 @@ function ProtectedApp() {
 
   const renderizarTela = () => {
     const acessoRestritoVendas = Boolean(lojaAtual?.vendasPropriasApenas);
-    const telasPermitidas = ["dashboard", "vendas", "pedidos", "historico", "estoque", "produtos", "minha-conta"];
+    const telasPermitidas = [
+      "dashboard",
+      "vendas",
+      "pedidos",
+      "historico",
+      "clientes",
+      "estoque",
+      "produtos",
+      "minha-conta",
+    ];
     if (acessoRestritoVendas && !telasPermitidas.includes(tela)) {
       return <Dashboard onNavigate={setTela} />;
     }

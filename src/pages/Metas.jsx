@@ -40,7 +40,7 @@ export default function Metas() {
         <div className="grid gap-3 md:grid-cols-[1fr_160px_180px_150px_auto]">
           <input
             type="text"
-            placeholder="Titulo da meta"
+            placeholder="Título da meta"
             className={inputClass}
             value={novaMeta.titulo}
             onChange={(e) => setNovaMeta({ ...novaMeta, titulo: e.target.value })}

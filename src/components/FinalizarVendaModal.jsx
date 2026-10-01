@@ -45,7 +45,7 @@ const etapas = [
   { key: "cliente", label: "Cliente", title: "Cliente da venda" },
   { key: "entrega", label: "Entrega", title: "Entrega" },
   { key: "pagamento", label: "Pagamento", title: "Pagamento" },
-  { key: "resumo", label: "Resumo", title: "Conferencia final" },
+  { key: "resumo", label: "Resumo", title: "Conferência final" },
 ];
 
 function enderecoCompleto(cliente) {
@@ -342,7 +342,7 @@ export default function FinalizarVendaModal({ carrinho, aoFechar, aoFinalizar })
               rows={3}
               value={endereco}
               onChange={(e) => setEndereco(e.target.value)}
-              placeholder="Rua, numero, bairro, cidade"
+              placeholder="Rua, número, bairro, cidade"
               className={`${inputClass} resize-none`}
             />
           </label>
@@ -373,7 +373,7 @@ export default function FinalizarVendaModal({ carrinho, aoFechar, aoFinalizar })
         </div>
       ) : (
         <div className="rounded-xl border border-dashed border-slate-200 bg-white/70 p-4 text-sm text-slate-500">
-          Retirada selecionada. Nenhuma taxa ou endereco sera lancado na venda.
+          Retirada selecionada. Nenhuma taxa ou endereço será lançado na venda.
         </div>
       )}
     </div>
@@ -570,7 +570,7 @@ export default function FinalizarVendaModal({ carrinho, aoFechar, aoFinalizar })
                 type="button"
                 onClick={handleFinalizar}
                 disabled={carregando}
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#16A34A] px-5 py-3 text-sm font-medium text-white shadow-[0_14px_26px_rgba(22,163,74,0.22)] transition hover:bg-[#0B1115] disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#168B4B] px-5 py-3 text-sm font-semibold text-white shadow-[0_10px_22px_rgba(22,139,75,0.18)] transition hover:bg-[#11743E] disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {carregando ? "Processando..." : "Confirmar venda"}
                 {!carregando && <FaCheckCircle />}
@@ -581,7 +581,7 @@ export default function FinalizarVendaModal({ carrinho, aoFechar, aoFinalizar })
                 onClick={avancar}
                 className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#0B1115] px-5 py-3 text-sm font-medium text-white shadow-[0_14px_26px_rgba(24,31,36,0.16)] transition hover:bg-[#131C22]"
               >
-                Proximo <FaArrowRight size={12} />
+                Próximo <FaArrowRight size={12} />
               </button>
             )}
           </div>
