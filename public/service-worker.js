@@ -18,6 +18,7 @@ self.addEventListener("push", (event) => {
       url: payload.url || "/",
       tela: payload.tela || "dashboard",
       pedidoId: payload.pedidoId || null,
+      vendaId: payload.vendaId || null,
     },
   };
 

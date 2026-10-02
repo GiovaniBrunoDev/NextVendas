@@ -29,6 +29,8 @@ import ConnectionStatus from "./components/ConnectionStatus";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
+const TELAS_DE_NOTIFICACAO = ["pedidos", "historico"];
+
 function LoadingScreen() {
   return (
     <div className="lojia-gradient relative grid min-h-screen place-items-center overflow-hidden px-6">
@@ -52,7 +54,7 @@ function ProtectedApp() {
   const [tela, setTelaState] = useState(() => {
     if (typeof window === "undefined") return "dashboard";
     const telaNotificacao = new URLSearchParams(window.location.search).get("tela");
-    if (telaNotificacao === "pedidos") return telaNotificacao;
+    if (TELAS_DE_NOTIFICACAO.includes(telaNotificacao)) return telaNotificacao;
     const telaSalva = localStorage.getItem("lojia_tela_ativa") || "dashboard";
     if (["entradas", "inventario", "etiquetas"].includes(telaSalva)) return "estoque";
     if (telaSalva === "relatorios") return "dashboard";
@@ -67,7 +69,7 @@ function ProtectedApp() {
   useEffect(() => {
     const parametros = new URLSearchParams(window.location.search);
     const telaNotificacao = parametros.get("tela");
-    if (telaNotificacao !== "pedidos") return;
+    if (!TELAS_DE_NOTIFICACAO.includes(telaNotificacao)) return;
 
     localStorage.setItem("lojia_tela_ativa", telaNotificacao);
     window.history.replaceState({}, "", window.location.pathname);

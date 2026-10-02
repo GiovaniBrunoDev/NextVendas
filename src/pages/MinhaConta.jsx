@@ -114,6 +114,7 @@ export default function MinhaConta() {
       if (acessoRestritoVendas) {
         return [
           { key: "perfil", label: "Meu perfil", icon: UserRound },
+          { key: "notificacoes", label: "Notificações", icon: Bell },
           { key: "seguranca", label: "Segurança", icon: Lock },
         ];
       }
@@ -127,7 +128,7 @@ export default function MinhaConta() {
       ];
 
       if (podeEditarLoja) itens.splice(2, 0, { key: "equipe", label: "Equipe", icon: UsersRound });
-      if (podeEditarLoja) itens.splice(itens.length - 1, 0, { key: "notificacoes", label: "Notificações", icon: Bell });
+      itens.splice(itens.length - 1, 0, { key: "notificacoes", label: "Notificações", icon: Bell });
       return itens;
     },
     [acessoRestritoVendas, podeEditarLoja]
@@ -706,10 +707,10 @@ function NotificacoesPush() {
           <div className="min-w-0">
             <div className="flex items-center gap-2">
               <span className={`h-2 w-2 rounded-full ${ativo ? "bg-[#16A34A]" : "bg-slate-300"}`} />
-              <h3 className="text-sm font-semibold text-slate-950">Novos pedidos</h3>
+              <h3 className="text-sm font-semibold text-slate-950">Pedidos e vendas</h3>
             </div>
             <p className="mt-1 max-w-xl text-sm leading-6 text-slate-500">
-              Avise este dispositivo quando alguém da equipe criar um pedido.
+              Avise este dispositivo sobre novos pedidos e quando um pedido criado por você virar venda.
             </p>
           </div>
 
