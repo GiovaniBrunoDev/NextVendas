@@ -7,6 +7,8 @@ import { useAuth } from "../contexts/AuthContext";
 
 const API_BASE_URL = (api.defaults.baseURL || "").replace(/\/$/, "");
 const DOWNLOAD_CONCURRENCY = 6;
+const DOWNLOAD_DIRETO_TIMEOUT_MS = 5000;
+let usarServidorParaDownloads = false;
 
 const generoLabels = {
   feminino: "Feminino",
@@ -62,9 +64,15 @@ const extensaoPorMime = (mime = "") => {
 async function baixarBlobProduto(produto) {
   const url = imagemProduto(produto);
 
-  if (/^https?:\/\//i.test(url)) {
+  if (/^https?:\/\//i.test(url) && !usarServidorParaDownloads) {
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => controller.abort(), DOWNLOAD_DIRETO_TIMEOUT_MS);
+
     try {
-      const resposta = await fetch(url, { cache: "force-cache" });
+      const resposta = await fetch(url, {
+        cache: "force-cache",
+        signal: controller.signal,
+      });
 
       if (resposta.ok) {
         const blob = await resposta.blob();
@@ -75,13 +83,19 @@ async function baixarBlobProduto(produto) {
           };
         }
       }
+
+      usarServidorParaDownloads = true;
     } catch (err) {
       console.warn("Download direto bloqueado, tentando pelo servidor:", err);
+      usarServidorParaDownloads = true;
+    } finally {
+      window.clearTimeout(timeoutId);
     }
   }
 
   const res = await api.get(`/produtos/${produto.id}/imagem-download`, {
     responseType: "blob",
+    timeout: 30000,
   });
 
   return {
