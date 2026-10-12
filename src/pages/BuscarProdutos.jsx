@@ -61,6 +61,16 @@ const extensaoPorMime = (mime = "") => {
   return "jpg";
 };
 
+const urlContingenciaImagem = (url) => {
+  try {
+    const imagemUrl = new URL(url);
+    if (imagemUrl.hostname !== "i.ibb.co") return null;
+    return `https://wsrv.nl/?url=${encodeURIComponent(url)}&output=jpg`;
+  } catch {
+    return null;
+  }
+};
+
 async function baixarBlobProduto(produto) {
   const url = imagemProduto(produto);
 
@@ -88,6 +98,31 @@ async function baixarBlobProduto(produto) {
     } catch (err) {
       console.warn("Download direto bloqueado, tentando pelo servidor:", err);
       usarServidorParaDownloads = true;
+    } finally {
+      window.clearTimeout(timeoutId);
+    }
+  }
+
+  const urlContingencia = urlContingenciaImagem(url);
+  if (urlContingencia) {
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => controller.abort(), 20000);
+
+    try {
+      const resposta = await fetch(urlContingencia, {
+        cache: "force-cache",
+        signal: controller.signal,
+      });
+      const blob = await resposta.blob();
+
+      if (resposta.ok && blob.size > 0) {
+        return {
+          blob,
+          contentType: blob.type || resposta.headers.get("content-type") || "image/jpeg",
+        };
+      }
+    } catch (err) {
+      console.warn("Contingência de imagem indisponível, tentando pelo servidor:", err);
     } finally {
       window.clearTimeout(timeoutId);
     }
